@@ -3,11 +3,13 @@ import { HashRouter as Router, Routes, Route, Navigate } from 'react-router-dom'
 import ProtectedRoute from '@/components/ProtectedRoute';
 import { Helmet, HelmetProvider } from 'react-helmet-async';
 import { Toaster } from '@/components/ui/toaster';
-import { ProductsProvider } from '@/contexts/ProductsContext';
+import { ServicesProvider } from '@/contexts/ServicesContext';
+import { TestsProvider } from '@/contexts/TestsContext';
 
 
 
-import ProductDetailPage from '@/pages/ProductDetailPage';
+import ServiceDetailPage from '@/pages/ServiceDetailPage.jsx';
+import TestDetailPage from '@/pages/TestDetailPage.jsx';
 
 
 import AdminPage from '@/pages/AdminPage';
@@ -18,39 +20,49 @@ import NewReportPage from '@/pages/NewReportPage';
 function App() {
   return (
     <HelmetProvider>
-      <ProductsProvider>
-        <Router>
-          <Helmet>
-            <link rel="preconnect" href="https://fonts.googleapis.com" />
-            <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
-            <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
-          </Helmet>
-          <div className="min-h-screen bg-[#F5F1ED]">
-            <Routes>
-              <Route path="/" element={<AdminPage />} />
-              <Route
-                path="/new-report"
-                element={
-                  <ProtectedRoute>
-                    <NewReportPage />
-                  </ProtectedRoute>
-                }
-              />
-              <Route
-                path="/product/:id"
-                element={
-                  <ProtectedRoute>
-                    <ProductDetailPage />
-                  </ProtectedRoute>
-                }
-              />
-              {/* Redirect old admin route to root */}
-              <Route path="/admin" element={<Navigate to="/" replace />} />
-            </Routes>
-            <Toaster />
-          </div>
-        </Router>
-      </ProductsProvider>
+      <ServicesProvider>
+        <TestsProvider>
+          <Router>
+            <Helmet>
+              <link rel="preconnect" href="https://fonts.googleapis.com" />
+              <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
+              <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
+            </Helmet>
+            <div className="min-h-screen bg-[#F5F1ED]">
+              <Routes>
+                <Route path="/" element={<AdminPage />} />
+                <Route
+                  path="/new-report"
+                  element={
+                    <ProtectedRoute>
+                      <NewReportPage />
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="/service/:id"
+                  element={
+                    <ProtectedRoute>
+                      <ServiceDetailPage />
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="/test/:id"
+                  element={
+                    <ProtectedRoute>
+                      <TestDetailPage />
+                    </ProtectedRoute>
+                  }
+                />
+                {/* Redirect old admin route to root */}
+                <Route path="/admin" element={<Navigate to="/" replace />} />
+              </Routes>
+              <Toaster />
+            </div>
+          </Router>
+        </TestsProvider>
+      </ServicesProvider>
 
     </HelmetProvider >
   );

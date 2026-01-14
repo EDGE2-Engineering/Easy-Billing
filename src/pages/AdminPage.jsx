@@ -7,7 +7,8 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Settings, LayoutDashboard, Home, FileText, LogOut, Save, Loader2, UserCog } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 
-import AdminProductsManager from '@/components/admin/AdminProductsManager';
+import AdminServicesManager from '@/components/admin/AdminServicesManager.jsx';
+import AdminTestsManager from '@/components/admin/AdminTestsManager.jsx';
 
 import AdminSettings from '@/components/admin/AdminSettings';
 import AdminLogin from '@/components/admin/AdminLogin';
@@ -17,7 +18,7 @@ import { useToast } from '@/components/ui/use-toast';
 import { supabase } from '@/lib/customSupabaseClient';
 
 const AdminPage = () => {
-  const [mainTab, setMainTab] = useState('products');
+  const [mainTab, setMainTab] = useState('services');
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [checkingAuth, setCheckingAuth] = useState(true);
   const [isPasswordRecovery, setIsPasswordRecovery] = useState(false);
@@ -67,7 +68,7 @@ const AdminPage = () => {
     return (
       <>
         <Helmet>
-          <title>Reset Password | EDGE2 MTR</title>
+          <title>Reset Password | EDGE2 Invoicing</title>
         </Helmet>
         <UpdatePassword />
       </>
@@ -78,7 +79,7 @@ const AdminPage = () => {
     return (
       <>
         <Helmet>
-          <title>Admin Login | EDGE2 MTR</title>
+          <title>Admin Login | EDGE2 Invoicing</title>
         </Helmet>
         <AdminLogin onLoginSuccess={handleLoginSuccess} />
       </>
@@ -88,7 +89,7 @@ const AdminPage = () => {
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col">
       <Helmet>
-        <title>Admin Dashboard | EDGE2 MTR</title>
+        <title>Admin Dashboard | EDGE2 Invoicing</title>
       </Helmet>
 
       <Navbar />
@@ -124,7 +125,8 @@ const AdminPage = () => {
               className="w-full bg-white border border-gray-200 rounded-xl px-4 py-3 text-gray-900 font-medium focus:ring-2 focus:ring-primary focus:border-primary transition-all shadow-sm outline-none appearance-none"
             >
 
-              <option value="products">Reports</option>
+              <option value="tabs">Services</option>
+              <option value="tests">Tests</option>
 
               <option value="settings">Security</option>
             </select>
@@ -140,10 +142,17 @@ const AdminPage = () => {
             <TabsList className="bg-white p-1 border border-gray-200 rounded-xl shadow-sm h-auto inline-flex">
 
               <TabsTrigger
-                value="products"
+                value="services"
                 className="px-6 py-3 rounded-xl data-[state=active]:bg-primary data-[state=active]:text-white transition-all flex items-center gap-2"
               >
-                <Home className="w-4 h-4" /> Reports
+                <Home className="w-4 h-4" /> Services
+              </TabsTrigger>
+
+              <TabsTrigger
+                value="tests"
+                className="px-6 py-3 rounded-xl data-[state=active]:bg-primary data-[state=active]:text-white transition-all flex items-center gap-2"
+              >
+                <FileText className="w-4 h-4" /> Tests
               </TabsTrigger>
 
               <TabsTrigger
@@ -157,8 +166,12 @@ const AdminPage = () => {
 
 
 
-          <TabsContent value="products" className="focus-visible:outline-none animate-in fade-in slide-in-from-bottom-2 duration-500">
-            <AdminProductsManager />
+          <TabsContent value="services" className="focus-visible:outline-none animate-in fade-in slide-in-from-bottom-2 duration-500">
+            <AdminServicesManager />
+          </TabsContent>
+
+          <TabsContent value="tests" className="focus-visible:outline-none animate-in fade-in slide-in-from-bottom-2 duration-500">
+            <AdminTestsManager />
           </TabsContent>
 
 

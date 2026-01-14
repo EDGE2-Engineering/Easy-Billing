@@ -1,11 +1,11 @@
 
 export const initialSiteContent = {
   global: {
-    siteName: "EDGE2 - MTR",
+    siteName: "EDGE2 - Invoicing",
     contactPhone: "+919999999999",
     contactEmail: "edge2@gmail.com",
-    address: "EDGE2 - MTR, Karnataka",
-    footerAbout: "EDGE2 - MTR"
+    address: "EDGE2 - Invoicing, Karnataka",
+    footerAbout: "EDGE2 - Invoicing"
   },
 };
 

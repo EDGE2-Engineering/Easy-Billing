@@ -29,10 +29,10 @@ const Navbar = () => {
               <ClipboardCheck className="w-8 h-8" />
             </span>
             <span className="text-xl font-bold text-gray-900 hidden sm:inline-block">
-              {content.global?.siteName || "EDGE2 MTR"}
+              {content.global?.siteName || "EDGE2 Invoicing"}
             </span>
             <span className="text-sm font-bold text-gray-900 sm:hidden">
-              {content.global?.siteName || "EDGE2 MTR"}
+              {content.global?.siteName || "EDGE2 Invoicing"}
             </span>
           </Link>
 

@@ -1,4 +1,4 @@
-# EDGE2 MTR
+# EDGE2 Invoicing
 
 - Create a Supabase project
 - Run `setup.sql` on Supabase. Go to your Supabase project -> SQL Editor -> Run SQL

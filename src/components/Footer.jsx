@@ -14,7 +14,7 @@ const Footer = () => {
           <div>
             <div className="flex items-center space-x-2 mb-4">
               <ClipboardCheck className="w-8 h-8" />
-              <span className="text-xl font-bold">{content.global?.siteName || "EDGE2 MTR"}</span>
+              <span className="text-xl font-bold">{content.global?.siteName || "EDGE2 Invoicing"}</span>
             </div>
             <p className="text-gray-400 mb-4 text-sm leading-relaxed">
               {content.global?.footerAbout}
