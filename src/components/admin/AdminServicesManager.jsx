@@ -7,6 +7,13 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useToast } from '@/components/ui/use-toast';
 import {
+    Select,
+    SelectContent,
+    SelectItem,
+    SelectTrigger,
+    SelectValue,
+} from "@/components/ui/select";
+import {
     AlertDialog,
     AlertDialogAction,
     AlertDialogCancel,
@@ -42,7 +49,10 @@ const AdminServicesManager = () => {
             serviceType: '',
             price: 0,
             unit: '',
-            qty: 1
+            qty: 1,
+            methodOfSampling: 'NA',
+            numBHs: 0,
+            measure: 'NA'
         });
         setIsAddingNew(true);
     };
@@ -187,6 +197,51 @@ const AdminServicesManager = () => {
                             onChange={(e) => handleChange('qty', Number(e.target.value))}
                         />
                     </div>
+
+                    <div className="space-y-2">
+                        <Label>Method of Sampling</Label>
+                        <Select
+                            value={editingService.methodOfSampling || 'NA'}
+                            onValueChange={(value) => handleChange('methodOfSampling', value)}
+                        >
+                            <SelectTrigger>
+                                <SelectValue placeholder="Select method" />
+                            </SelectTrigger>
+                            <SelectContent>
+                                <SelectItem value="Rotary">Rotary</SelectItem>
+                                <SelectItem value="Hydraulic">Hydraulic</SelectItem>
+                                <SelectItem value="Calyx">Calyx</SelectItem>
+                                <SelectItem value="NA">NA</SelectItem>
+                            </SelectContent>
+                        </Select>
+                    </div>
+
+                    <div className="space-y-2">
+                        <Label>Number of BHs</Label>
+                        <Input
+                            type="number"
+                            min="0"
+                            value={editingService.numBHs ?? 0}
+                            onChange={(e) => handleChange('numBHs', Number(e.target.value))}
+                        />
+                    </div>
+
+                    <div className="space-y-2">
+                        <Label>Measure</Label>
+                        <Select
+                            value={editingService.measure || 'NA'}
+                            onValueChange={(value) => handleChange('measure', value)}
+                        >
+                            <SelectTrigger>
+                                <SelectValue placeholder="Select measure" />
+                            </SelectTrigger>
+                            <SelectContent>
+                                <SelectItem value="Per BH">Per BH</SelectItem>
+                                <SelectItem value="Per Sample">Per Sample</SelectItem>
+                                <SelectItem value="NA">NA</SelectItem>
+                            </SelectContent>
+                        </Select>
+                    </div>
                 </div>
             </div>
         );
@@ -231,6 +286,9 @@ const AdminServicesManager = () => {
                             <th className="text-left py-3 px-4 font-semibold text-sm text-gray-600">Service Type</th>
                             <th className="text-left py-3 px-4 font-semibold text-sm text-gray-600">Price</th>
                             <th className="text-left py-3 px-4 font-semibold text-sm text-gray-600">Unit</th>
+                            <th className="text-left py-3 px-4 font-semibold text-sm text-gray-600">Method</th>
+                            <th className="text-left py-3 px-4 font-semibold text-sm text-gray-600"># BHs</th>
+                            <th className="text-left py-3 px-4 font-semibold text-sm text-gray-600">Measure</th>
                             <th className="text-right py-3 px-4 font-semibold text-sm text-gray-600">Actions</th>
                         </tr>
                     </thead>
@@ -242,6 +300,9 @@ const AdminServicesManager = () => {
                                 </td>
                                 <td className="py-3 px-4 text-gray-700">₹{service.price.toLocaleString()}</td>
                                 <td className="py-3 px-4 text-gray-600">{service.unit}</td>
+                                <td className="py-3 px-4 text-gray-600">{service.methodOfSampling || 'NA'}</td>
+                                <td className="py-3 px-4 text-gray-600">{service.numBHs ?? 0}</td>
+                                <td className="py-3 px-4 text-gray-600">{service.measure || 'NA'}</td>
                                 <td className="py-3 px-4 text-right">
                                     <div className="flex justify-end space-x-2">
                                         <Button variant="ghost" size="icon" onClick={() => handleEdit(service)}>

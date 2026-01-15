@@ -16,6 +16,9 @@ create table public.services (
   unit text,
   price numeric default 0,
   qty numeric default 1,
+  method_of_sampling text default 'NA',
+  num_bhs numeric default 0,
+  measure text default 'NA',
   created_at timestamptz default now(),
   updated_at timestamptz default now()
 );

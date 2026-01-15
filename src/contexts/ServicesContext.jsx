@@ -18,6 +18,9 @@ export const ServicesProvider = ({ children }) => {
             price: Number(s.price) || 0,
             unit: s.unit || '',
             qty: Number(s.qty) || 1,
+            methodOfSampling: s.method_of_sampling || s.methodOfSampling || 'NA',
+            numBHs: Number(s.num_bhs ?? s.numBHs ?? 0) || 0,
+            measure: s.measure || s.measureType || 'NA',
             createdAt: s.created_at || new Date().toISOString()
         };
     }, []);
@@ -27,7 +30,10 @@ export const ServicesProvider = ({ children }) => {
         service_type: s.serviceType,
         price: s.price,
         unit: s.unit,
-        qty: s.qty
+        qty: s.qty,
+        method_of_sampling: s.methodOfSampling || s.method_of_sampling || 'NA',
+        num_bhs: typeof s.numBHs === 'number' ? s.numBHs : Number(s.num_bhs ?? 0),
+        measure: s.measure || 'NA'
     }), []);
 
     const fetchServices = useCallback(async () => {
