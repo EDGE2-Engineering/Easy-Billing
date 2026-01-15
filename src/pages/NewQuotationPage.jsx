@@ -62,7 +62,7 @@ const NewQuotationPage = () => {
     const componentRef = useRef();
     const handlePrint = useReactToPrint({
         contentRef: componentRef,
-        documentTitle: `Quotation_${quoteDetails.quoteNumber}`,
+        documentTitle: `${documentType}_${quoteDetails.quoteNumber}`,
     });
 
     const handleAddItem = () => {

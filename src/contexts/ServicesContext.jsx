@@ -105,36 +105,110 @@ export const ServicesProvider = ({ children }) => {
     }, [services]);
 
     const updateService = async (updatedService) => {
+        // Store the previous state to revert if update fails
+        const previousServices = [...services];
+        
+        // Optimistically update local state
         setServices(prev => prev.map(s => s.id === updatedService.id ? updatedService : s));
+        
         try {
             const dbPayload = mapToDb(updatedService);
             const { id, ...updates } = dbPayload;
-            const { error } = await supabase.from('services').update(updates).eq('id', id);
-            if (error) console.warn("Supabase Update Failed (services):", error.message);
+            
+            // Add updated_at timestamp
+            updates.updated_at = new Date().toISOString();
+            
+            const { error, data } = await supabase
+                .from('services')
+                .update(updates)
+                .eq('id', id)
+                .select();
+            
+            if (error) {
+                console.error("Supabase Update Failed (services):", error);
+                // Revert local state on error
+                setServices(previousServices);
+                throw new Error(`Failed to update service: ${error.message}`);
+            }
+            
+            // Update local state with the returned data to ensure consistency
+            if (data && data.length > 0) {
+                const updated = mapFromDb(data[0]);
+                setServices(prev => prev.map(s => s.id === updated.id ? updated : s));
+            }
         } catch (err) {
-            console.warn("Update Service Exception:", err);
+            console.error("Update Service Exception:", err);
+            // Revert local state on error
+            setServices(previousServices);
+            throw err;
         }
     };
 
     const addService = async (newService) => {
         const tempId = newService.id || `srv_${Date.now()}`;
         const serviceWithId = { ...newService, id: tempId, created_at: new Date().toISOString() };
+        
+        // Store the previous state to revert if insert fails
+        const previousServices = [...services];
+        
+        // Optimistically update local state
         setServices(prev => [...prev, serviceWithId]);
+        
         try {
-            const { error } = await supabase.from('services').insert(mapToDb(serviceWithId));
-            if (error) console.warn("Supabase Add Failed (services):", error.message);
+            const dbPayload = mapToDb(serviceWithId);
+            dbPayload.created_at = new Date().toISOString();
+            dbPayload.updated_at = new Date().toISOString();
+            
+            const { error, data } = await supabase
+                .from('services')
+                .insert(dbPayload)
+                .select();
+            
+            if (error) {
+                console.error("Supabase Add Failed (services):", error);
+                // Revert local state on error
+                setServices(previousServices);
+                throw new Error(`Failed to add service: ${error.message}`);
+            }
+            
+            // Update local state with the returned data to ensure consistency
+            if (data && data.length > 0) {
+                const added = mapFromDb(data[0]);
+                setServices(prev => prev.map(s => s.id === tempId ? added : s));
+            }
         } catch (err) {
-            console.warn("Add Service Exception:", err);
+            console.error("Add Service Exception:", err);
+            // Revert local state on error
+            setServices(previousServices);
+            throw err;
         }
     };
 
     const deleteService = async (id) => {
+        // Store the previous state to revert if delete fails
+        const previousServices = [...services];
+        const serviceToDelete = services.find(s => s.id === id);
+        
+        // Optimistically update local state
         setServices(prev => prev.filter(s => s.id !== id));
+        
         try {
-            const { error } = await supabase.from('services').delete().eq('id', id);
-            if (error) console.warn("Supabase Delete Failed (services):", error.message);
+            const { error } = await supabase
+                .from('services')
+                .delete()
+                .eq('id', id);
+            
+            if (error) {
+                console.error("Supabase Delete Failed (services):", error);
+                // Revert local state on error
+                setServices(previousServices);
+                throw new Error(`Failed to delete service: ${error.message}`);
+            }
         } catch (err) {
-            console.warn("Delete Service Exception:", err);
+            console.error("Delete Service Exception:", err);
+            // Revert local state on error
+            setServices(previousServices);
+            throw err;
         }
     };
 
