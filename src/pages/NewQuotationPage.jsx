@@ -516,19 +516,31 @@ const NewQuotationPage = () => {
                                                             <td className="py-2 text-gray-900">
                                                                 <p className="font-medium pr-4 text-sm">{item.description}</p>
                                                                 <p className="text-xs text-gray-500 capitalize">{item.type}</p>
-                                                                {item.type === 'service' && (item.methodOfSampling || item.numBHs || item.measure) && (
-                                                                    <div className="mt-1 text-xs text-gray-400 space-y-0.5">
-                                                                        {item.methodOfSampling && item.methodOfSampling !== 'NA' && (
-                                                                            <p>Method: {item.methodOfSampling}</p>
-                                                                        )}
-                                                                        {item.numBHs && item.numBHs > 0 && (
-                                                                            <p>Number of BHs: {item.numBHs}</p>
-                                                                        )}
-                                                                        {item.measure && item.measure !== 'NA' && (
-                                                                            <p>Measure: {item.measure}</p>
-                                                                        )}
-                                                                    </div>
-                                                                )}
+                                                                {item.type === 'service' && (
+    (() => {
+        const values = [
+            item.methodOfSampling && item.methodOfSampling !== 'NA'
+                ? `Method: ${item.methodOfSampling}`
+                : null,
+
+            typeof item.numBHs === 'number' && item.numBHs > 0
+                ? `BHs: ${item.numBHs}`
+                : null,
+
+            item.measure && item.measure !== 'NA'
+                ? `Measure: ${item.measure}`
+                : null
+        ].filter(Boolean);
+
+        return values.length ? (
+            <p className="mt-1 text-xs text-gray-400">
+                {values.join('   |   ')}
+            </p>
+        ) : null;
+    })()
+)}
+
+
                                                             </td>
                                                             <td className="py-2 text-right text-gray-600 pr-4 font-medium text-xs">₹{item.price}</td>
                                                             <td className="py-2 px-2 text-right text-gray-600 pr-4 font-medium text-xs">{item.qty} {item.unit}</td>
