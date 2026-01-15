@@ -451,7 +451,7 @@ const NewQuotationPage = () => {
                                                     </div>
 
                                                     {/* Client, Contractor, Project Details - 3 Columns */}
-                                                    <div className="grid grid-cols-3 gap-6 mb-2 text-sm py-1 border-b">
+                                                    <div className="grid grid-cols-3 gap-6 mb-2 text-sm py-0 border-b">
                                                         {/* Column 1: Client */}
                                                         <div className="space-y-1">
                                                             <h3 className="text-gray-500 font-semibold uppercase tracking-wide border-b pb-1 mb-2">
