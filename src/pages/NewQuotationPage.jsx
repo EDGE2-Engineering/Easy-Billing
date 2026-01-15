@@ -391,6 +391,7 @@ const NewQuotationPage = () => {
                                     <div>
                                         <Label>Date</Label>
                                         <Input
+                                            className="text-center"
                                             type="date"
                                             value={quoteDetails.date}
                                             onChange={e => setQuoteDetails({ ...quoteDetails, date: e.target.value })}
