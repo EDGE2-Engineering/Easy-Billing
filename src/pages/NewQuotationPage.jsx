@@ -1,7 +1,7 @@
 
 import React, { useState, useRef, useEffect } from 'react';
 import { useReactToPrint } from 'react-to-print';
-import { Plus, Trash2, Printer, FileText, ArrowLeft } from 'lucide-react';
+import { Plus, Trash2, Printer, FileText, ArrowLeft, X } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
@@ -23,41 +23,123 @@ import {
     PopoverContent,
     PopoverTrigger,
 } from "@/components/ui/popover";
+import {
+    AlertDialog,
+    AlertDialogAction,
+    AlertDialogCancel,
+    AlertDialogContent,
+    AlertDialogDescription,
+    AlertDialogFooter,
+    AlertDialogHeader,
+    AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import ReactSelect from 'react-select';
 import { Check, ChevronsUpDown } from 'lucide-react';
 import { format } from 'date-fns';
+
+const STORAGE_KEY = 'quotation_draft';
 
 const NewQuotationPage = () => {
     const { services } = useServices();
     const { tests } = useTests();
 
-    const [quoteDetails, setQuoteDetails] = useState({
-        clientName: '',
-        clientAddress: '',
-        contractorName: '',
-        contractorAddress: '',
-        projectName: '',
-        projectAddress: '',
-        email: '',
-        phone: '',
-        date: format(new Date(), 'yyyy-MM-dd'),
-        quoteNumber: `EESPIL/${Math.floor(Math.random() * 10000).toString().padStart(6, '0')}`
-    });
+    // Load initial state from localStorage
+    const loadSavedState = () => {
+        try {
+            const saved = localStorage.getItem(STORAGE_KEY);
+            if (saved) {
+                const parsed = JSON.parse(saved);
+                return {
+                    quoteDetails: parsed.quoteDetails || {
+                        clientName: '',
+                        clientAddress: '',
+                        contractorName: '',
+                        contractorAddress: '',
+                        projectName: '',
+                        projectAddress: '',
+                        email: '',
+                        phone: '',
+                        date: format(new Date(), 'yyyy-MM-dd'),
+                        quoteNumber: `EESPIL/${Math.floor(Math.random() * 10000).toString().padStart(6, '0')}`
+                    },
+                    items: parsed.items || [],
+                    documentType: parsed.documentType || 'Quotation',
+                    discount: parsed.discount || 0
+                };
+            }
+        } catch (error) {
+            console.error('Error loading saved quotation:', error);
+        }
+        return {
+            quoteDetails: {
+                clientName: '',
+                clientAddress: '',
+                contractorName: '',
+                contractorAddress: '',
+                projectName: '',
+                projectAddress: '',
+                email: '',
+                phone: '',
+                date: format(new Date(), 'yyyy-MM-dd'),
+                quoteNumber: `EESPIL/${Math.floor(Math.random() * 10000).toString().padStart(6, '0')}`
+            },
+            items: [],
+            documentType: 'Quotation',
+            discount: 0
+        };
+    };
 
-    const [items, setItems] = useState([]);
+    const initialState = loadSavedState();
+
+    const [quoteDetails, setQuoteDetails] = useState(initialState.quoteDetails);
+    const [items, setItems] = useState(initialState.items);
     const [newItemType, setNewItemType] = useState('service'); // 'service' or 'test'
     const [selectedItemId, setSelectedItemId] = useState('');
     const [qty, setQty] = useState(1);
-    const [documentType, setDocumentType] = useState('Quotation'); // 'Invoice' or 'Quotation'
-    const [discount, setDiscount] = useState(0);
+    const [documentType, setDocumentType] = useState(initialState.documentType); // 'Invoice' or 'Quotation'
+    const [discount, setDiscount] = useState(initialState.discount);
     const [comboboxOpen, setComboboxOpen] = useState(false);
     const [searchValue, setSearchValue] = useState('');
+    const [clearDialogOpen, setClearDialogOpen] = useState(false);
+
+    // Save to localStorage whenever items, quoteDetails, documentType, or discount changes
+    useEffect(() => {
+        const stateToSave = {
+            quoteDetails,
+            items,
+            documentType,
+            discount
+        };
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(stateToSave));
+    }, [items, quoteDetails, documentType, discount]);
 
     // Reset selection and search when switching between Service and Test
     useEffect(() => {
         setSelectedItemId('');
         setSearchValue('');
     }, [newItemType]);
+
+    const handleClear = () => {
+        setQuoteDetails({
+            clientName: '',
+            clientAddress: '',
+            contractorName: '',
+            contractorAddress: '',
+            projectName: '',
+            projectAddress: '',
+            email: '',
+            phone: '',
+            date: format(new Date(), 'yyyy-MM-dd'),
+            quoteNumber: `EESPIL/${Math.floor(Math.random() * 10000).toString().padStart(6, '0')}`
+        });
+        setItems([]);
+        setDocumentType('Quotation');
+        setDiscount(0);
+        setSelectedItemId('');
+        setQty(1);
+        localStorage.removeItem(STORAGE_KEY);
+        setClearDialogOpen(false);
+    };
 
     const componentRef = useRef();
     const handlePrint = useReactToPrint({
@@ -191,9 +273,18 @@ const NewQuotationPage = () => {
                         </Link>
                         <h1 className="text-1xl font-bold text-gray-900">Create new {documentType}</h1>
                     </div>
-                    <Button onClick={handlePrint} className="bg-primary hover:bg-primary-dark">
-                        <Printer className="w-4 h-4 mr-2" /> Print / PDF
-                    </Button>
+                    <div className="flex items-center gap-2">
+                        <Button 
+                            variant="outline" 
+                            onClick={() => setClearDialogOpen(true)}
+                            className="text-red-600 hover:text-red-700 hover:bg-red-50 border-red-200"
+                        >
+                            <X className="w-4 h-4 mr-2" /> Clear
+                        </Button>
+                        <Button onClick={handlePrint} className="bg-primary hover:bg-primary-dark">
+                            <Printer className="w-4 h-4 mr-2" /> Print / PDF
+                        </Button>
+                    </div>
                 </div>
 
                 <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
@@ -730,6 +821,27 @@ const NewQuotationPage = () => {
                 </div>
             </div>
             <Footer />
+
+            {/* Clear Confirmation Dialog */}
+            <AlertDialog open={clearDialogOpen} onOpenChange={setClearDialogOpen}>
+                <AlertDialogContent>
+                    <AlertDialogHeader>
+                        <AlertDialogTitle className="flex items-center text-red-600">
+                            Clear {documentType}?
+                        </AlertDialogTitle>
+                        <AlertDialogDescription>
+                            Are you sure you want to clear all items and start a new {documentType.toLowerCase()}? 
+                            This action cannot be undone and all your current data will be lost.
+                        </AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <AlertDialogFooter>
+                        <AlertDialogCancel>Cancel</AlertDialogCancel>
+                        <AlertDialogAction onClick={handleClear} className="bg-red-600 hover:bg-red-700 text-white">
+                            Yes, Clear All
+                        </AlertDialogAction>
+                    </AlertDialogFooter>
+                </AlertDialogContent>
+            </AlertDialog>
         </div>
     );
 };
