@@ -116,8 +116,8 @@ const NewQuotationPage = () => {
     };
 
     // Dynamic pagination: Split items across pages
-    const ITEMS_PER_FIRST_PAGE = 8; // Conservative estimate for first page with header, client details, totals, bank details, payment terms
-    const ITEMS_PER_CONTINUATION_PAGE = 20; // More items fit on continuation pages (just header + table)
+    const ITEMS_PER_FIRST_PAGE = 5; // Very conservative - first page has header, client details, totals, bank details, payment terms
+    const ITEMS_PER_CONTINUATION_PAGE = 10; // Continuation pages have more space (just header + table)
 
     const paginateItems = () => {
         const pages = [];
@@ -558,7 +558,7 @@ const NewQuotationPage = () => {
                                                         </div>
                                                     </div>
 
-                                                    
+
                                                 </>
                                             )}
 
@@ -576,30 +576,33 @@ const NewQuotationPage = () => {
                                     <div className="a4-page-content">
                                         <div className="text-center text-gray-500 text-sm">
                                             <div className="text-left text-xs">
-                                                        <h2 className="font-semibold text-left">Bank Details:</h2>
-                                                        <p className="text-left">
-                                                            <br />
-                                                            Name: Edge2 Engineering Solutions India Pvt. Ltd.
-                                                            <br />
-                                                            A/c. No: 560321000022687
-                                                            <br />
-                                                            IFSC Code: UBIN0907634
-                                                            <br />
-                                                            Branch: Bangalore - Peenya
-                                                            <br />
-                                                            Bank: Union Bank of India	</p>
-                                                    </div>
+                                                <div className="mt-12 pt-2 text-center text-gray-500 text-sm">
+                                                    <h2 className="font-semibold text-left">Bank Details:</h2>
+                                                    <p className="text-left">
+                                                        <br />
+                                                        Name: Edge2 Engineering Solutions India Pvt. Ltd.
+                                                        <br />
+                                                        A/c. No: 560321000022687
+                                                        <br />
+                                                        IFSC Code: UBIN0907634
+                                                        <br />
+                                                        Branch: Bangalore - Peenya
+                                                        <br />
+                                                        Bank: Union Bank of India
+                                                    </p>
+                                                </div>
 
-                                                    <div className="mt-6 pt-2 border-t text-center text-gray-500 text-sm">
-                                                        <h2 className="font-semibold text-left mb-4"> Payment Terms:	</h2>
-                                                        <div className="text-left text-xs">
-                                                            <ul className="list-disc">
-                                                                <li>Advance Payment of 60% + GST(18%) along with Work order as mobilization advance.</li>
-                                                                <li>Mobilization of Men and Machines shall be done in 3-5 days after the confirmation of Advance Payment.</li>
-                                                                <li>Balance Payment to be done after completion of field work.</li>
-                                                            </ul>
-                                                        </div>
+                                                <div className="mt-6 pt-2 border-t text-center text-gray-500 text-sm">
+                                                    <h2 className="font-semibold text-left mb-4"> Payment Terms:	</h2>
+                                                    <div className="text-left text-xs">
+                                                        <ul className="list-disc">
+                                                            <li>Advance Payment of 60% + GST(18%) along with Work order as mobilization advance.</li>
+                                                            <li>Mobilization of Men and Machines shall be done in 3-5 days after the confirmation of Advance Payment.</li>
+                                                            <li>Balance Payment to be done after completion of field work.</li>
+                                                        </ul>
                                                     </div>
+                                                </div>
+                                            </div>
                                         </div>
                                     </div>
 

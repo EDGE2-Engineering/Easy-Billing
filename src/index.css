@@ -77,7 +77,8 @@
   width: 210mm;
   min-height: 297mm;
   max-height: 297mm;
-  padding: 20mm;
+  padding: 10mm;
+  /* Reduced from 20mm */
   margin: 0 auto;
   background: white;
   box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
@@ -149,9 +150,10 @@
     width: 210mm;
     min-height: 297mm;
     max-height: 297mm;
-    padding: 15mm;
-    padding-bottom: 25mm;
-    /* Extra padding for footer */
+    padding: 7.5mm;
+    /* Reduced from 15mm */
+    padding-bottom: 15mm;
+    /* Adjusted for footer - reduced from 25mm */
     page-break-after: always;
     page-break-inside: avoid;
     float: none;
@@ -211,9 +213,12 @@
 @media print {
   .a4-page-footer {
     position: absolute;
-    bottom: 10mm;
-    left: 15mm;
-    right: 15mm;
+    bottom: 5mm;
+    /* Reduced from 10mm to match reduced padding */
+    left: 7.5mm;
+    /* Reduced from 15mm */
+    right: 7.5mm;
+    /* Reduced from 15mm */
     margin-top: 0;
   }
 }
