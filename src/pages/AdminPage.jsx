@@ -4,7 +4,7 @@ import { Helmet } from 'react-helmet-async';
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Settings, LayoutDashboard, Home, FileText, LogOut, Save, Loader2, UserCog } from 'lucide-react';
+import { Settings, LayoutDashboard, Home, FileText, LogOut, User, Save, Loader2, UserCog } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 
 import AdminServicesManager from '@/components/admin/AdminServicesManager.jsx';
@@ -22,6 +22,7 @@ const AdminPage = () => {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [checkingAuth, setCheckingAuth] = useState(true);
   const [isPasswordRecovery, setIsPasswordRecovery] = useState(false);
+  const [username, setUsername] = useState('');
 
   const { toast } = useToast();
 
@@ -29,6 +30,10 @@ const AdminPage = () => {
     // Check active session
     supabase.auth.getSession().then(({ data: { session } }) => {
       setIsAuthenticated(!!session);
+      if (session?.user) {
+        const nameFromMetadata = session.user.user_metadata?.username || session.user.user_metadata?.full_name;
+        setUsername(nameFromMetadata || session.user.email || 'Admin');
+      }
       setCheckingAuth(false);
     });
 
@@ -39,6 +44,12 @@ const AdminPage = () => {
         setIsPasswordRecovery(true);
       }
       setIsAuthenticated(!!session);
+      if (session?.user) {
+        const nameFromMetadata = session.user.user_metadata?.username || session.user.user_metadata?.full_name;
+        setUsername(nameFromMetadata || session.user.email || 'Admin');
+      } else {
+        setUsername('');
+      }
     });
 
     return () => subscription.unsubscribe();
@@ -102,8 +113,8 @@ const AdminPage = () => {
           </div>
           <div className="flex flex-wrap items-center gap-3">
             <div className="bg-blue-50 text-blue-700 px-4 py-2 rounded-lg text-sm font-medium flex items-center hidden md:flex">
-              <Settings className="w-4 h-4 mr-2" />
-              Logged in as Admin
+              <User className="w-4 h-4 mr-2" />
+              {`Logged in as ${username || 'Admin'}`}
             </div>
 
 

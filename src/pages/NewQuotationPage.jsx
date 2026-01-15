@@ -83,7 +83,7 @@ const NewQuotationPage = () => {
         } else {
             itemData = tests.find(t => t.id === selectedItemId);
             if (itemData) {
-                description = `${itemData.testType} (${itemData.materials})`;
+                description = `${itemData.testType} - ${itemData.materials}`;
                 price = itemData.price;
                 unit = 'Test';
             }
@@ -189,7 +189,7 @@ const NewQuotationPage = () => {
                         <Link to="/" className="text-gray-500 hover:text-gray-900">
                             <ArrowLeft className="w-6 h-6" />
                         </Link>
-                        <h1 className="text-1xl font-bold text-gray-900">New Quotation</h1>
+                        <h1 className="text-1xl font-bold text-gray-900">Create new {documentType}</h1>
                     </div>
                     <Button onClick={handlePrint} className="bg-primary hover:bg-primary-dark">
                         <Printer className="w-4 h-4 mr-2" /> Print / PDF
@@ -201,6 +201,28 @@ const NewQuotationPage = () => {
                     <div className="lg:col-span-1 space-y-6">
                         {/* Client Details Card */}
                         <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
+                            <div className="mb-4">
+                                <Label>Document Type</Label>
+                                <Select value={documentType} onValueChange={setDocumentType}>
+                                    <SelectTrigger>
+                                        <SelectValue placeholder="Select Type" />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                        <SelectItem value="Invoice">Invoice</SelectItem>
+                                        <SelectItem value="Quotation">Quotation</SelectItem>
+                                    </SelectContent>
+                                </Select>
+                            </div>
+                            <div className="grid grid-cols-1 gap-4 mb-4">
+                                <div>
+                                    <Label>{documentType} Number</Label>
+                                    <Input
+                                        value={quoteDetails.quoteNumber}
+                                        onChange={e => setQuoteDetails({ ...quoteDetails, quoteNumber: e.target.value })}
+                                        placeholder="Enter number"
+                                    />
+                                </div>
+                            </div>
                             <h2 className="text-lg font-semibold mb-4 flex items-center">
                                 <FileText className="w-5 h-5 mr-2 text-primary" />
                                 Client Details
@@ -254,17 +276,19 @@ const NewQuotationPage = () => {
                                         placeholder="Enter project address"
                                     />
                                 </div>
-                                <div className="grid grid-cols-2 gap-4">
+                                <div className="grid grid-cols-1 gap-4">
                                     <div>
-                                        <Label>Email</Label>
+                                        <Label>Email Address</Label>
                                         <Input
                                             value={quoteDetails.email}
                                             onChange={e => setQuoteDetails({ ...quoteDetails, email: e.target.value })}
                                             placeholder="client@example.com"
                                         />
                                     </div>
+                                </div>
+                                <div className="grid grid-cols-1 gap-4">
                                     <div>
-                                        <Label>Phone</Label>
+                                        <Label>Phone Number</Label>
                                         <Input
                                             value={quoteDetails.phone}
                                             onChange={e => setQuoteDetails({ ...quoteDetails, phone: e.target.value })}
@@ -274,34 +298,12 @@ const NewQuotationPage = () => {
                                 </div>
                                 <div className="grid grid-cols-2 gap-4">
                                     <div>
-                                        <Label>{documentType} Number</Label>
-                                        <Input
-                                            value={quoteDetails.quoteNumber}
-                                            onChange={e => setQuoteDetails({ ...quoteDetails, quoteNumber: e.target.value })}
-                                            placeholder="Enter number"
-                                        />
-                                    </div>
-                                    <div>
                                         <Label>Date</Label>
                                         <Input
                                             type="date"
                                             value={quoteDetails.date}
                                             onChange={e => setQuoteDetails({ ...quoteDetails, date: e.target.value })}
                                         />
-                                    </div>
-                                </div>
-                                <div className="grid grid-cols-2 gap-4">
-                                    <div>
-                                        <Label>Document Type</Label>
-                                        <Select value={documentType} onValueChange={setDocumentType}>
-                                            <SelectTrigger>
-                                                <SelectValue placeholder="Select Type" />
-                                            </SelectTrigger>
-                                            <SelectContent>
-                                                <SelectItem value="Invoice">Invoice</SelectItem>
-                                                <SelectItem value="Quotation">Quotation</SelectItem>
-                                            </SelectContent>
-                                        </Select>
                                     </div>
                                     <div>
                                         <Label>Discount (%)</Label>
@@ -349,13 +351,13 @@ const NewQuotationPage = () => {
                                         classNamePrefix="react-select"
                                         options={newItemType === 'service'
                                             ? services.map(s => ({ value: s.id, label: s.serviceType }))
-                                            : tests.map(t => ({ value: t.id, label: `${t.testType} (${t.materials})` }))
+                                            : tests.map(t => ({ value: t.id, label: `${t.testType} - ${t.materials}` }))
                                         }
                                         value={selectedItemId ? {
                                             value: selectedItemId,
                                             label: newItemType === 'service'
                                                 ? services.find(s => s.id === selectedItemId)?.serviceType
-                                                : tests.find(t => t.id === selectedItemId)?.testType + ' (' + tests.find(t => t.id === selectedItemId)?.materials + ')'
+                                                : tests.find(t => t.id === selectedItemId)?.testType + ' - ' + tests.find(t => t.id === selectedItemId)?.materials + ''
                                         } : null}
                                         onChange={(option) => setSelectedItemId(option ? option.value : '')}
                                         placeholder={`Search ${newItemType}s...`}
