@@ -2,7 +2,7 @@
 import React, { useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Menu, X, Lock, ClipboardCheck, Settings, LogOut, User } from 'lucide-react';
+import { Menu, X, Lock, FileText, Settings, LogOut, User } from 'lucide-react';
 import { initialSiteContent } from '@/data/siteContent';
 import { useToast } from '@/components/ui/use-toast';
 import { Button } from '@/components/ui/button';
@@ -25,7 +25,7 @@ const Navbar = () => {
   };
 
   const navItems = [
-    { path: '/new-quotation', label: 'Create New', icon: ClipboardCheck, roles: ['admin'] },
+    { path: '/new-quotation', label: 'Create New', icon: FileText, roles: ['admin'] },
     { path: '/', label: 'Configure', icon: Settings, roles: ['admin'] }
   ].filter(item => !item.roles || (item.roles.includes('admin') && !isStandard()));
 
@@ -36,9 +36,13 @@ const Navbar = () => {
       <div className="container mx-auto px-4">
         <div className="flex items-center justify-between h-16">
           <Link to="/" className="flex items-center space-x-2">
-            <span className="text-primary">
-              <ClipboardCheck className="w-8 h-8" />
-            </span>
+            <div className="flex items-center justify-center bg-white p-1 rounded-md shadow-sm">
+              <img
+                src={`${import.meta.env.BASE_URL}edge2-logo.png`}
+                alt="Logo"
+                className="h-8 w-auto"
+              />
+            </div>
             <span className="text-xl font-bold text-gray-900 hidden sm:inline-block">
               {content.global?.siteName || "EDGE2 Invoicing"}
             </span>
