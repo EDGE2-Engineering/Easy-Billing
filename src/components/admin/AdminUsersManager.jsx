@@ -130,7 +130,7 @@ const AdminUsersManager = () => {
                 const emoji = newStatus ? "🔓" : "🔒";
                 const message = `${emoji} *User ${action}*\n\n` +
                     `Username: \`${userToToggle.username}\`\n` +
-                    `By: \`${currentUser.full_name}\``;
+                    `By: \`${currentUser.fullName}\``;
                 await sendTelegramNotification(message);
             } catch (notifyErr) {
                 console.error('Error sending Telegram notification:', notifyErr);
@@ -183,7 +183,7 @@ const AdminUsersManager = () => {
                     `Username: \`${formData.username}\`\n` +
                     `Full Name: \`${formData.full_name}\`\n` +
                     `Role: \`${formData.role}\`\n` +
-                    `${action} By: \`${currentUser.full_name}\``;
+                    `${action} By: \`${currentUser.fullName}\``;
                 await sendTelegramNotification(message);
             } catch (notifyErr) {
                 console.error('Error sending Telegram notification:', notifyErr);
