@@ -1,7 +1,7 @@
 
 import React, { createContext, useState, useEffect, useContext } from 'react';
 import { supabase } from '@/lib/customSupabaseClient';
-import { TG_NOTIFIER_CONFIG } from '@/data/config';
+import { sendTelegramNotification } from '@/lib/notifier';
 
 
 const AuthContext = createContext();
@@ -13,29 +13,8 @@ export const AuthProvider = ({ children }) => {
     const [loading, setLoading] = useState(true);
 
     const notifyLogin = async (username, fullName) => {
-        const { BOT_TOKEN, CHAT_ID, RATE_LIMIT_MS } = TG_NOTIFIER_CONFIG;
-
-        const now = Date.now();
-        if (now - lastNotificationTime < (RATE_LIMIT_MS || 60000)) return;
-        lastNotificationTime = now;
-
-        if (!BOT_TOKEN || BOT_TOKEN.startsWith("YOUR_") || !CHAT_ID) return;
-
-        const message = `🔔 *Login Alert*\n\nUser: \`${fullName}\` (@${username})\nTime: ${new Date().toLocaleString()}`;
-
-        try {
-            await fetch(`https://api.telegram.org/bot${BOT_TOKEN}/sendMessage`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    chat_id: CHAT_ID,
-                    text: message,
-                    parse_mode: 'Markdown'
-                })
-            });
-        } catch (err) {
-            console.error("Failed to send login notification to Telegram", err);
-        }
+        const message = `🔔 *Login Alert*\n\nUser: \`${fullName}\` (@${username})`;
+        await sendTelegramNotification(message);
     };
 
     useEffect(() => {
