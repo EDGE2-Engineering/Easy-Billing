@@ -9,6 +9,7 @@ import { Label } from '@/components/ui/label';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Search, Save, Trash2, ShieldAlert } from 'lucide-react';
+import Rupee from '../Rupee';
 import { useToast } from '@/components/ui/use-toast';
 
 const AdminClientPricingManager = () => {
@@ -185,7 +186,7 @@ const AdminClientPricingManager = () => {
                                                         <div className="text-gray-500 text-xs">HSN: {service.hsnCode}</div>
                                                     </td>
                                                     <td className="px-6 py-4 text-gray-600">
-                                                        ₹{service.price.toLocaleString()}
+                                                        <Rupee />{service.price.toLocaleString()}
                                                     </td>
                                                     <td className="px-6 py-4 w-48">
                                                         <Input
@@ -250,7 +251,7 @@ const AdminClientPricingManager = () => {
                                                         <div className="text-gray-500 text-xs">{test.materials} | HSN: {test.hsnCode}</div>
                                                     </td>
                                                     <td className="px-6 py-4 text-gray-600">
-                                                        ₹{test.price.toLocaleString()}
+                                                        <Rupee />{test.price.toLocaleString()}
                                                     </td>
                                                     <td className="px-6 py-4 w-48">
                                                         <Input

@@ -1,6 +1,7 @@
 
 import React, { useState, useRef } from 'react';
 import { Plus, Edit, Trash2, Save, Search, Download, Upload, AlertCircle } from 'lucide-react';
+import Rupee from '../Rupee';
 import { useTests } from '@/contexts/TestsContext';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -216,7 +217,7 @@ const AdminTestsManager = () => {
                     </div>
 
                     <div className="space-y-2">
-                        <Label>Price (₹)</Label>
+                        <Label>Price (<Rupee />)</Label>
                         <Input
                             type="number"
                             value={editingTest.price}
@@ -290,7 +291,7 @@ const AdminTestsManager = () => {
                                 </td>
                                 <td className="py-3 px-4 text-sm text-gray-600 hidden md:table-cell">{test.materials}</td>
                                 <td className="py-3 px-4 text-sm text-gray-600 hidden md:table-cell">{test.testMethodSpecification || '-'}</td>
-                                <td className="py-3 px-4 text-sm text-gray-700">₹{test.price.toLocaleString()}</td>
+                                <td className="py-3 px-4 text-sm text-gray-700"><Rupee />{test.price.toLocaleString()}</td>
                                 <td className="py-3 px-4 text-sm text-gray-600">{test.hsnCode || '-'}</td>
                                 <td className="py-3 px-4 text-right">
                                     <div className="flex justify-end space-x-2">

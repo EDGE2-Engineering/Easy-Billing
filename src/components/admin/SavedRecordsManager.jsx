@@ -1,12 +1,14 @@
 
 import React, { useState, useEffect } from 'react';
-import { Search, Trash2, ExternalLink, FileText, Loader2, AlertCircle } from 'lucide-react';
+import { Search, Trash2, ExternalLink, FileText, Loader2, AlertCircle, ArrowUpDown, SortAsc, SortDesc } from 'lucide-react';
 import { supabase } from '@/lib/customSupabaseClient';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { useToast } from '@/components/ui/use-toast';
 import { useNavigate } from 'react-router-dom';
 import { format } from 'date-fns';
+import Rupee from '../Rupee';
+import { useSettings } from '@/contexts/SettingsContext';
 import {
     AlertDialog,
     AlertDialogAction,
@@ -35,8 +37,32 @@ const SavedRecordsManager = () => {
     const [filterUser, setFilterUser] = useState('all');
     const [filterClient, setFilterClient] = useState('all');
     const [deleteConfirmation, setDeleteConfirmation] = useState({ isOpen: false, recordId: null, quoteNumber: '' });
+    const [sortField, setSortField] = useState('date');
+    const [sortOrder, setSortOrder] = useState('desc');
     const { toast } = useToast();
     const navigate = useNavigate();
+    const { settings } = useSettings();
+
+    const taxCGST = settings?.tax_cgst ? Number(settings.tax_cgst) : 9;
+    const taxSGST = settings?.tax_sgst ? Number(settings.tax_sgst) : 9;
+    const taxTotalPercent = taxCGST + taxSGST;
+
+    const calculateRecordTotal = (record) => {
+        try {
+            const content = record.content || {};
+            const items = content.items || [];
+            const discount = content.discount || 0;
+
+            const subtotal = items.reduce((sum, item) => sum + (Number(item.total) || 0), 0);
+            const discountedSubtotal = subtotal * (1 - discount / 100);
+            const total = discountedSubtotal * (1 + taxTotalPercent / 100);
+
+            return total;
+        } catch (error) {
+            console.error('Error calculating record total:', error);
+            return 0;
+        }
+    };
 
     const fetchRecords = async () => {
         setLoading(true);
@@ -143,6 +169,34 @@ const SavedRecordsManager = () => {
         return true;
     });
 
+    const sortedRecords = [...filteredRecords].sort((a, b) => {
+        let valA, valB;
+        switch (sortField) {
+            case 'total':
+                valA = calculateRecordTotal(a);
+                valB = calculateRecordTotal(b);
+                break;
+            case 'client':
+                valA = (a.client_name || '').toLowerCase();
+                valB = (b.client_name || '').toLowerCase();
+                break;
+            case 'user':
+                valA = (a.app_users?.full_name || '').toLowerCase();
+                valB = (b.app_users?.full_name || '').toLowerCase();
+                break;
+            case 'date':
+                valA = new Date(a.created_at).getTime();
+                valB = new Date(b.created_at).getTime();
+                break;
+            default:
+                return 0;
+        }
+
+        if (valA < valB) return sortOrder === 'asc' ? -1 : 1;
+        if (valA > valB) return sortOrder === 'asc' ? 1 : -1;
+        return 0;
+    });
+
     const resetFilters = () => {
         setSearchTerm('');
         setFromDate('');
@@ -150,6 +204,8 @@ const SavedRecordsManager = () => {
         setFilterDocType('all');
         setFilterUser('all');
         setFilterClient('all');
+        setSortField('date');
+        setSortOrder('desc');
     };
 
     if (loading && records.length === 0) {
@@ -163,102 +219,129 @@ const SavedRecordsManager = () => {
 
     return (
         <div className="space-y-4">
-            {/* Row 1: Search Bar and Total Count */}
-            <div className="flex flex-col sm:flex-row justify-between items-center gap-4 bg-white p-4 rounded-lg border border-gray-100 shadow-sm">
-                <div className="relative w-full sm:w-96">
-                    <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
-                    <Input
-                        placeholder="Search by invoice/quote number or client name..."
-                        className="pl-10 text-xs"
-                        value={searchTerm}
-                        onChange={(e) => setSearchTerm(e.target.value)}
-                    />
+            {/* Control Panel: Search, Filters, Sorting */}
+            <div className="bg-white p-6 rounded-xl border border-gray-100 shadow-sm space-y-6">
+                {/* Top Row: Prominent Search Bar and Record Count */}
+                <div className="flex flex-col sm:flex-row items-center gap-4">
+                    <div className="relative flex-1">
+                        <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
+                        <Input
+                            placeholder="Search by invoice/quote number or client name..."
+                            className="pl-12 h-12 text-sm bg-gray-50/30 border-gray-200 rounded-xl focus:ring-primary focus:border-primary transition-all shadow-sm"
+                            value={searchTerm}
+                            onChange={(e) => setSearchTerm(e.target.value)}
+                        />
+                    </div>
+                    {/* Record Count Status */}
+                    <div className="flex items-center gap-2 px-6 h-12 bg-primary/5 rounded-xl border border-primary/10 whitespace-nowrap">
+                        <FileText className="w-4 h-4 text-primary/60" />
+                        <span className="text-sm font-semibold text-gray-700">
+                            {sortedRecords.length} <span className="text-gray-400 font-normal">records found</span>
+                        </span>
+                    </div>
                 </div>
-                <div className="text-sm font-medium text-gray-500">
-                    Total: <span className="text-primary">{filteredRecords.length}</span> records
-                </div>
-            </div>
 
-            {/* Row 2: Advanced Filters */}
-            <div className="bg-white p-4 rounded-lg border border-gray-100 shadow-sm">
-                <span className="text-sm font-semibold text-gray-700 uppercase tracking-wider">Apply Filters</span>
-                <div className="flex flex-wrap items-center gap-4 mt-2">
-                    <div className="flex items-center gap-2">
-                        <span className="text-xs font-semibold text-gray-400 uppercase tracking-wider">Dates:</span>
-                        <div className="flex items-center gap-2">
-                            <Input
-                                type="date"
-                                className="w-36 h-9 text-xs"
-                                value={fromDate}
-                                title="From Date"
-                                onChange={(e) => setFromDate(e.target.value)}
-                            />
-                            <span className="text-gray-300">-</span>
-                            <Input
-                                type="date"
-                                className="w-36 h-9 text-xs"
-                                value={toDate}
-                                title="To Date"
-                                onChange={(e) => setToDate(e.target.value)}
-                            />
+                {/* Bottom Row: Filters, Sorting */}
+                <div className="flex flex-wrap items-center justify-between gap-6">
+                    <div className="flex flex-wrap items-center gap-6">
+                        {/* Filters Group */}
+                        <div className="flex items-center gap-3">
+                            <span className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Filters</span>
+                            <div className="flex items-center gap-2">
+                                <div className="flex items-center gap-1.5 bg-gray-50/50 p-1 rounded-lg border border-gray-100 focus-within:border-primary/30 transition-colors">
+                                    <Input
+                                        type="date"
+                                        className="w-[130px] h-8 text-[10px] border-none bg-transparent focus-visible:ring-0"
+                                        value={fromDate}
+                                        title="From Date"
+                                        onChange={(e) => setFromDate(e.target.value)}
+                                    />
+                                    <span className="text-gray-300 font-light">to</span>
+                                    <Input
+                                        type="date"
+                                        className="w-[130px] h-8 text-[10px] border-none bg-transparent focus-visible:ring-0"
+                                        value={toDate}
+                                        title="To Date"
+                                        onChange={(e) => setToDate(e.target.value)}
+                                    />
+                                </div>
+
+                                <Select value={filterDocType} onValueChange={setFilterDocType}>
+                                    <SelectTrigger className="w-32 h-9 text-[11px] bg-gray-50/50 border-gray-200 rounded-lg focus:ring-1 focus:ring-primary/20">
+                                        <SelectValue placeholder="All Types" />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                        <SelectItem value="all">All Types</SelectItem>
+                                        <SelectItem value="Tax Invoice">Tax Invoice</SelectItem>
+                                        <SelectItem value="Quotation">Quotation</SelectItem>
+                                    </SelectContent>
+                                </Select>
+
+                                <Select value={filterUser} onValueChange={setFilterUser}>
+                                    <SelectTrigger className="w-36 h-9 text-[11px] bg-gray-50/50 border-gray-200 rounded-lg focus:ring-1 focus:ring-primary/20">
+                                        <SelectValue placeholder="All Users" />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                        <SelectItem value="all">All Users</SelectItem>
+                                        {uniqueUsers.map(user => (
+                                            <SelectItem key={user} value={user}>{user}</SelectItem>
+                                        ))}
+                                    </SelectContent>
+                                </Select>
+
+                                <Select value={filterClient} onValueChange={setFilterClient}>
+                                    <SelectTrigger className="w-48 h-9 text-[11px] bg-gray-50/50 border-gray-200 rounded-lg text-left focus:ring-1 focus:ring-primary/20">
+                                        <SelectValue placeholder="All Clients" />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                        <SelectItem value="all">All Clients</SelectItem>
+                                        {uniqueClients.map(client => (
+                                            <SelectItem key={client} value={client}>{client}</SelectItem>
+                                        ))}
+                                    </SelectContent>
+                                </Select>
+                            </div>
                         </div>
+
+                        <div className="h-8 w-px bg-gray-100 hidden xl:block" />
+
+                        {/* Sorting Group */}
+                        <div className="flex items-center gap-3">
+                            <span className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Sort</span>
+                            <div className="flex items-center gap-2">
+                                <Select value={sortField} onValueChange={setSortField}>
+                                    <SelectTrigger className="w-40 h-9 text-[11px] bg-gray-50/50 border-gray-200 rounded-lg focus:ring-1 focus:ring-primary/20">
+                                        <SelectValue />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                        <SelectItem value="date">Date Created</SelectItem>
+                                        <SelectItem value="total">Total Amount</SelectItem>
+                                        <SelectItem value="client">Client Name</SelectItem>
+                                        <SelectItem value="user">Created By</SelectItem>
+                                    </SelectContent>
+                                </Select>
+                                <Button
+                                    variant="outline"
+                                    size="icon"
+                                    className="h-9 w-9 hover:bg-primary/5 hover:text-primary transition-colors border-gray-200 rounded-lg flex-shrink-0"
+                                    onClick={() => setSortOrder(prev => prev === 'asc' ? 'desc' : 'asc')}
+                                    title={`Order: ${sortOrder === 'asc' ? 'Ascending' : 'Descending'}`}
+                                >
+                                    {sortOrder === 'asc' ? <SortAsc className="w-4 h-4" /> : <SortDesc className="w-4 h-4" />}
+                                </Button>
+                            </div>
+                        </div>
+
+                        <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={resetFilters}
+                            disabled={!searchTerm && !fromDate && !toDate && filterDocType === 'all' && filterUser === 'all' && filterClient === 'all' && sortField === 'date' && sortOrder === 'desc'}
+                            className="text-gray-400 hover:text-red-500 h-9 text-[10px] font-bold uppercase tracking-widest transition-colors flex items-center gap-2"
+                        >
+                            Reset All
+                        </Button>
                     </div>
-
-                    <div className="h-6 w-px bg-gray-100 hidden sm:block" />
-
-                    <div className="flex items-center gap-2">
-                        <span className="text-xs font-semibold text-gray-400 uppercase tracking-wider">Type:</span>
-                        <Select value={filterDocType} onValueChange={setFilterDocType}>
-                            <SelectTrigger className="w-36 h-9 text-xs">
-                                <SelectValue placeholder="All Types" />
-                            </SelectTrigger>
-                            <SelectContent>
-                                <SelectItem value="all">All Types</SelectItem>
-                                <SelectItem value="Tax Invoice">Tax Invoice</SelectItem>
-                                <SelectItem value="Quotation">Quotation</SelectItem>
-                            </SelectContent>
-                        </Select>
-                    </div>
-
-                    <div className="flex items-center gap-2">
-                        <span className="text-xs font-semibold text-gray-400 uppercase tracking-wider">User:</span>
-                        <Select value={filterUser} onValueChange={setFilterUser}>
-                            <SelectTrigger className="w-40 h-9 text-xs text-left ">
-                                <SelectValue placeholder="All Users" />
-                            </SelectTrigger>
-                            <SelectContent>
-                                <SelectItem value="all">All Users</SelectItem>
-                                {uniqueUsers.map(user => (
-                                    <SelectItem key={user} value={user}>{user}</SelectItem>
-                                ))}
-                            </SelectContent>
-                        </Select>
-                    </div>
-
-                    <div className="flex items-center gap-2">
-                        <span className="text-xs font-semibold text-gray-400 uppercase tracking-wider">Client:</span>
-                        <Select value={filterClient} onValueChange={setFilterClient}>
-                            <SelectTrigger className="w-80 h-9 text-xs text-left">
-                                <SelectValue placeholder="All Clients" />
-                            </SelectTrigger>
-                            <SelectContent>
-                                <SelectItem value="all">All Clients</SelectItem>
-                                {uniqueClients.map(client => (
-                                    <SelectItem key={client} value={client}>{client}</SelectItem>
-                                ))}
-                            </SelectContent>
-                        </Select>
-                    </div>
-
-                    <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={resetFilters}
-                        disabled={!searchTerm && !fromDate && !toDate && filterDocType === 'all' && filterUser === 'all' && filterClient === 'all'}
-                        className="text-gray-500 hover:text-gray-700 h-9 ml-auto"
-                    >
-                        Reset Filters
-                    </Button>
                 </div>
             </div>
 
@@ -272,18 +355,19 @@ const SavedRecordsManager = () => {
                                 <th className="text-left py-3 px-4 font-semibold text-sm text-gray-600">Type</th>
                                 <th className="text-left py-3 px-4 font-semibold text-sm text-gray-600">Created By</th>
                                 <th className="text-left py-3 px-4 font-semibold text-sm text-gray-600">Client</th>
+                                <th className="text-right py-3 px-4 font-semibold text-sm text-gray-600">Total Amount</th>
                                 <th className="text-right py-3 px-4 font-semibold text-sm text-gray-600">Actions</th>
                             </tr>
                         </thead>
                         <tbody>
-                            {filteredRecords.length === 0 ? (
+                            {sortedRecords.length === 0 ? (
                                 <tr>
-                                    <td colSpan="5" className="py-10 text-center text-gray-500">
+                                    <td colSpan="6" className="py-10 text-center text-gray-500">
                                         No records found.
                                     </td>
                                 </tr>
                             ) : (
-                                filteredRecords.map((record) => (
+                                sortedRecords.map((record) => (
                                     <tr key={record.id} className="border-b hover:bg-gray-50 transition-colors">
                                         <td className="py-3 px-4 text-sm text-gray-600">
                                             {format(new Date(record.created_at), 'dd MMM yyyy')}
@@ -304,6 +388,9 @@ const SavedRecordsManager = () => {
                                         </td>
                                         <td className="py-3 px-4 text-sm text-gray-700">
                                             {record.client_name || '-'}
+                                        </td>
+                                        <td className="py-3 px-4 text-right text-sm font-semibold text-gray-900">
+                                            <Rupee />{calculateRecordTotal(record).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                                         </td>
                                         <td className="py-3 px-4 text-right">
                                             <div className="flex justify-end space-x-2">

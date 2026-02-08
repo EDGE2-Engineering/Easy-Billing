@@ -1,6 +1,12 @@
 
 import React from 'react';
 import { useNavigate, useParams, Link } from 'react-router-dom';
+import { ArrowLeft, Edit2, Plus, Trash2, Clock, Tag, CheckCircle2 } from 'lucide-react';
+import Navbar from '../components/Navbar';
+import Footer from '../components/Footer';
+import { Helmet } from 'react-helmet-async';
+import { useTests } from '@/contexts/TestsContext';
+import Rupee from '../components/Rupee';
 import { useAuth } from '@/contexts/AuthContext';
 
 
@@ -74,7 +80,7 @@ const TestDetailPage = () => {
                         </div>
                         <div className="text-right">
                             <div className="flex items-center justify-end gap-2 text-2xl font-bold text-primary">
-                                <span>₹{test.price}</span>
+                                <span><Rupee />{test.price}</span>
                             </div>
                         </div>
                     </div>

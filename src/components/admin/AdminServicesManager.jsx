@@ -1,6 +1,7 @@
 
 import React, { useState, useRef } from 'react';
 import { Plus, Edit, Trash2, Save, Search, Download, Upload, AlertCircle } from 'lucide-react';
+import Rupee from '../Rupee';
 import { useServices } from '@/contexts/ServicesContext';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -175,7 +176,7 @@ const AdminServicesManager = () => {
                     </div>
 
                     <div className="space-y-2">
-                        <Label>Price (₹)</Label>
+                        <Label>Price (<Rupee />)</Label>
                         <Input
                             type="number"
                             value={editingService.price}
@@ -311,7 +312,7 @@ const AdminServicesManager = () => {
                                 <td className="py-3 px-4">
                                     <p className="font-small text-sm text-gray-900">{service.serviceType}</p>
                                 </td>
-                                <td className="py-3 px-4 text-sm text-gray-700">₹{service.price.toLocaleString()}</td>
+                                <td className="py-3 px-4 text-sm text-gray-700"><Rupee />{service.price.toLocaleString()}</td>
                                 <td className="py-3 px-4 text-sm text-gray-600">{service.unit}</td>
                                 <td className="py-3 px-4 text-sm text-gray-600">{service.methodOfSampling || 'NA'}</td>
                                 <td className="py-3 px-4 text-sm text-gray-600">{service.numBHs ?? 0}</td>

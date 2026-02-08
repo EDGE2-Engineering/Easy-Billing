@@ -14,6 +14,7 @@ import { useTests } from '@/contexts/TestsContext';
 import { useClients } from '@/contexts/ClientsContext';
 import { useSettings } from '@/contexts/SettingsContext';
 import { useAuth } from '@/contexts/AuthContext';
+import Rupee from '@/components/Rupee';
 import {
     Select,
     SelectContent,
@@ -248,7 +249,7 @@ const NewQuotationPage = () => {
                     setSavedRecordId(data.id);
 
                     toast({
-                        title: "Record Loaded",
+                        title: `${data.document_type} Loaded`,
                         description: `Loaded ${data.document_type} ${data.quote_number}`
                     });
                 }
@@ -323,7 +324,7 @@ const NewQuotationPage = () => {
 
             toast({
                 title: "Success",
-                description: savedRecordId ? "Record updated successfully." : "Record saved successfully."
+                description: savedRecordId ? `${documentType} updated successfully.` : `${documentType} saved successfully.`
             });
 
             // Send Telegram Notification
@@ -1036,10 +1037,10 @@ const NewQuotationPage = () => {
                                                                     )}
                                                                 </td>
                                                                 <td className="py-2 px-2 text-left text-gray-600 font-medium text-xs align-top border-r border-l border-gray-200">{item.hsnCode || '—'}</td>
-                                                                <td className="py-2 px-2 text-right text-gray-600 font-medium text-xs align-top border-r border-l border-gray-200">₹{item.price}</td>
+                                                                <td className="py-2 px-2 text-right text-gray-600 font-medium text-xs align-top border-r border-l border-gray-200"><Rupee />{item.price}</td>
                                                                 <td className="py-2 px-2 text-right text-gray-600 font-medium text-xs align-top border-r border-l border-gray-200">{item.qty}</td>
                                                                 <td className="py-2 px-2 text-right text-gray-600 font-medium text-xs align-top border-r border-l border-gray-200">{item.unit}</td>
-                                                                <td className="py-2 px-2 text-right text-gray-900 font-medium text-xs align-top border-r border-l border-gray-200">₹{item.total.toLocaleString()}</td>
+                                                                <td className="py-2 px-2 text-right text-gray-900 font-medium text-xs align-top border-r border-l border-gray-200"><Rupee />{item.total.toLocaleString()}</td>
                                                                 <td className="text-right print:hidden align-top">
                                                                     <button
                                                                         onClick={() => handleDeleteItem(item.id)}
@@ -1069,29 +1070,29 @@ const NewQuotationPage = () => {
                                                         <div className="w-full space-y-3">
                                                             <div className="flex justify-between text-gray-600 text-xs">
                                                                 <span>Subtotal</span>
-                                                                <span>₹{calculateTotal().toLocaleString()}</span>
+                                                                <span><Rupee />{calculateTotal().toLocaleString()}</span>
                                                             </div>
                                                             {discount > 0 && (
                                                                 <div className="flex justify-between text-green-600 text-xs">
                                                                     <span>Discount ({discount}%)</span>
-                                                                    <span>- ₹{(calculateTotal() * (discount / 100)).toLocaleString(undefined, { maximumFractionDigits: 2 })}</span>
+                                                                    <span>- <Rupee />{(calculateTotal() * (discount / 100)).toLocaleString(undefined, { maximumFractionDigits: 2 })}</span>
                                                                 </div>
                                                             )}
                                                             <div className="flex justify-between text-gray-600 text-xs">
                                                                 <span>CGST ({taxCGST}%)</span>
-                                                                <span>₹{((calculateTotal() * (1 - discount / 100)) * (taxCGST / 100)).toLocaleString(undefined, { maximumFractionDigits: 2 })}</span>
+                                                                <span><Rupee />{((calculateTotal() * (1 - discount / 100)) * (taxCGST / 100)).toLocaleString(undefined, { maximumFractionDigits: 2 })}</span>
                                                             </div>
                                                             <div className="flex justify-between text-gray-600 text-xs">
                                                                 <span>SGST ({taxSGST}%)</span>
-                                                                <span>₹{((calculateTotal() * (1 - discount / 100)) * (taxSGST / 100)).toLocaleString(undefined, { maximumFractionDigits: 2 })}</span>
+                                                                <span><Rupee />{((calculateTotal() * (1 - discount / 100)) * (taxSGST / 100)).toLocaleString(undefined, { maximumFractionDigits: 2 })}</span>
                                                             </div>
                                                             <div className="flex justify-between text-gray-600 text-xs font-medium">
                                                                 <span>Total Tax Amount</span>
-                                                                <span>₹{((calculateTotal() * (1 - discount / 100)) * (taxTotalPercent / 100)).toLocaleString(undefined, { maximumFractionDigits: 2 })}</span>
+                                                                <span><Rupee />{((calculateTotal() * (1 - discount / 100)) * (taxTotalPercent / 100)).toLocaleString(undefined, { maximumFractionDigits: 2 })}</span>
                                                             </div>
                                                             <div className="flex justify-between text-sm font-bold text-gray-900 pt-4 border-t border-gray-100">
                                                                 <span>Total</span>
-                                                                <span>₹{((calculateTotal() * (1 - discount / 100)) * (1 + (taxTotalPercent / 100))).toLocaleString(undefined, { maximumFractionDigits: 2 })}</span>
+                                                                <span><Rupee />{((calculateTotal() * (1 - discount / 100)) * (1 + (taxTotalPercent / 100))).toLocaleString(undefined, { maximumFractionDigits: 2 })}</span>
                                                             </div>
                                                             <div className="mt-2 text-xs text-gray-600 italic">
                                                                 <span className="font-medium">Amount in Words: </span>

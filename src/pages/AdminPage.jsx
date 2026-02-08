@@ -90,7 +90,7 @@ const AdminPage = () => {
           </div>
         </div> */}
 
-        <Tabs value={mainTab} onValueChange={setMainTab} className="w-full space-y-8">
+        <Tabs value={mainTab} onValueChange={setMainTab} className="w-full space-y-4">
           {/* Mobile View: Select Dropdown */}
           <div className="block md:hidden relative">
             <label htmlFor="admin-tabs" className="sr-only">Select a section</label>

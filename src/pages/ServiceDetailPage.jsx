@@ -1,6 +1,12 @@
 
 import React from 'react';
 import { useNavigate, useParams, Link } from 'react-router-dom';
+import { ArrowLeft, Edit2, Plus, Trash2, Clock, Tag } from 'lucide-react';
+import Navbar from '../components/Navbar';
+import Footer from '../components/Footer';
+import { Helmet } from 'react-helmet-async';
+import { useServices } from '@/contexts/ServicesContext';
+import Rupee from '../components/Rupee';
 import { useAuth } from '@/contexts/AuthContext';
 
 
@@ -69,7 +75,7 @@ const ServiceDetailPage = () => {
                         </div>
                         <div className="text-right">
                             <div className="flex items-center justify-end gap-2 text-2xl font-bold text-primary">
-                                <span>₹{service.price}</span>
+                                <span><Rupee />{service.price}</span>
                                 {service.unit && <span className="text-gray-500 text-lg font-normal">/ {service.unit}</span>}
                             </div>
                             <div className="mt-2 text-sm text-gray-500">

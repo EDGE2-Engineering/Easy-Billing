@@ -4,6 +4,7 @@ import { motion } from 'framer-motion';
 import { Search } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import Rupee from './Rupee';
 
 const SearchFilterBar = ({ filters, onFilterChange }) => {
 
@@ -72,10 +73,10 @@ const SearchFilterBar = ({ filters, onFilterChange }) => {
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="all">All Prices</SelectItem>
-              <SelectItem value="0-500">Under ₹500</SelectItem>
-              <SelectItem value="500-1000">₹500 - ₹1,000</SelectItem>
-              <SelectItem value="1000-2000">₹1,000 - ₹2,000</SelectItem>
-              <SelectItem value="2000-999999">Above ₹2,000</SelectItem>
+              <SelectItem value="0-500">Under <Rupee />500</SelectItem>
+              <SelectItem value="500-1000"><Rupee />500 - <Rupee />1,000</SelectItem>
+              <SelectItem value="1000-2000"><Rupee />1,000 - <Rupee />2,000</SelectItem>
+              <SelectItem value="2000-999999">Above <Rupee />2,000</SelectItem>
             </SelectContent>
           </Select>
         </div>
