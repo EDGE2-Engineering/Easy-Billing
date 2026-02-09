@@ -243,7 +243,7 @@ const SavedRecordsManager = () => {
 
                 {/* Bottom Row: Filters, Sorting */}
                 <div className="flex flex-wrap items-center justify-between gap-6">
-                    <div className="flex flex-wrap items-center gap-6">
+                    <div className="flex flex-wrap items-center gap-6 flex-1">
                         {/* Filters Group */}
                         <div className="flex items-center gap-3">
                             <span className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Filters</span>
@@ -290,7 +290,7 @@ const SavedRecordsManager = () => {
                                 </Select>
 
                                 <Select value={filterClient} onValueChange={setFilterClient}>
-                                    <SelectTrigger className="w-48 h-9 text-[11px] bg-gray-50/50 border-gray-200 rounded-lg text-left focus:ring-1 focus:ring-primary/20">
+                                    <SelectTrigger className="w-75 h-9 text-[11px] bg-gray-50/50 border-gray-200 rounded-lg text-left focus:ring-1 focus:ring-primary/20">
                                         <SelectValue placeholder="All Clients" />
                                     </SelectTrigger>
                                     <SelectContent>
@@ -331,17 +331,17 @@ const SavedRecordsManager = () => {
                                 </Button>
                             </div>
                         </div>
-
-                        <Button
-                            variant="ghost"
-                            size="sm"
-                            onClick={resetFilters}
-                            disabled={!searchTerm && !fromDate && !toDate && filterDocType === 'all' && filterUser === 'all' && filterClient === 'all' && sortField === 'date' && sortOrder === 'desc'}
-                            className="text-gray-400 hover:text-red-500 h-9 text-[10px] font-bold uppercase tracking-widest transition-colors flex items-center gap-2"
-                        >
-                            Reset All
-                        </Button>
                     </div>
+
+                    <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={resetFilters}
+                        disabled={!searchTerm && !fromDate && !toDate && filterDocType === 'all' && filterUser === 'all' && filterClient === 'all' && sortField === 'date' && sortOrder === 'desc'}
+                        className="text-gray-400 hover:text-red-500 h-9 text-[10px] font-bold uppercase tracking-widest transition-colors flex items-center gap-2 whitespace-nowrap"
+                    >
+                        Reset All
+                    </Button>
                 </div>
             </div>
 

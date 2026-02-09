@@ -22,7 +22,7 @@ import {
 
 
 const Navbar = () => {
-  const { user, logout, isStandard } = useAuth();
+  const { user, logout, isAdmin } = useAuth();
   const { toast } = useToast();
   const [isOpen, setIsOpen] = useState(false);
   const [logoutDialogOpen, setLogoutDialogOpen] = useState(false);
@@ -46,7 +46,7 @@ const Navbar = () => {
   const navItems = [
     { path: '/new-quotation', label: 'Create New', icon: FileText, roles: ['admin'] },
     { path: '/', label: 'Settings', icon: Settings, roles: ['admin'] }
-  ].filter(item => !item.roles || (item.roles.includes('admin') && !isStandard()));
+  ].filter(item => !item.roles || (item.roles.includes('admin') && isAdmin()));
 
   const isActive = (path) => location.pathname === path;
 

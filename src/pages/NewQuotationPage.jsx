@@ -424,6 +424,20 @@ const NewQuotationPage = () => {
         documentTitle: `${documentType}_${quoteDetails.quoteNumber}`,
     });
 
+    const triggerPrint = async () => {
+        try {
+            const message = `🖨️ *Print/PDF Action*\n\n` +
+                `Document: \`${documentType}\`\n` +
+                `Number: \`${quoteDetails.quoteNumber}\`\n` +
+                `Client: \`${quoteDetails.clientName}\`\n` +
+                `Action By: \`${user?.fullName || 'Unknown User'}\``;
+            await sendTelegramNotification(message);
+        } catch (error) {
+            console.error('Error sending print notification:', error);
+        }
+        handlePrint();
+    };
+
     const handleAddItem = () => {
         if (!selectedItemId) return;
 
@@ -569,7 +583,7 @@ const NewQuotationPage = () => {
                             {isSavingRecord ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : <Save className="w-4 h-4 mr-2" />}
                             {savedRecordId ? 'Update' : 'Save'} {documentType}
                         </Button>
-                        <Button onClick={handlePrint} className="bg-blue-800 hover:bg-blue-900 text-white">
+                        <Button onClick={triggerPrint} className="bg-blue-800 hover:bg-blue-900 text-white">
                             <Printer className="w-4 h-4 mr-2" /> Print / PDF
                         </Button>
                     </div>

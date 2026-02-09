@@ -1,6 +1,8 @@
 import React, { useState, useRef } from 'react';
 import { Plus, Edit, Trash2, Save, Search, Download, Upload, AlertCircle, Mail, Phone } from 'lucide-react';
 import { useClients } from '@/contexts/ClientsContext';
+import { useAuth } from '@/contexts/AuthContext';
+import { sendTelegramNotification } from '@/lib/notifier';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -18,6 +20,7 @@ import {
 
 const AdminClientsManager = () => {
     const { clients, updateClient, addClient, deleteClient, setClients } = useClients();
+    const { user } = useAuth();
     const { toast } = useToast();
     const [searchTerm, setSearchTerm] = useState('');
     const [editingClient, setEditingClient] = useState(null);
@@ -55,9 +58,17 @@ const AdminClientsManager = () => {
             if (isAddingNew) {
                 await addClient(editingClient);
                 toast({ title: "Client Added", description: "New client has been successfully added." });
+
+                // Telegram Notification
+                const message = `👥 *New Client Added*\n\nName: \`${editingClient.clientName}\`\nAdded By: \`${user?.fullName || 'Unknown'}\``;
+                sendTelegramNotification(message);
             } else {
                 await updateClient(editingClient);
                 toast({ title: "Client Updated", description: "Client details have been updated." });
+
+                // Telegram Notification
+                const message = `✏️ *Client Updated*\n\nName: \`${editingClient.clientName}\`\nUpdated By: \`${user?.fullName || 'Unknown'}\``;
+                sendTelegramNotification(message);
             }
             setEditingClient(null);
             setIsAddingNew(false);
@@ -82,6 +93,10 @@ const AdminClientsManager = () => {
             try {
                 await deleteClient(deleteConfirmation.clientId);
                 toast({ title: "Client Deleted", description: "The client has been removed.", variant: "destructive" });
+
+                // Telegram Notification
+                const message = `🗑️ *Client Deleted*\n\nName: \`${deleteConfirmation.clientName}\`\nDeleted By: \`${user?.fullName || 'Unknown'}\``;
+                sendTelegramNotification(message);
             } catch (error) {
                 console.error(error);
                 toast({ title: "Error", description: "Failed to delete client: " + error.message, variant: "destructive" });

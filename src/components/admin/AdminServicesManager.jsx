@@ -1,8 +1,10 @@
 
 import React, { useState, useRef } from 'react';
-import { Plus, Edit, Trash2, Save, Search, Download, Upload, AlertCircle } from 'lucide-react';
+import { Plus, Edit, Trash2, Save, Search, Download, Upload, AlertCircle, SortAsc, SortDesc } from 'lucide-react';
 import Rupee from '../Rupee';
 import { useServices } from '@/contexts/ServicesContext';
+import { useAuth } from '@/contexts/AuthContext';
+import { sendTelegramNotification } from '@/lib/notifier';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -27,20 +29,55 @@ import {
 
 const AdminServicesManager = () => {
     const { services, updateService, addService, deleteService, setServices } = useServices();
+    const { user } = useAuth();
     const { toast } = useToast();
     const [searchTerm, setSearchTerm] = useState('');
     const [editingService, setEditingService] = useState(null);
     const [isAddingNew, setIsAddingNew] = useState(false);
     const [isSaving, setIsSaving] = useState(false);
     const [deleteConfirmation, setDeleteConfirmation] = useState({ isOpen: false, serviceId: null, serviceType: '' });
+    const [sortField, setSortField] = useState('name');
+    const [sortOrder, setSortOrder] = useState('asc');
+    const [filterUnit, setFilterUnit] = useState('all');
     const fileImportRef = useRef(null);
 
-    const filteredServices = services.filter(s =>
-        (s.serviceType?.toLowerCase() || '').includes(searchTerm.toLowerCase()) ||
-        (s.price?.toString() || '').includes(searchTerm) ||
-        (s.hsnCode?.toLowerCase() || '').includes(searchTerm.toLowerCase()) ||
-        (s.id?.toString().toLowerCase() || '').includes(searchTerm.toLowerCase())
-    );
+    const uniqueUnits = ['all', ...new Set(services.map(s => s.unit).filter(Boolean).sort())];
+
+    const filteredServices = services.filter(s => {
+        const matchesSearch =
+            (s.serviceType?.toLowerCase() || '').includes(searchTerm.toLowerCase()) ||
+            (s.price?.toString() || '').includes(searchTerm) ||
+            (s.hsnCode?.toLowerCase() || '').includes(searchTerm.toLowerCase()) ||
+            (s.unit?.toLowerCase() || '').includes(searchTerm.toLowerCase()) ||
+            (s.id?.toString().toLowerCase() || '').includes(searchTerm.toLowerCase());
+
+        const matchesUnit = filterUnit === 'all' || s.unit === filterUnit;
+
+        return matchesSearch && matchesUnit;
+    });
+
+    const sortedServices = [...filteredServices].sort((a, b) => {
+        let valA, valB;
+        switch (sortField) {
+            case 'price':
+                valA = Number(a.price) || 0;
+                valB = Number(b.price) || 0;
+                break;
+            case 'hsn':
+                valA = (a.hsnCode || '').toLowerCase();
+                valB = (b.hsnCode || '').toLowerCase();
+                break;
+            case 'name':
+            default:
+                valA = (a.serviceType || '').toLowerCase();
+                valB = (b.serviceType || '').toLowerCase();
+                break;
+        }
+
+        if (valA < valB) return sortOrder === 'asc' ? -1 : 1;
+        if (valA > valB) return sortOrder === 'asc' ? 1 : -1;
+        return 0;
+    });
 
     const handleEdit = (service) => {
         setEditingService({ ...service });
@@ -66,10 +103,18 @@ const AdminServicesManager = () => {
         try {
             if (isAddingNew) {
                 await addService(editingService);
-                toast({ title: "Service Added", description: "New service has been created." });
+                toast({ title: "Service Added", description: "New service has been successfully added." });
+
+                // Telegram Notification
+                const message = `🛠️ *New Service Added*\n\nType: \`${editingService.serviceType}\`\nPrice: \`${editingService.price}\`\nAdded By: \`${user?.fullName || 'Unknown'}\``;
+                sendTelegramNotification(message);
             } else {
                 await updateService(editingService);
-                toast({ title: "Changes Saved", description: "Service details updated successfully." });
+                toast({ title: "Service Updated", description: "Service details have been updated." });
+
+                // Telegram Notification
+                const message = `✏️ *Service Updated*\n\nType: \`${editingService.serviceType}\`\nPrice: \`${editingService.price}\`\nUpdated By: \`${user?.fullName || 'Unknown'}\``;
+                sendTelegramNotification(message);
             }
             setEditingService(null);
             setIsAddingNew(false);
@@ -91,14 +136,30 @@ const AdminServicesManager = () => {
 
     const confirmDelete = async () => {
         if (deleteConfirmation.serviceId) {
-            await deleteService(deleteConfirmation.serviceId);
-            toast({ title: "Service Deleted", description: "The service has been removed.", variant: "destructive" });
+            try {
+                await deleteService(deleteConfirmation.serviceId);
+                toast({ title: "Service Deleted", description: "The service has been removed.", variant: "destructive" });
+
+                // Telegram Notification
+                const message = `🗑️ *Service Deleted*\n\nType: \`${deleteConfirmation.serviceType}\`\nDeleted By: \`${user?.fullName || 'Unknown'}\``;
+                sendTelegramNotification(message);
+            } catch (error) {
+                console.error("Error deleting service:", error);
+                toast({ title: "Error", description: "Failed to delete service. " + error.message, variant: "destructive" });
+            }
         }
         setDeleteConfirmation({ isOpen: false, serviceId: null, serviceType: '' });
     };
 
     const handleChange = (field, value) => {
         setEditingService(prev => ({ ...prev, [field]: value }));
+    };
+
+    const resetAll = () => {
+        setSearchTerm('');
+        setSortField('name');
+        setSortOrder('asc');
+        setFilterUnit('all');
     };
 
     const handleExport = () => {
@@ -263,14 +324,63 @@ const AdminServicesManager = () => {
     return (
         <div className="space-y-6">
             <div className="flex flex-col sm:flex-row justify-between items-center gap-4">
-                <div className="relative w-full sm:w-72">
-                    <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
-                    <Input
-                        placeholder="Search services..."
-                        className="pl-10"
-                        value={searchTerm}
-                        onChange={(e) => setSearchTerm(e.target.value)}
-                    />
+                <div className="flex flex-col md:flex-row items-center gap-4 flex-1">
+                    <div className="relative w-full sm:w-72">
+                        <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
+                        <Input
+                            placeholder="Search services..."
+                            className="pl-10"
+                            value={searchTerm}
+                            onChange={(e) => setSearchTerm(e.target.value)}
+                        />
+                    </div>
+
+                    <div className="flex items-center gap-2">
+                        <span className="text-xs font-semibold text-gray-500 uppercase tracking-wider whitespace-nowrap">Filters:</span>
+                        <Select value={filterUnit} onValueChange={setFilterUnit}>
+                            <SelectTrigger className="w-36 h-10 text-xs text-left">
+                                <SelectValue placeholder="All Units" />
+                            </SelectTrigger>
+                            <SelectContent>
+                                {uniqueUnits.map(u => (
+                                    <SelectItem key={u} value={u}>{u === 'all' ? 'All Units' : u}</SelectItem>
+                                ))}
+                            </SelectContent>
+                        </Select>
+                    </div>
+
+                    <div className="flex items-center gap-2">
+                        <span className="text-xs font-semibold text-gray-500 uppercase tracking-wider whitespace-nowrap">Sort By:</span>
+                        <Select value={sortField} onValueChange={setSortField}>
+                            <SelectTrigger className="w-32 h-10 text-xs">
+                                <SelectValue />
+                            </SelectTrigger>
+                            <SelectContent>
+                                <SelectItem value="name">Name</SelectItem>
+                                <SelectItem value="price">Price</SelectItem>
+                                <SelectItem value="hsn">HSN</SelectItem>
+                            </SelectContent>
+                        </Select>
+                        <Button
+                            variant="outline"
+                            size="icon"
+                            className="h-10 w-10 border-gray-200"
+                            onClick={() => setSortOrder(prev => prev === 'asc' ? 'desc' : 'asc')}
+                            title={`Order: ${sortOrder === 'asc' ? 'Ascending' : 'Descending'}`}
+                        >
+                            {sortOrder === 'asc' ? <SortAsc className="w-4 h-4" /> : <SortDesc className="w-4 h-4" />}
+                        </Button>
+                    </div>
+
+                    <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={resetAll}
+                        disabled={!searchTerm && sortField === 'name' && sortOrder === 'asc' && filterUnit === 'all'}
+                        className="text-gray-400 hover:text-red-500 h-10 text-[10px] font-bold uppercase tracking-widest transition-colors flex items-center gap-2"
+                    >
+                        Reset All
+                    </Button>
                 </div>
                 <div className="flex gap-2 w-full sm:w-auto">
                     <input
@@ -307,7 +417,7 @@ const AdminServicesManager = () => {
                         </tr>
                     </thead>
                     <tbody>
-                        {filteredServices.map((service) => (
+                        {sortedServices.map((service) => (
                             <tr key={service.id} className="border-b hover:bg-gray-50 transition-colors">
                                 <td className="py-3 px-4">
                                     <p className="font-small text-sm text-gray-900">{service.serviceType}</p>

@@ -1,8 +1,10 @@
 
 import React, { useState, useRef } from 'react';
-import { Plus, Edit, Trash2, Save, Search, Download, Upload, AlertCircle } from 'lucide-react';
+import { Plus, Edit, Trash2, Save, Search, Download, Upload, AlertCircle, SortAsc, SortDesc } from 'lucide-react';
 import Rupee from '../Rupee';
 import { useTests } from '@/contexts/TestsContext';
+import { useAuth } from '@/contexts/AuthContext';
+import { sendTelegramNotification } from '@/lib/notifier';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -27,21 +29,61 @@ import {
 
 const AdminTestsManager = () => {
     const { tests, updateTest, addTest, deleteTest, setTests } = useTests();
+    const { user } = useAuth();
     const { toast } = useToast();
     const [searchTerm, setSearchTerm] = useState('');
     const [editingTest, setEditingTest] = useState(null);
     const [isAddingNew, setIsAddingNew] = useState(false);
     const [isSaving, setIsSaving] = useState(false);
     const [deleteConfirmation, setDeleteConfirmation] = useState({ isOpen: false, testId: null, testType: '' });
+    const [sortField, setSortField] = useState('name');
+    const [sortOrder, setSortOrder] = useState('asc');
+    const [filterMaterial, setFilterMaterial] = useState('all');
     const fileImportRef = useRef(null);
 
-    const filteredTests = tests.filter(t =>
-        (t.testType?.toLowerCase() || '').includes(searchTerm.toLowerCase()) ||
-        (t.price?.toString() || '').includes(searchTerm) ||
-        (t.hsnCode?.toLowerCase() || '').includes(searchTerm.toLowerCase()) ||
-        (t.group?.toLowerCase() || '').includes(searchTerm.toLowerCase()) ||
-        (t.id?.toString().toLowerCase() || '').includes(searchTerm.toLowerCase())
-    );
+    const uniqueMaterials = ['all', ...new Set(tests.map(t => t.materials).filter(Boolean).sort())];
+
+    const filteredTests = tests.filter(t => {
+        const matchesSearch =
+            (t.testType?.toLowerCase() || '').includes(searchTerm.toLowerCase()) ||
+            (t.price?.toString() || '').includes(searchTerm) ||
+            (t.hsnCode?.toLowerCase() || '').includes(searchTerm.toLowerCase()) ||
+            (t.group?.toLowerCase() || '').includes(searchTerm.toLowerCase()) ||
+            (t.materials?.toLowerCase() || '').includes(searchTerm.toLowerCase()) ||
+            (t.testMethodSpecification?.toLowerCase() || '').includes(searchTerm.toLowerCase()) ||
+            (t.id?.toString().toLowerCase() || '').includes(searchTerm.toLowerCase());
+
+        const matchesMaterial = filterMaterial === 'all' || t.materials === filterMaterial;
+
+        return matchesSearch && matchesMaterial;
+    });
+
+    const sortedTests = [...filteredTests].sort((a, b) => {
+        let valA, valB;
+        switch (sortField) {
+            case 'price':
+                valA = Number(a.price) || 0;
+                valB = Number(b.price) || 0;
+                break;
+            case 'hsn':
+                valA = (a.hsnCode || '').toLowerCase();
+                valB = (b.hsnCode || '').toLowerCase();
+                break;
+            case 'materials':
+                valA = (a.materials || '').toLowerCase();
+                valB = (b.materials || '').toLowerCase();
+                break;
+            case 'name':
+            default:
+                valA = (a.testType || '').toLowerCase();
+                valB = (b.testType || '').toLowerCase();
+                break;
+        }
+
+        if (valA < valB) return sortOrder === 'asc' ? -1 : 1;
+        if (valA > valB) return sortOrder === 'asc' ? 1 : -1;
+        return 0;
+    });
 
     const handleEdit = (test) => {
         setEditingTest({ ...test });
@@ -66,10 +108,18 @@ const AdminTestsManager = () => {
         try {
             if (isAddingNew) {
                 await addTest(editingTest);
-                toast({ title: "Test Added", description: "New test has been created." });
+                toast({ title: "Test Added", description: "New test has been successfully added." });
+
+                // Telegram Notification
+                const message = `🧪 *New Test Added*\n\nType: \`${editingTest.testType}\`\nPrice: \`${editingTest.price}\`\nAdded By: \`${user?.fullName || 'Unknown'}\``;
+                sendTelegramNotification(message);
             } else {
                 await updateTest(editingTest);
-                toast({ title: "Changes Saved", description: "Test details updated successfully." });
+                toast({ title: "Test Updated", description: "Test details have been updated." });
+
+                // Telegram Notification
+                const message = `✏️ *Test Updated*\n\nType: \`${editingTest.testType}\`\nPrice: \`${editingTest.price}\`\nUpdated By: \`${user?.fullName || 'Unknown'}\``;
+                sendTelegramNotification(message);
             }
             setEditingTest(null);
             setIsAddingNew(false);
@@ -91,14 +141,30 @@ const AdminTestsManager = () => {
 
     const confirmDelete = async () => {
         if (deleteConfirmation.testId) {
-            await deleteTest(deleteConfirmation.testId);
-            toast({ title: "Test Deleted", description: "The test has been removed.", variant: "destructive" });
+            try {
+                await deleteTest(deleteConfirmation.testId);
+                toast({ title: "Test Deleted", description: "The test has been removed.", variant: "destructive" });
+
+                // Telegram Notification
+                const message = `🗑️ *Test Deleted*\n\nType: \`${deleteConfirmation.testType}\`\nDeleted By: \`${user?.fullName || 'Unknown'}\``;
+                sendTelegramNotification(message);
+            } catch (error) {
+                console.error("Failed to delete test:", error);
+                toast({ title: "Error", description: "Failed to delete test. " + error.message, variant: "destructive" });
+            }
         }
         setDeleteConfirmation({ isOpen: false, testId: null, testType: '' });
     };
 
     const handleChange = (field, value) => {
         setEditingTest(prev => ({ ...prev, [field]: value }));
+    };
+
+    const resetAll = () => {
+        setSearchTerm('');
+        setSortField('name');
+        setSortOrder('asc');
+        setFilterMaterial('all');
     };
 
     const handleExport = () => {
@@ -241,14 +307,65 @@ const AdminTestsManager = () => {
     return (
         <div className="space-y-6">
             <div className="flex flex-col sm:flex-row justify-between items-center gap-4">
-                <div className="relative w-full sm:w-72">
-                    <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
-                    <Input
-                        placeholder="Search tests..."
-                        className="pl-10"
-                        value={searchTerm}
-                        onChange={(e) => setSearchTerm(e.target.value)}
-                    />
+                <div className="flex flex-col md:flex-row items-center gap-4 flex-1">
+                    <div className="relative w-full sm:w-72">
+                        <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
+                        <Input
+                            placeholder="Search tests..."
+                            className="pl-10"
+                            value={searchTerm}
+                            onChange={(e) => setSearchTerm(e.target.value)}
+                        />
+                    </div>
+
+                    <div className="flex items-center gap-2">
+                        <span className="text-xs font-semibold text-gray-500 uppercase tracking-wider whitespace-nowrap">Filters:</span>
+                        <Select value={filterMaterial} onValueChange={setFilterMaterial}>
+                            <SelectTrigger className="w-44 h-10 text-xs text-left">
+                                <SelectValue placeholder="All Materials" />
+                            </SelectTrigger>
+                            <SelectContent>
+                                {uniqueMaterials.map(m => (
+                                    <SelectItem key={m} value={m}>{m === 'all' ? 'All Materials' : m}</SelectItem>
+                                ))}
+                            </SelectContent>
+                        </Select>
+                    </div>
+
+
+                    <div className="flex items-center gap-2">
+                        <span className="text-xs font-semibold text-gray-500 uppercase tracking-wider whitespace-nowrap">Sort By:</span>
+                        <Select value={sortField} onValueChange={setSortField}>
+                            <SelectTrigger className="w-32 h-10 text-xs text-left">
+                                <SelectValue />
+                            </SelectTrigger>
+                            <SelectContent>
+                                <SelectItem value="name">Name</SelectItem>
+                                <SelectItem value="materials">Materials</SelectItem>
+                                <SelectItem value="price">Price</SelectItem>
+                                <SelectItem value="hsn">HSN</SelectItem>
+                            </SelectContent>
+                        </Select>
+                        <Button
+                            variant="outline"
+                            size="icon"
+                            className="h-10 w-10 border-gray-200"
+                            onClick={() => setSortOrder(prev => prev === 'asc' ? 'desc' : 'asc')}
+                            title={`Order: ${sortOrder === 'asc' ? 'Ascending' : 'Descending'}`}
+                        >
+                            {sortOrder === 'asc' ? <SortAsc className="w-4 h-4" /> : <SortDesc className="w-4 h-4" />}
+                        </Button>
+                    </div>
+
+                    <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={resetAll}
+                        disabled={!searchTerm && sortField === 'name' && sortOrder === 'asc' && filterMaterial === 'all'}
+                        className="text-gray-400 hover:text-red-500 h-10 text-[10px] font-bold uppercase tracking-widest transition-colors flex items-center gap-2"
+                    >
+                        Reset All
+                    </Button>
                 </div>
                 <div className="flex gap-2 w-full sm:w-auto">
                     <input
@@ -283,7 +400,7 @@ const AdminTestsManager = () => {
                         </tr>
                     </thead>
                     <tbody>
-                        {filteredTests.map((test) => (
+                        {sortedTests.map((test) => (
                             <tr key={test.id} className="border-b hover:bg-gray-50 transition-colors">
                                 <td className="py-3 px-4">
                                     <p className="font-small text-sm text-gray-900">{test.testType}</p>

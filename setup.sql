@@ -336,7 +336,7 @@ create table if not exists public.app_users (
   username text unique not null,
   password text not null,
   full_name text,
-  role text not null check (role in ('admin', 'standard')),
+  role text not null check (role in ('super_admin', 'admin', 'standard')),
   is_active boolean default true,
   created_at timestamp with time zone default now(),
   updated_at timestamp with time zone default now()

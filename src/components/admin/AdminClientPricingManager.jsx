@@ -3,6 +3,8 @@ import React, { useState, useEffect } from 'react';
 import { useClients } from '@/contexts/ClientsContext';
 import { useServices } from '@/contexts/ServicesContext';
 import { useTests } from '@/contexts/TestsContext';
+import { useAuth } from '@/contexts/AuthContext';
+import { sendTelegramNotification } from '@/lib/notifier';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -16,6 +18,7 @@ const AdminClientPricingManager = () => {
     const { clients } = useClients();
     const { services, clientServicePrices, updateClientServicePrice, deleteClientServicePrice } = useServices();
     const { tests, clientTestPrices, updateClientTestPrice, deleteClientTestPrice } = useTests();
+    const { user } = useAuth();
     const { toast } = useToast();
 
     const [selectedClientId, setSelectedClientId] = useState('');
@@ -71,6 +74,13 @@ const AdminClientPricingManager = () => {
                 title: "Price updated",
                 description: `Successfully updated price for the client.`,
             });
+
+            // Telegram Notification
+            const itemName = type === 'service'
+                ? services.find(s => s.id === itemId)?.serviceType
+                : tests.find(t => t.id === itemId)?.testType;
+            const message = `💰 *Client Pricing Updated*\n\nClient: \`${selectedClient?.clientName}\`\nItem: \`${itemName}\`\nNew Price: \`${price}\`\nUpdated By: \`${user?.fullName || 'Unknown'}\``;
+            sendTelegramNotification(message);
         } catch (error) {
             toast({
                 title: "Error",
@@ -93,6 +103,13 @@ const AdminClientPricingManager = () => {
                 title: "Price removed",
                 description: `Client-specific price removed. Default price will be used.`,
             });
+
+            // Telegram Notification
+            const itemName = type === 'service'
+                ? services.find(s => s.id === itemId)?.serviceType
+                : tests.find(t => t.id === itemId)?.testType;
+            const message = `💸 *Client Pricing Removed*\n\nClient: \`${selectedClient?.clientName}\`\nItem: \`${itemName}\`\nRemoved By: \`${user?.fullName || 'Unknown'}\``;
+            sendTelegramNotification(message);
         } catch (error) {
             toast({
                 title: "Error",

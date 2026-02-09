@@ -35,7 +35,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { sendTelegramNotification } from '@/lib/notifier';
 
 const AdminUsersManager = () => {
-    const { user: currentUser } = useAuth();
+    const { user: currentUser, isSuperAdmin } = useAuth();
     const [users, setUsers] = useState([]);
     const [loading, setLoading] = useState(true);
     const [isDialogOpen, setIsDialogOpen] = useState(false);
@@ -63,7 +63,13 @@ const AdminUsersManager = () => {
                 .order('username');
 
             if (error) throw error;
-            setUsers(data || []);
+
+            let filteredData = data || [];
+            if (!isSuperAdmin()) {
+                filteredData = filteredData.filter(u => u.role !== 'super_admin');
+            }
+
+            setUsers(filteredData);
         } catch (error) {
             console.error('Error fetching users:', error);
             toast({
@@ -98,6 +104,14 @@ const AdminUsersManager = () => {
             toast({
                 title: 'Action Prohibited',
                 description: 'You cannot deactivate your own account.',
+                variant: 'destructive'
+            });
+            return;
+        }
+        if (user.role === 'super_admin' && !isSuperAdmin()) {
+            toast({
+                title: 'Action Prohibited',
+                description: 'You do not have permission to modify a Super Admin.',
                 variant: 'destructive'
             });
             return;
@@ -247,12 +261,12 @@ const AdminUsersManager = () => {
                                 </td>
                                 <td className="py-3 px-4 text-sm">{user.full_name || '-'}</td>
                                 <td className="py-3 px-4 text-sm">
-                                    <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${user.role === 'admin'
-                                        ? 'bg-purple-100 text-purple-800'
-                                        : 'bg-blue-100 text-blue-800'
+                                    <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${user.role === 'super_admin' ? 'bg-red-100 text-red-800' :
+                                        user.role === 'admin' ? 'bg-purple-100 text-purple-800' :
+                                            'bg-blue-100 text-blue-800'
                                         }`}>
-                                        {user.role === 'admin' && <Shield className="w-3 h-3 mr-1" />}
-                                        {user.role}
+                                        {(user.role === 'admin' || user.role === 'super_admin') && <Shield className="w-3 h-3 mr-1" />}
+                                        {user.role === 'super_admin' ? 'Super Admin' : user.role === 'admin' ? 'Admin' : 'Standard'}
                                     </span>
                                 </td>
                                 <td className="py-3 px-4 text-sm">
@@ -331,6 +345,7 @@ const AdminUsersManager = () => {
                                 <SelectContent>
                                     <SelectItem value="standard">Standard</SelectItem>
                                     <SelectItem value="admin">Admin</SelectItem>
+                                    {isSuperAdmin() && <SelectItem value="super_admin">Super Admin</SelectItem>}
                                 </SelectContent>
                             </Select>
                         </div>
