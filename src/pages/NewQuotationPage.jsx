@@ -908,6 +908,25 @@ const NewQuotationPage = () => {
                                 {/* Dynamically render quotation pages based on items */}
                                 {itemPages.map((page, pageIndex) => (
                                     <div key={`quote-page-${page.pageNumber}`} className="a4-container" id={pageIndex === 0 ? "printable-quote" : undefined}>
+                                        {/* Watermark */}
+                                        <div
+                                            className="absolute inset-0 flex items-center justify-center pointer-events-none"
+                                            style={{
+                                                transform: 'rotate(-55deg)',
+                                                zIndex: 0
+                                            }}
+                                        >
+                                            <span
+                                                style={{
+                                                    fontSize: '42pt',
+                                                    fontWeight: 700,
+                                                    color: 'rgba(0,0,0,0.02)',
+                                                    whiteSpace: 'nowrap'
+                                                }}
+                                            >
+                                                EDGE2 Engineering Solutions India Pvt. Ltd.
+                                            </span>
+                                        </div>
                                         <div className="a4-page-content">
                                             {/* Header - only on first page */}
                                             {page.isFirstPage && (
@@ -1109,7 +1128,7 @@ const NewQuotationPage = () => {
                                                                 <span><Rupee />{((calculateTotal() * (1 - discount / 100)) * (1 + (taxTotalPercent / 100))).toLocaleString(undefined, { maximumFractionDigits: 2 })}</span>
                                                             </div>
                                                             <div className="mt-2 text-xs text-gray-600 italic">
-                                                                <span className="font-medium">Amount in Words: </span>
+                                                                <span className="font-medium">Amount in Words: Rupees </span>
                                                                 <span>{numberToWords((calculateTotal() * (1 - discount / 100)) * (1 + (taxTotalPercent / 100)))} /-</span>
                                                             </div>
                                                         </div>
@@ -1130,6 +1149,25 @@ const NewQuotationPage = () => {
 
                                 {/* Page 2: Bank */}
                                 <div className="a4-container">
+                                    {/* Watermark */}
+                                    <div
+                                        className="absolute inset-0 flex items-center justify-center pointer-events-none"
+                                        style={{
+                                            transform: 'rotate(-55deg)',
+                                            zIndex: 0
+                                        }}
+                                    >
+                                        <span
+                                            style={{
+                                                fontSize: '42pt',
+                                                fontWeight: 700,
+                                                color: 'rgba(0,0,0,0.02)',
+                                                whiteSpace: 'nowrap'
+                                            }}
+                                        >
+                                            EDGE2 Engineering Solutions India Pvt. Ltd.
+                                        </span>
+                                    </div>
                                     <div className="a4-page-content">
                                         <div className="text-gray-500 text-sm">
 
@@ -1230,6 +1268,25 @@ const NewQuotationPage = () => {
 
                                 {/* Page 2: Terms & Conditions */}
                                 <div className="a4-container">
+                                    {/* Watermark */}
+                                    <div
+                                        className="absolute inset-0 flex items-center justify-center pointer-events-none"
+                                        style={{
+                                            transform: 'rotate(-55deg)',
+                                            zIndex: 0
+                                        }}
+                                    >
+                                        <span
+                                            style={{
+                                                fontSize: '42pt',
+                                                fontWeight: 700,
+                                                color: 'rgba(0,0,0,0.02)',
+                                                whiteSpace: 'nowrap'
+                                            }}
+                                        >
+                                            EDGE2 Engineering Solutions India Pvt. Ltd.
+                                        </span>
+                                    </div>
                                     <div className="a4-page-content">
                                         <div className="text-center text-gray-500 text-sm">
                                             <h2 className="font-semibold text-left text-lg mb-4">Terms & Conditions</h2>
@@ -1271,6 +1328,25 @@ const NewQuotationPage = () => {
 
                                 {/* Page 3: Technicals */}
                                 <div className="a4-container">
+                                    {/* Watermark */}
+                                    <div
+                                        className="absolute inset-0 flex items-center justify-center pointer-events-none"
+                                        style={{
+                                            transform: 'rotate(-55deg)',
+                                            zIndex: 0
+                                        }}
+                                    >
+                                        <span
+                                            style={{
+                                                fontSize: '42pt',
+                                                fontWeight: 700,
+                                                color: 'rgba(0,0,0,0.02)',
+                                                whiteSpace: 'nowrap'
+                                            }}
+                                        >
+                                            EDGE2 Engineering Solutions India Pvt. Ltd.
+                                        </span>
+                                    </div>
                                     <div className="a4-page-content">
                                         <div className="text-center text-gray-500 text-sm">
                                             <h2 className="font-semibold text-left text-lg mb-4">Technicals</h2>
