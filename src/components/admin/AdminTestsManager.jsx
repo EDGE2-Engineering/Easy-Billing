@@ -415,37 +415,58 @@ const AdminTestsManager = () => {
                     <thead className="bg-gray-50 border-b">
                         <tr>
                             <th className="text-left py-3 px-4 font-semibold text-sm text-gray-600">Test Type</th>
-                            <th className="text-left py-3 px-4 font-semibold text-sm text-gray-600 hidden md:table-cell">Materials</th>
-                            <th className="text-left py-3 px-4 font-semibold text-sm text-gray-600 hidden md:table-cell">Method</th>
-                            <th className="text-left py-3 px-4 font-semibold text-sm text-gray-600">Price</th>
-                            <th className="text-left py-3 px-4 font-semibold text-sm text-gray-600">HSN Code</th>
                             <th className="text-right py-3 px-4 font-semibold text-sm text-gray-600">Actions</th>
                         </tr>
                     </thead>
                     <tbody>
-                        {sortedTests.map((test) => (
-                            <tr key={test.id} className="border-b hover:bg-gray-50 transition-colors">
-                                <td className="py-3 px-4">
-                                    <p className="font-small text-sm text-gray-900">{test.testType}</p>
-                                    <p className="text-xs text-sm text-gray-500 md:hidden">{test.materials}</p>
-                                </td>
-                                <td className="py-3 px-4 text-sm text-gray-600 hidden md:table-cell">{test.materials}</td>
-                                <td className="py-3 px-4 text-sm text-gray-600 hidden md:table-cell">{test.testMethodSpecification || '-'}</td>
-                                <td className="py-3 px-4 text-sm text-gray-700"><Rupee />{test.price.toLocaleString()}</td>
-                                <td className="py-3 px-4 text-sm text-gray-600">{test.hsnCode || '-'}</td>
-                                <td className="py-3 px-4 text-right">
-                                    <div className="flex justify-end space-x-2">
-                                        <Button variant="ghost" size="icon" onClick={() => handleEdit(test)}>
-                                            <Edit className="w-4 h-4 text-gray-600" />
-                                        </Button>
-                                        <Button variant="ghost" size="icon" onClick={() => handleDeleteClick(test)}>
-                                            <Trash2 className="w-4 h-4 text-red-500" />
-                                        </Button>
-                                    </div>
-                                </td>
-                            </tr>
-                        ))}
-                    </tbody>
+    {sortedTests.map((test) => (
+        <tr key={test.id} className="border-b hover:bg-gray-50 transition-colors">
+            
+            <td className="py-3 px-4">
+                <div className="flex flex-wrap items-center gap-6 text-sm text-gray-700">
+                    
+                    <p className="font-medium text-gray-900">
+                        {test.testType}
+                    </p>
+                    <div className="w-full"></div>
+                    <p>
+                        <span className="font-semibold text-gray-900">Materials:</span>{' '}
+                        {test.materials}
+                    </p>
+
+                    <p>
+                        <span className="font-semibold text-gray-900">Method:</span>{' '}
+                        {test.testMethodSpecification || '-'}
+                    </p>
+
+                    <p>
+                        <span className="font-semibold text-gray-900">Price:</span>{' '}
+                        <Rupee />{test.price.toLocaleString()}
+                    </p>
+
+                    <p>
+                        <span className="font-semibold text-gray-900">HSN Code:</span>{' '}
+                        {test.hsnCode || '-'}
+                    </p>
+
+                </div>
+            </td>
+
+            <td className="py-1 px-1 text-right">
+                <div className="flex justify-end space-x-2">
+                    <Button variant="ghost" size="icon" onClick={() => handleEdit(test)}>
+                        <Edit className="w-4 h-4 text-gray-600" />
+                    </Button>
+                    <Button variant="ghost" size="icon" onClick={() => handleDeleteClick(test)}>
+                        <Trash2 className="w-4 h-4 text-red-500" />
+                    </Button>
+                </div>
+            </td>
+
+        </tr>
+    ))}
+</tbody>
+
                 </table>
             </div>
 

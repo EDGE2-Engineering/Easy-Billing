@@ -431,12 +431,6 @@ const AdminServicesManager = () => {
                     <thead className="bg-gray-50 border-b">
                         <tr>
                             <th className="text-left py-3 px-4 font-semibold text-sm text-gray-600">Service Type</th>
-                            <th className="text-left py-3 px-4 font-semibold text-sm text-gray-600">Price</th>
-                            <th className="text-left py-3 px-4 font-semibold text-sm text-gray-600">Unit</th>
-                            <th className="text-left py-3 px-4 font-semibold text-sm text-gray-600">Method</th>
-                            <th className="text-left py-3 px-4 font-semibold text-sm text-gray-600"># BHs</th>
-                            <th className="text-left py-3 px-4 font-semibold text-sm text-gray-600">Measure</th>
-                            <th className="text-left py-3 px-4 font-semibold text-sm text-gray-600">HSN Code</th>
                             <th className="text-right py-3 px-4 font-semibold text-sm text-gray-600">Actions</th>
                         </tr>
                     </thead>
@@ -444,15 +438,44 @@ const AdminServicesManager = () => {
                         {sortedServices.map((service) => (
                             <tr key={service.id} className="border-b hover:bg-gray-50 transition-colors">
                                 <td className="py-3 px-4">
-                                    <p className="font-small text-sm text-gray-900">{service.serviceType}</p>
+                                    <div className="flex flex-wrap items-center gap-4 text-sm text-gray-700">
+                                        <p className="font-medium text-gray-900">
+                                            {service.serviceType}
+                                        </p>
+                                        <div className="w-full"></div>
+                                        <p>
+                                            <span className="font-semibold text-gray-900">Price:</span>{' '}
+                                            <Rupee />{service.price.toLocaleString()}
+                                        </p>
+
+                                        <p>
+                                            <span className="font-semibold text-gray-900">Unit:</span>{' '}
+                                            {service.unit}
+                                        </p>
+
+                                        <p>
+                                            <span className="font-semibold text-gray-900">Method:</span>{' '}
+                                            {service.methodOfSampling || 'NA'}
+                                        </p>
+
+                                        <p>
+                                            <span className="font-semibold text-gray-900"># BHs:</span>{' '}
+                                            {service.numBHs ?? 0}
+                                        </p>
+
+                                        <p>
+                                            <span className="font-semibold text-gray-900">Measure:</span>{' '}
+                                            {service.measure || 'NA'}
+                                        </p>
+
+                                        <p>
+                                            <span className="font-semibold text-gray-900">HSN Code:</span>{' '}
+                                            {service.hsnCode || '-'}
+                                        </p>
+                                    </div>
                                 </td>
-                                <td className="py-3 px-4 text-sm text-gray-700"><Rupee />{service.price.toLocaleString()}</td>
-                                <td className="py-3 px-4 text-sm text-gray-600">{service.unit}</td>
-                                <td className="py-3 px-4 text-sm text-gray-600">{service.methodOfSampling || 'NA'}</td>
-                                <td className="py-3 px-4 text-sm text-gray-600">{service.numBHs ?? 0}</td>
-                                <td className="py-3 px-4 text-sm text-gray-600">{service.measure || 'NA'}</td>
-                                <td className="py-3 px-4 text-sm text-gray-600">{service.hsnCode || '-'}</td>
-                                <td className="py-3 px-4 text-right">
+
+                                <td className="py-1 px-1 text-right">
                                     <div className="flex justify-end space-x-2">
                                         <Button variant="ghost" size="icon" onClick={() => handleEdit(service)}>
                                             <Edit className="w-4 h-4 text-gray-600" />

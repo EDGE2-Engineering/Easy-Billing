@@ -251,8 +251,6 @@ const AdminClientsManager = () => {
                     <thead className="bg-gray-50 border-b">
                         <tr>
                             <th className="text-left py-3 px-4 font-semibold text-sm text-gray-600">Client Name</th>
-                            <th className="text-left py-3 px-4 font-semibold text-sm text-gray-600">Address</th>
-                            <th className="text-left py-3 px-4 font-semibold text-sm text-gray-600">Contact</th>
                             <th className="text-right py-3 px-4 font-semibold text-sm text-gray-600">Actions</th>
                         </tr>
                     </thead>
@@ -260,15 +258,36 @@ const AdminClientsManager = () => {
                         {filteredClients.length > 0 ? (
                             filteredClients.map((client) => (
                                 <tr key={client.id} className="border-b hover:bg-gray-50 transition-colors">
-                                    <td className="py-3 px-4 text-gray-800 font-medium text-sm">{client.clientName}</td>
-                                    <td className="py-3 px-4 text-gray-600 text-xs max-w-xs truncate" title={client.clientAddress}>{client.clientAddress}</td>
-                                    <td className="py-3 px-4 text-gray-600 text-xs">
-                                        <div className="flex flex-col">
-                                            <span className="flex items-center"><Mail className="w-4 h-4 mr-2 text-blue-500" />{client.email}</span>
-                                            <span className="text-xs text-gray-500 flex items-center"><Phone className="w-4 h-4 mr-2 text-green-500" />{client.phone}</span>
+
+                                    {/* Single content column */}
+                                    <td className="py-3 px-4">
+                                        <div className="flex flex-wrap items-center gap-2 text-sm text-gray-700">
+                                            <p className="font-semibold text-gray-900">
+                                                {client.clientName}
+                                            </p>
+                                            <div className="w-full"></div>
+                                            <p className="" title={client.clientAddress}>
+                                                <span className="font-semibold text-gray-900">Address:</span>{' '}
+                                                {client.clientAddress}
+                                            </p>
+                                            <div className="w-full"></div>
+                                            <p className="flex items-center">
+                                                <Mail className="w-4 h-4 mr-2 text-blue-500" />
+                                                <span className="font-semibold text-gray-900 mr-1">Email:</span>
+                                                {client.email}
+                                            </p>
+                                            <div className="w-full"></div>
+                                            <p className="flex items-center">
+                                                <Phone className="w-4 h-4 mr-2 text-green-500" />
+                                                <span className="font-semibold text-gray-900 mr-1">Phone:</span>
+                                                {client.phone}
+                                            </p>
+
                                         </div>
                                     </td>
-                                    <td className="py-3 px-4 text-right">
+
+                                    {/* Actions column */}
+                                    <td className="py-1 px-1 text-right">
                                         <div className="flex justify-end space-x-2">
                                             <Button variant="ghost" size="icon" onClick={() => handleEdit(client)}>
                                                 <Edit className="w-4 h-4 text-gray-600" />
@@ -278,12 +297,15 @@ const AdminClientsManager = () => {
                                             </Button>
                                         </div>
                                     </td>
+
                                 </tr>
                             ))
                         ) : (
                             <tr>
-                                <td colSpan="4" className="py-8 text-center text-gray-500">
-                                    {searchTerm ? 'No clients found matching your search.' : 'No clients added yet.'}
+                                <td colSpan="2" className="py-8 text-center text-gray-500">
+                                    {searchTerm
+                                        ? 'No clients found matching your search.'
+                                        : 'No clients added yet.'}
                                 </td>
                             </tr>
                         )}
