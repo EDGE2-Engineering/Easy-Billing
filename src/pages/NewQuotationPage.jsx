@@ -161,6 +161,7 @@ const NewQuotationPage = () => {
                         generatedBy: parsed.quoteDetails.generatedBy || '',
                         paymentDate: parsed.quoteDetails.paymentDate || '',
                         paymentMode: parsed.quoteDetails.paymentMode || '',
+                        paymentAmount: parsed.quoteDetails.paymentAmount || '',
                         bankDetails: parsed.quoteDetails.bankDetails || ''
                     },
                     items: parsed.items || [],
@@ -187,6 +188,7 @@ const NewQuotationPage = () => {
                 generatedBy: user?.fullName || '',
                 paymentDate: '',
                 paymentMode: '',
+                paymentAmount: '',
                 bankDetails: ''
             },
             items: [],
@@ -416,6 +418,7 @@ const NewQuotationPage = () => {
             generatedBy: user?.fullName || '',
             paymentDate: '',
             paymentMode: '',
+            paymentAmount: '',
             bankDetails: ''
         });
         setItems([]);
@@ -865,6 +868,18 @@ const NewQuotationPage = () => {
                                             </Select>
                                         </div>
                                     </div>
+                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                        <div>
+                                            <Label>Payment Amount (<Rupee />)</Label>
+                                            <Input
+                                                type="number"
+                                                min="0"
+                                                value={quoteDetails.paymentAmount || ''}
+                                                onChange={e => setQuoteDetails({ ...quoteDetails, paymentAmount: e.target.value })}
+                                                placeholder="Enter amount"
+                                            />
+                                        </div>
+                                    </div>
                                     <div>
                                         <Label>Bank / Transaction Details</Label>
                                         <Textarea
@@ -1183,10 +1198,22 @@ const NewQuotationPage = () => {
                                                                 <span>Total Tax Amount</span>
                                                                 <span><Rupee />{((calculateTotal() * (1 - discount / 100)) * (taxTotalPercent / 100)).toLocaleString(undefined, { maximumFractionDigits: 2 })}</span>
                                                             </div>
-                                                            <div className="flex justify-between text-sm font-bold text-gray-900 pt-4 border-t border-gray-100">
+                                                            <div className="flex justify-between text-sm font-bold text-gray-900 pt-2 border-t border-gray-100">
                                                                 <span>Total</span>
                                                                 <span><Rupee />{((calculateTotal() * (1 - discount / 100)) * (1 + (taxTotalPercent / 100))).toLocaleString(undefined, { maximumFractionDigits: 2 })}</span>
                                                             </div>
+                                                            {documentType === 'Tax Invoice' && quoteDetails.paymentAmount > 0 && (
+                                                                <>
+                                                                    <div className="flex justify-between text-xs text-red-600">
+                                                                        <span>Less: Payment Received</span>
+                                                                        <span>- <Rupee />{Number(quoteDetails.paymentAmount).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
+                                                                    </div>
+                                                                    <div className="flex justify-between text-sm font-bold text-gray-900 pt-2 border-t border-gray-100">
+                                                                        <span>Balance Due</span>
+                                                                        <span><Rupee />{(((calculateTotal() * (1 - discount / 100)) * (1 + (taxTotalPercent / 100))) - Number(quoteDetails.paymentAmount)).toLocaleString(undefined, { maximumFractionDigits: 2 })}</span>
+                                                                    </div>
+                                                                </>
+                                                            )}
                                                             <div className="mt-2 text-xs text-gray-600 italic">
                                                                 <span className="font-medium">Amount in Words: Rupees </span>
                                                                 <span>{numberToWords((calculateTotal() * (1 - discount / 100)) * (1 + (taxTotalPercent / 100)))} /-</span>
@@ -1292,6 +1319,12 @@ const NewQuotationPage = () => {
                                                                 <td className="py-1 font-semibold">Mode of Payment:</td>
                                                                 <td className="py-1">{quoteDetails.paymentMode}</td>
                                                             </tr>
+                                                            {quoteDetails.paymentAmount && (
+                                                                <tr>
+                                                                    <td className="py-1 font-semibold">Amount Received:</td>
+                                                                    <td className="py-1"><Rupee />{Number(quoteDetails.paymentAmount).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
+                                                                </tr>
+                                                            )}
                                                             {quoteDetails.bankDetails && (
                                                                 <tr>
                                                                     <td className="py-1 font-semibold">Transaction Details:</td>
