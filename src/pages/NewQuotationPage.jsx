@@ -634,12 +634,12 @@ const NewQuotationPage = () => {
                     </div>
                 </div>
 
-                <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                <div className="grid grid-cols-1 lg:grid-cols-3 gap-2">
                     {/* Left Column: Editor */}
-                    <div className="lg:col-span-1 space-y-6">
+                    <div className="lg:col-span-1 space-y-2">
                         {/* Client Details Card */}
-                        <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
-                            <div className="mb-4">
+                        <div className="bg-white p-2 rounded-xl shadow-sm border border-gray-100">
+                            <div className="mb-2">
                                 <Label>Document Type</Label>
                                 <Select value={documentType} onValueChange={setDocumentType}>
                                     <SelectTrigger>
@@ -652,7 +652,7 @@ const NewQuotationPage = () => {
                                     </SelectContent>
                                 </Select>
                             </div>
-                            <div className="grid grid-cols-1 gap-4 mb-4">
+                            <div className="grid grid-cols-1 gap-2 mb-2">
                                 <div>
                                     <Label>{documentType} Number</Label>
                                     <Input
@@ -673,7 +673,7 @@ const NewQuotationPage = () => {
                                 <FileText className="w-5 h-5 mr-2 text-primary" />
                                 Client Details
                             </h2> */}
-                            <div className="space-y-4 border-t pt-2">
+                            <div className="space-y-2 border-t pt-2">
                                 <div>
                                     <Label>Client Name</Label>
                                     <Select
@@ -797,11 +797,11 @@ const NewQuotationPage = () => {
                                         />
                                     </div>
                                 </div>
-                                <div className="grid grid-cols-2 gap-4">
+                                <div className="grid grid-cols-2 gap-2">
                                     <div>
                                         <Label>Date</Label>
                                         <Input
-                                            className="text-center"
+                                            className="text-left"
                                             type="date"
                                             value={quoteDetails.date}
                                             onChange={e => setQuoteDetails({ ...quoteDetails, date: e.target.value })}
