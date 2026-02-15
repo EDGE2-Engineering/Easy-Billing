@@ -266,7 +266,7 @@ const AdminUsersManager = () => {
                                             'bg-blue-100 text-blue-800'
                                         }`}>
                                         {(user.role === 'admin' || user.role === 'super_admin') && <Shield className="w-3 h-3 mr-1" />}
-                                        {user.role === 'super_admin' ? 'Super Admin' : user.role === 'admin' ? 'Admin' : 'Standard'}
+                                        {user.role === 'super_admin' ? 'Superadmin' : user.role === 'admin' ? 'Admin' : 'Standard'}
                                     </span>
                                 </td>
                                 <td className="py-3 px-4 text-sm">
