@@ -126,26 +126,39 @@
   }
 
   body {
-    background: white !important;
+    visibility: hidden;
+    height: auto;
+    overflow: visible;
     margin: 0;
     padding: 0;
+    background: white !important;
   }
 
   .min-h-screen {
     min-height: auto !important;
   }
 
+  /* Key fix: Hide everything except the print root */
   #printable-quote-root {
-    display: block !important;
+    visibility: visible;
+    position: absolute;
+    left: 0;
+    top: 0;
     width: 210mm;
     margin: 0;
     padding: 0;
+    display: block !important;
+    z-index: 9999;
+  }
+
+  /* Ensure children are visible */
+  #printable-quote-root * {
+    visibility: visible;
   }
 
   .a4-container {
     box-shadow: none;
     margin: 0;
-    /* Remove margin in print */
     width: 210mm;
     min-height: 297mm;
     max-height: 297mm;
@@ -158,7 +171,7 @@
     float: none;
     overflow: hidden;
     border: none;
-    /* Remove visual separator in print */
+    visibility: visible;
   }
 
   .a4-container:last-child {
