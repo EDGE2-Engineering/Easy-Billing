@@ -599,7 +599,7 @@ const NewQuotationPage = () => {
 
     const itemPages = paginateItems();
     const totalQuotationPages = itemPages.length;
-    const STATIC_PAGES_COUNT = 2; // Terms & Conditions + Technicals
+    const STATIC_PAGES_COUNT = 3; // Bank Details + Terms & Conditions + Technicals
     const totalPages = totalQuotationPages + STATIC_PAGES_COUNT;
 
     return (
@@ -1315,6 +1315,12 @@ const NewQuotationPage = () => {
                                             </div>
 
                                         </div>
+
+                                        {/* Page Footer */}
+                                        <div className="a4-page-footer">
+                                            <span>EDGE2 Engineering Solutions India Pvt. Ltd.</span>
+                                            <span>{documentType} #{quoteDetails.quoteNumber} | Page {totalQuotationPages + 1} of {totalPages}</span>
+                                        </div>
                                     </div>
                                 </div>
 
@@ -1375,7 +1381,7 @@ const NewQuotationPage = () => {
                                     {/* Page Footer */}
                                     <div className="a4-page-footer">
                                         <span>EDGE2 Engineering Solutions India Pvt. Ltd.</span>
-                                        <span>{documentType} #{quoteDetails.quoteNumber} | Page {totalQuotationPages + 1} of {totalPages}</span>
+                                        <span>{documentType} #{quoteDetails.quoteNumber} | Page {totalQuotationPages + 2} of {totalPages}</span>
                                     </div>
                                 </div>
 
@@ -1431,7 +1437,7 @@ const NewQuotationPage = () => {
                                     {/* Page Footer */}
                                     <div className="a4-page-footer">
                                         <span>EDGE2 Engineering Solutions India Pvt. Ltd.</span>
-                                        <span>{documentType} #{quoteDetails.quoteNumber} | Page {totalQuotationPages + 2} of {totalPages}</span>
+                                        <span>{documentType} #{quoteDetails.quoteNumber} | Page {totalQuotationPages + 3} of {totalPages}</span>
                                     </div>
                                 </div>
                             </div>

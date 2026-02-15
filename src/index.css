@@ -160,18 +160,23 @@
     box-shadow: none;
     margin: 0;
     width: 210mm;
-    min-height: 297mm;
-    max-height: 297mm;
-    padding: 7.5mm;
-    /* Reduced from 15mm */
-    padding-bottom: 15mm;
-    /* Adjusted for footer - reduced from 25mm */
+    /* Slightly reduced height to prevent single-pixel overflows triggering new pages on some devices */
+    height: 296mm;
+    min-height: 296mm;
+    max-height: 296mm;
+    padding: 10mm;
+    /* Increased padding for better spacing */
+    padding-bottom: 20mm;
+    /* Adjusted for footer space */
     page-break-after: always;
     page-break-inside: avoid;
     float: none;
     overflow: hidden;
     border: none;
     visibility: visible;
+    position: relative;
+    /* Reset any transforms from screen media queries */
+    transform: none !important;
   }
 
   .a4-container:last-child {
@@ -206,8 +211,8 @@
   /* Ensure content wrapper doesn't overflow in print */
   .a4-content-wrapper {
     overflow: hidden;
-    max-height: calc(297mm - 40mm);
-    /* Account for padding and footer */
+    /* Adjusted for new height and padding */
+    max-height: calc(296mm - 40mm);
   }
 }
 
@@ -227,12 +232,13 @@
 @media print {
   .a4-page-footer {
     position: absolute;
-    bottom: 5mm;
-    /* Reduced from 10mm to match reduced padding */
-    left: 7.5mm;
-    /* Reduced from 15mm */
-    right: 7.5mm;
-    /* Reduced from 15mm */
+    bottom: 10mm;
+    /* Increased bottom margin for safety */
+    left: 10mm;
+    /* Match container padding */
+    right: 10mm;
+    /* Match container padding */
+    width: auto;
     margin-top: 0;
   }
 }
