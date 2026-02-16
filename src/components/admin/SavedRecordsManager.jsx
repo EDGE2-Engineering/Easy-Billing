@@ -39,6 +39,8 @@ const SavedRecordsManager = () => {
   const [deleteConfirmation, setDeleteConfirmation] = useState({ isOpen: false, recordId: null, quoteNumber: '' });
   const [sortField, setSortField] = useState('date');
   const [sortOrder, setSortOrder] = useState('desc');
+  const [currentPage, setCurrentPage] = useState(1);
+  const [itemsPerPage, setItemsPerPage] = useState(10);
   const { toast } = useToast();
   const navigate = useNavigate();
   const { settings } = useSettings();
@@ -197,6 +199,17 @@ const SavedRecordsManager = () => {
     return 0;
   });
 
+  // Pagination calculations
+  const totalPages = Math.ceil(sortedRecords.length / itemsPerPage);
+  const startIndex = (currentPage - 1) * itemsPerPage;
+  const endIndex = startIndex + itemsPerPage;
+  const paginatedRecords = sortedRecords.slice(startIndex, endIndex);
+
+  // Reset to page 1 when filters change
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [searchTerm, fromDate, toDate, filterDocType, filterUser, filterClient, sortField, sortOrder]);
+
   const resetFilters = () => {
     setSearchTerm('');
     setFromDate('');
@@ -206,6 +219,7 @@ const SavedRecordsManager = () => {
     setFilterClient('all');
     setSortField('date');
     setSortOrder('desc');
+    setCurrentPage(1);
   };
 
   if (loading && records.length === 0) {
@@ -384,30 +398,105 @@ const SavedRecordsManager = () => {
 
       </div>
 
+      {/* Pagination Controls - Top */}
+      <div className="flex flex-wrap items-center justify-between gap-4 bg-white p-4 rounded-lg shadow border border-gray-100">
+        <div className="flex items-center gap-3">
+          <span className="text-sm text-gray-600">Items per page:</span>
+          <Select value={itemsPerPage.toString()} onValueChange={(value) => {
+            setItemsPerPage(Number(value));
+            setCurrentPage(1);
+          }}>
+            <SelectTrigger className="w-24 h-9 text-sm bg-gray-50/50 border-gray-200 rounded-lg">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="10">10</SelectItem>
+              <SelectItem value="25">25</SelectItem>
+              <SelectItem value="50">50</SelectItem>
+              <SelectItem value="100">100</SelectItem>
+            </SelectContent>
+          </Select>
+          <span className="text-sm text-gray-600">
+            Showing {sortedRecords.length === 0 ? 0 : startIndex + 1}-{Math.min(endIndex, sortedRecords.length)} of {sortedRecords.length}
+          </span>
+        </div>
+      </div>
+
       <div className="bg-white rounded-lg shadow border border-gray-100 overflow-hidden">
         <div className="overflow-x-auto">
           <table className="w-full">
             <thead className="bg-gray-50 border-b">
               <tr>
-                <th className="text-left py-3 px-4 font-semibold text-sm text-gray-600">Document #</th>
+                <th className="text-left py-2 px-4 font-semibold text-sm text-gray-600">Document #</th>
+                <th className="text-left py-0 px-0 font-semibold text-sm text-gray-600">Created On</th>
+                <th className="text-left py-0 px-0 font-semibold text-sm text-gray-600">Client</th>
+                <th className="text-left py-0 px-0 font-semibold text-sm text-gray-600">Total Amount</th>
+                <th className="text-left py-0 px-0 font-semibold text-sm text-gray-600">Created By</th>
+                <th className="text-left py-0 px-0 font-semibold text-sm text-gray-600">Document Type</th>
                 <th className="text-right py-3 px-4 font-semibold text-sm text-gray-600">Actions</th>
               </tr>
             </thead>
             <tbody>
-              {sortedRecords.length === 0 ? (
+              {paginatedRecords.length === 0 ? (
                 <tr>
                   <td colSpan="2" className="py-10 text-center text-gray-500">
                     No records found.
                   </td>
                 </tr>
               ) : (
-                sortedRecords.map((record) => (
+                paginatedRecords.map((record) => (
                   <tr key={record.id} className="border-b hover:bg-gray-50 transition-colors">
                     {/* Document # + other details */}
-                    <td className="py-3 px-4 text-sm text-gray-600">
+                    <td className="py-2 px-4 text-sm text-gray-600">
                       <div className="font-semibold text-gray-900 flex items-center gap-2">
-                        {record.quote_number}
-                        <span className={`inline-flex items-center px-2 py-0.5 rounded text-xs font-medium ${record.document_type === 'Tax Invoice'
+                        <span className="font-semibold text-black font-bold text-md bg-gray-200 p-1 rounded">{record.quote_number}</span>
+                        {/* <span className={`inline-flex items-center px-2 py-0.5 rounded text-xs font-medium ${record.document_type === 'Tax Invoice'
+                          ? 'bg-blue-100 text-blue-800'
+                          : record.document_type === 'Proforma Invoice'
+                            ? 'bg-purple-100 text-purple-800'
+                            : 'bg-green-100 text-green-800'
+                          }`}>
+                          {record.document_type}
+                        </span> */}
+                      </div>
+                      <div className="text-gray-600 text-xs mt-1 space-y-1">
+                        <div>
+                          {/* <span className="font-semibold text-gray-900 font-bold text-sm">Created on: </span>{' '}
+                           <span className="font-semibold text-blue-600 font-semibold text-sm"> {format(new Date(record.created_at), 'dd MMM yyyy')}</span> */}
+                          {/* <span className="mx-4"></span> */}
+                          {/* <span className="font-semibold text-gray-900 font-bold text-sm">Created By:</span>{' '}
+                          <span className="font-semibold text-blue-600 font-semibold text-sm"> {record.app_users?.full_name || '-'}</span> */}
+                          </div>
+                        <div>
+                          {/* <span className="font-semibold text-gray-900 font-bold text-sm">For Client:</span>{' '}
+                          <span className="font-semibold text-blue-600 font-semibold text-sm"> {record.client_name || '-'}</span> */}
+                          </div>
+                        <div className="font-semibold text-blue-900">
+                          {/* <span className="font-semibold text-gray-900 font-bold text-sm">Total Amount:</span> <span className="font-semibold text-blue-600 font-semibold text-sm"> <Rupee />{calculateRecordTotal(record).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span> */}
+                        </div>
+                      </div>
+                    </td>
+
+                    <td className="justify-left items-center">
+                       <span className="text-black font-regular text-sm"> {format(new Date(record.created_at), 'dd MMM yyyy')}</span>
+                    </td>
+
+                    <td className="justify-left items-center">
+                       <span className="text-black font-regular text-sm"> {record.client_name || '-'}</span>
+                    </td>
+
+                    <td className="justify-left items-center">
+                         <span className="text-black font-regular text-sm"> <Rupee />{calculateRecordTotal(record).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                       </span>
+                    </td>
+
+                    <td className="justify-left items-center">
+                         <span className="text-black font-regular text-sm"> {record.app_users?.full_name || '-'}
+                       </span>
+                    </td>
+
+                    <td className="justify-left items-center">
+                       <span className={`inline-flex items-center px-2 py-0.5 rounded text-xs font-medium ${record.document_type === 'Tax Invoice'
                           ? 'bg-blue-100 text-blue-800'
                           : record.document_type === 'Proforma Invoice'
                             ? 'bg-purple-100 text-purple-800'
@@ -415,21 +504,6 @@ const SavedRecordsManager = () => {
                           }`}>
                           {record.document_type}
                         </span>
-                      </div>
-                      <div className="text-gray-600 text-xs mt-1 space-y-1">
-                        <div>
-                          <span className="font-semibold text-gray-900">Created on:</span>{' '}
-                          {format(new Date(record.created_at), 'dd MMM yyyy')}
-                          <span className="mx-4"></span>
-                          <span className="font-semibold text-gray-900">Created By:</span>{' '}
-                          {record.app_users?.full_name || '-'}</div>
-                        <div>
-                          <span className="font-semibold text-gray-900">Client:</span>{' '}
-                          {record.client_name || '-'}</div>
-                        <div className="font-semibold text-blue-900">
-                          <span className="font-semibold text-gray-900">Total:</span> <Rupee />{calculateRecordTotal(record).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-                        </div>
-                      </div>
                     </td>
 
                     {/* Actions */}
@@ -461,6 +535,35 @@ const SavedRecordsManager = () => {
           </table>
         </div>
       </div>
+
+      {/* Pagination Controls - Bottom */}
+      {totalPages > 1 && (
+        <div className="flex flex-wrap items-center justify-between gap-4 bg-white p-4 rounded-lg shadow border border-gray-100">
+          <div className="flex items-center gap-2">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
+              disabled={currentPage === 1}
+              className="h-9 px-4 text-sm border-gray-200 bg-gray-50/50 rounded-lg disabled:opacity-50"
+            >
+              Previous
+            </Button>
+            <span className="text-sm text-gray-600 px-3">
+              Page {currentPage} of {totalPages}
+            </span>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
+              disabled={currentPage === totalPages}
+              className="h-9 px-4 text-sm border-gray-200 bg-gray-50/50 rounded-lg disabled:opacity-50"
+            >
+              Next
+            </Button>
+          </div>
+        </div>
+      )}
 
       <AlertDialog open={deleteConfirmation.isOpen} onOpenChange={(isOpen) => !isOpen && setDeleteConfirmation({ isOpen: false, recordId: null, quoteNumber: '' })}>
         <AlertDialogContent>

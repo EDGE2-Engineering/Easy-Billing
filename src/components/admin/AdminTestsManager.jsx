@@ -1,5 +1,5 @@
 
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { Plus, Edit, Trash2, Save, Search, Download, Upload, AlertCircle, SortAsc, SortDesc } from 'lucide-react';
 import Rupee from '../Rupee';
 import { useTests } from '@/contexts/TestsContext';
@@ -42,6 +42,8 @@ const AdminTestsManager = () => {
     const [sortField, setSortField] = useState('name');
     const [sortOrder, setSortOrder] = useState('asc');
     const [filterMaterial, setFilterMaterial] = useState('all');
+    const [currentPage, setCurrentPage] = useState(1);
+    const [itemsPerPage, setItemsPerPage] = useState(10);
     const fileImportRef = useRef(null);
 
     const uniqueMaterials = ['all', ...new Set(tests.map(t => t.materials).filter(Boolean).sort())];
@@ -87,6 +89,17 @@ const AdminTestsManager = () => {
         if (valA > valB) return sortOrder === 'asc' ? 1 : -1;
         return 0;
     });
+
+    // Pagination calculations
+    const totalPages = Math.ceil(sortedTests.length / itemsPerPage);
+    const startIndex = (currentPage - 1) * itemsPerPage;
+    const endIndex = startIndex + itemsPerPage;
+    const paginatedTests = sortedTests.slice(startIndex, endIndex);
+
+    // Reset to page 1 when filters change
+    useEffect(() => {
+        setCurrentPage(1);
+    }, [searchTerm, filterMaterial, sortField, sortOrder]);
 
     const handleEdit = (test) => {
         setEditingTest({ ...test });
@@ -168,6 +181,7 @@ const AdminTestsManager = () => {
         setSortField('name');
         setSortOrder('asc');
         setFilterMaterial('all');
+        setCurrentPage(1);
     };
 
     const handleExport = () => {
@@ -425,6 +439,30 @@ const AdminTestsManager = () => {
                 </div>
             </div>
 
+            {/* Pagination Controls - Top */}
+            <div className="flex flex-wrap items-center justify-between gap-4 bg-white p-4 rounded-lg shadow border border-gray-100">
+                <div className="flex items-center gap-3">
+                    <span className="text-sm text-gray-600">Items per page:</span>
+                    <Select value={itemsPerPage.toString()} onValueChange={(value) => {
+                        setItemsPerPage(Number(value));
+                        setCurrentPage(1);
+                    }}>
+                        <SelectTrigger className="w-24 h-9 text-sm bg-gray-50/50 border-gray-200 rounded-lg">
+                            <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                            <SelectItem value="10">10</SelectItem>
+                            <SelectItem value="25">25</SelectItem>
+                            <SelectItem value="50">50</SelectItem>
+                            <SelectItem value="100">100</SelectItem>
+                        </SelectContent>
+                    </Select>
+                    <span className="text-sm text-gray-600">
+                        Showing {sortedTests.length === 0 ? 0 : startIndex + 1}-{Math.min(endIndex, sortedTests.length)} of {sortedTests.length}
+                    </span>
+                </div>
+            </div>
+
             <div className="bg-white rounded-lg shadow border border-gray-100 overflow-hidden">
                 <table className="w-full">
                     <thead className="bg-gray-50 border-b">
@@ -434,7 +472,7 @@ const AdminTestsManager = () => {
                         </tr>
                     </thead>
                     <tbody>
-                        {sortedTests.map((test) => (
+                        {paginatedTests.map((test) => (
                             <tr key={test.id} className="border-b hover:bg-gray-50 transition-colors">
                                 <td className="py-3 px-4">
                                     <div className="flex flex-wrap items-center gap-6 text-sm text-gray-700">
@@ -482,6 +520,35 @@ const AdminTestsManager = () => {
 
                 </table>
             </div>
+
+            {/* Pagination Controls - Bottom */}
+            {totalPages > 1 && (
+                <div className="flex flex-wrap items-center justify-between gap-4 bg-white p-4 rounded-lg shadow border border-gray-100">
+                    <div className="flex items-center gap-2">
+                        <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
+                            disabled={currentPage === 1}
+                            className="h-9 px-4 text-sm border-gray-200 bg-gray-50/50 rounded-lg disabled:opacity-50"
+                        >
+                            Previous
+                        </Button>
+                        <span className="text-sm text-gray-600 px-3">
+                            Page {currentPage} of {totalPages}
+                        </span>
+                        <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
+                            disabled={currentPage === totalPages}
+                            className="h-9 px-4 text-sm border-gray-200 bg-gray-50/50 rounded-lg disabled:opacity-50"
+                        >
+                            Next
+                        </Button>
+                    </div>
+                </div>
+            )}
 
             <AlertDialog open={deleteConfirmation.isOpen} onOpenChange={(isOpen) => !isOpen && setDeleteConfirmation({ isOpen: false, testId: null, testType: '' })}>
                 <AlertDialogContent>

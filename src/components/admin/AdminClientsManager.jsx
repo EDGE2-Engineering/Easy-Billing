@@ -1,4 +1,4 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { Plus, Edit, Trash2, Save, Search, Download, Upload, AlertCircle, Mail, Phone } from 'lucide-react';
 import { useClients } from '@/contexts/ClientsContext';
 import { useAuth } from '@/contexts/AuthContext';
@@ -18,6 +18,13 @@ import {
     AlertDialogHeader,
     AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
+import {
+    Select,
+    SelectContent,
+    SelectItem,
+    SelectTrigger,
+    SelectValue,
+} from "@/components/ui/select";
 
 const AdminClientsManager = () => {
     const { clients, updateClient, addClient, deleteClient, setClients } = useClients();
@@ -28,6 +35,8 @@ const AdminClientsManager = () => {
     const [isAddingNew, setIsAddingNew] = useState(false);
     const [isSaving, setIsSaving] = useState(false);
     const [deleteConfirmation, setDeleteConfirmation] = useState({ isOpen: false, clientId: null, clientName: '' });
+    const [currentPage, setCurrentPage] = useState(1);
+    const [itemsPerPage, setItemsPerPage] = useState(10);
     const fileImportRef = useRef(null);
 
     const filteredClients = (clients || []).filter(c =>
@@ -37,6 +46,17 @@ const AdminClientsManager = () => {
         (c.phone?.toLowerCase() || '').includes(searchTerm.toLowerCase()) ||
         (c.id?.toString().toLowerCase() || '').includes(searchTerm.toLowerCase())
     );
+
+    // Pagination calculations
+    const totalPages = Math.ceil(filteredClients.length / itemsPerPage);
+    const startIndex = (currentPage - 1) * itemsPerPage;
+    const endIndex = startIndex + itemsPerPage;
+    const paginatedClients = filteredClients.slice(startIndex, endIndex);
+
+    // Reset to page 1 when search changes
+    useEffect(() => {
+        setCurrentPage(1);
+    }, [searchTerm]);
 
     const handleEdit = (client) => {
         setEditingClient({ ...client });
@@ -249,6 +269,30 @@ const AdminClientsManager = () => {
                 </div>
             </div>
 
+            {/* Pagination Controls - Top */}
+            <div className="flex flex-wrap items-center justify-between gap-4 bg-white p-4 rounded-lg shadow border border-gray-100">
+                <div className="flex items-center gap-3">
+                    <span className="text-sm text-gray-600">Items per page:</span>
+                    <Select value={itemsPerPage.toString()} onValueChange={(value) => {
+                        setItemsPerPage(Number(value));
+                        setCurrentPage(1);
+                    }}>
+                        <SelectTrigger className="w-24 h-9 text-sm bg-gray-50/50 border-gray-200 rounded-lg">
+                            <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                            <SelectItem value="10">10</SelectItem>
+                            <SelectItem value="25">25</SelectItem>
+                            <SelectItem value="50">50</SelectItem>
+                            <SelectItem value="100">100</SelectItem>
+                        </SelectContent>
+                    </Select>
+                    <span className="text-sm text-gray-600">
+                        Showing {filteredClients.length === 0 ? 0 : startIndex + 1}-{Math.min(endIndex, filteredClients.length)} of {filteredClients.length}
+                    </span>
+                </div>
+            </div>
+
             <div className="bg-white rounded-lg shadow border border-gray-100 overflow-hidden">
                 <table className="w-full">
                     <thead className="bg-gray-50 border-b">
@@ -258,8 +302,8 @@ const AdminClientsManager = () => {
                         </tr>
                     </thead>
                     <tbody>
-                        {filteredClients.length > 0 ? (
-                            filteredClients.map((client) => (
+                        {paginatedClients.length > 0 ? (
+                            paginatedClients.map((client) => (
                                 <tr key={client.id} className="border-b hover:bg-gray-50 transition-colors">
 
                                     {/* Single content column */}
@@ -315,6 +359,35 @@ const AdminClientsManager = () => {
                     </tbody>
                 </table>
             </div>
+
+            {/* Pagination Controls - Bottom */}
+            {totalPages > 1 && (
+                <div className="flex flex-wrap items-center justify-between gap-4 bg-white p-4 rounded-lg shadow border border-gray-100">
+                    <div className="flex items-center gap-2">
+                        <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
+                            disabled={currentPage === 1}
+                            className="h-9 px-4 text-sm border-gray-200 bg-gray-50/50 rounded-lg disabled:opacity-50"
+                        >
+                            Previous
+                        </Button>
+                        <span className="text-sm text-gray-600 px-3">
+                            Page {currentPage} of {totalPages}
+                        </span>
+                        <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
+                            disabled={currentPage === totalPages}
+                            className="h-9 px-4 text-sm border-gray-200 bg-gray-50/50 rounded-lg disabled:opacity-50"
+                        >
+                            Next
+                        </Button>
+                    </div>
+                </div>
+            )}
 
             <AlertDialog open={deleteConfirmation.isOpen} onOpenChange={(isOpen) => !isOpen && setDeleteConfirmation({ isOpen: false, clientId: null, clientName: '' })}>
                 <AlertDialogContent>
