@@ -4,7 +4,7 @@ import { Helmet } from 'react-helmet-async';
 import Navbar from '@/components/Navbar';
 
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Settings, LayoutDashboard, Home, FileText, User, Save, Loader2, UserCog } from 'lucide-react';
+import { Settings, LayoutDashboard, Home, FileText, User, Save, Loader2, UserCog, Plus, Database, HandHeart, IndianRupee, Ruler, BriefcaseBusiness } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 
 import AdminServicesManager from '@/components/admin/AdminServicesManager.jsx';
@@ -15,6 +15,7 @@ import AdminSettingsManager from '@/components/admin/AdminSettingsManager.jsx';
 import AdminClientPricingManager from '@/components/admin/AdminClientPricingManager.jsx';
 import AdminUsersManager from '@/components/admin/AdminUsersManager.jsx';
 import SavedRecordsManager from '@/components/admin/SavedRecordsManager.jsx';
+import AdminUnitTypesManager from '@/components/admin/AdminUnitTypesManager.jsx';
 
 import AdminLogin from '@/components/admin/AdminLogin';
 import UpdatePassword from '@/components/admin/UpdatePassword';
@@ -108,6 +109,7 @@ const AdminPage = () => {
               <option value="app_settings">App Settings</option>
               <option value="saved_records">Saved Records</option>
               <option value="users">User Management</option>
+              <option value="unit_types">Unit Types</option>
             </select>
             <div className="absolute inset-y-0 right-0 flex items-center pr-4 pointer-events-none">
               <svg className="h-5 w-5 text-gray-400" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
@@ -125,9 +127,8 @@ const AdminPage = () => {
                 title="Services"
                 className="px-4 py-3 rounded-xl data-[state=active]:bg-primary data-[state=active]:text-white transition-all flex items-center gap-2"
               >
-                <Home className="w-4 h-4" /> Services
+                <HandHeart className="w-4 h-4" /> Services
               </TabsTrigger>
-
               <TabsTrigger
                 value="tests"
                 title="Tests"
@@ -135,31 +136,33 @@ const AdminPage = () => {
               >
                 <FileText className="w-4 h-4" /> Tests
               </TabsTrigger>
-
+              <TabsTrigger
+                value="unit_types"
+                title="Units"
+                className="px-4 py-3 rounded-xl data-[state=active]:bg-primary data-[state=active]:text-white transition-all flex items-center gap-2"
+              >
+                <Ruler className="w-4 h-4" /> Units
+              </TabsTrigger>
               <TabsTrigger
                 value="clients"
                 title="Clients"
                 className="px-4 py-3 rounded-xl data-[state=active]:bg-primary data-[state=active]:text-white transition-all flex items-center gap-2"
               >
-                <User className="w-4 h-4" /> Clients
+                <BriefcaseBusiness className="w-4 h-4" /> Clients
               </TabsTrigger>
-
               <TabsTrigger
                 value="pricing"
                 title="Client Pricing"
                 className="px-4 py-3 rounded-xl data-[state=active]:bg-primary data-[state=active]:text-white transition-all flex items-center gap-2"
               >
-                <LayoutDashboard className="w-4 h-4" /> Pricing
+              <IndianRupee className="w-4 h-4" /> Pricing
               </TabsTrigger>
-
-
-
               <TabsTrigger
                 value="saved_records"
                 title="Billing History"
                 className="px-4 py-3 rounded-xl data-[state=active]:bg-primary data-[state=active]:text-white transition-all flex items-center gap-2"
               >
-                <Save className="w-4 h-4" /> Records
+                <Database className="w-4 h-4" /> Records
               </TabsTrigger>
 
               <TabsTrigger
@@ -209,6 +212,10 @@ const AdminPage = () => {
 
           <TabsContent value="users" className="focus-visible:outline-none animate-in fade-in slide-in-from-bottom-2 duration-500">
             <AdminUsersManager />
+          </TabsContent>
+
+          <TabsContent value="unit_types" className="focus-visible:outline-none animate-in fade-in slide-in-from-bottom-2 duration-500">
+            <AdminUnitTypesManager />
           </TabsContent>
         </Tabs>
       </main >

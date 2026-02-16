@@ -10,6 +10,7 @@ drop table if exists public.client_service_prices cascade;
 drop table if exists public.client_test_prices cascade;
 drop table if exists public.app_users cascade;
 drop table if exists public.saved_records cascade;
+DROP TABLE IF EXISTS public.unit_types CASCADE;
 
 -- Keeping site_content and blogs if they are used by other parts of the app, 
 -- but ensuring services/tests are clean.
@@ -396,3 +397,34 @@ create policy "Allow public management of saved records"
   on public.saved_records for all
   using ( true )
   with check ( true );
+
+
+-- -----------------------------------------------------------------------------
+-- 11. Table: service_unit_types
+-- -----------------------------------------------------------------------------
+
+CREATE TABLE public.service_unit_types (
+    id SERIAL PRIMARY KEY,
+    unit_type TEXT NOT NULL
+);
+alter table public.service_unit_types enable row level security;
+
+create policy "Service unit types are viewable by everyone"
+  on public.service_unit_types for select
+  using ( true );
+
+create policy "Allow public management of service unit types"
+  on public.service_unit_types for all
+  using ( true )
+  with check ( true );
+
+INSERT INTO public.service_unit_types (unit_type) VALUES
+    ('Per Point'),
+    ('Per Bore hole'),
+    ('Included'),
+    ('Per Test'),
+    ('Per Location'),
+    ('Per Day'),
+    ('LS'),
+    ('Per Meter'),
+    ('Per Bore hole / Per sample');

@@ -1119,7 +1119,7 @@ const NewQuotationPage = () => {
                                                     <tr>
                                                         <th className="text-left border-r border-t border-b border-l border-gray-200 py-3 px-2 font-semibold text-gray-600 text-xs w-5">Sl No.</th>
                                                         <th className="text-left border-r border-t border-b border-l border-gray-200 py-3 px-2 font-semibold text-gray-600 text-xs">Description</th>
-                                                        <th className="text-left border-r border-t border-b border-l border-gray-200 py-3 px-2 font-semibold text-gray-600 text-xs w-12">HSN</th>
+                                                        <th className="text-left border-r border-t border-b border-l border-gray-200 py-3 px-2 font-semibold text-gray-600 text-xs w-12">HSN/SAC</th>
                                                         <th className="text-right border-r border-t border-b border-l border-gray-200 py-3 px-2 font-semibold text-gray-600 text-xs w-12">Price</th>
                                                         <th className="text-right border-r border-t border-b border-l border-gray-200 py-3 px-2 font-semibold text-gray-600 text-xs w-12">Qty</th>
                                                         <th className="text-right border-r border-t border-b border-l border-gray-200 py-3 px-2 font-semibold text-gray-600 text-xs w-12">Unit</th>

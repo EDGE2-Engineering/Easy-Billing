@@ -4,6 +4,7 @@ import { Plus, Edit, Trash2, Save, Search, Download, Upload, AlertCircle, SortAs
 import Rupee from '../Rupee';
 import { useServices } from '@/contexts/ServicesContext';
 import { useAuth } from '@/contexts/AuthContext';
+import { useUnitTypes } from '@/contexts/UnitTypesContext';
 import { sendTelegramNotification } from '@/lib/notifier';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -30,6 +31,7 @@ import {
 
 const AdminServicesManager = () => {
     const { services, updateService, addService, deleteService, setServices } = useServices();
+    const { unitTypes } = useUnitTypes();
     const { user } = useAuth();
     const { toast } = useToast();
     const [searchTerm, setSearchTerm] = useState('');
@@ -249,11 +251,21 @@ const AdminServicesManager = () => {
                     </div>
                     <div className="space-y-2">
                         <Label>Unit</Label>
-                        <Input
+                        <Select
                             value={editingService.unit}
-                            onChange={(e) => handleChange('unit', e.target.value)}
-                            placeholder="e.g. Per Metre"
-                        />
+                            onValueChange={(value) => handleChange('unit', value)}
+                        >
+                            <SelectTrigger>
+                                <SelectValue placeholder="Select unit" />
+                            </SelectTrigger>
+                            <SelectContent>
+                                {unitTypes.map((type) => (
+                                    <SelectItem key={type.id} value={type.unit_type}>
+                                        {type.unit_type}
+                                    </SelectItem>
+                                ))}
+                            </SelectContent>
+                        </Select>
                     </div>
 
                     <div className="space-y-2">
