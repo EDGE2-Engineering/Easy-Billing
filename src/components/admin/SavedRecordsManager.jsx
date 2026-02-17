@@ -427,13 +427,13 @@ const SavedRecordsManager = () => {
           <table className="w-full">
             <thead className="bg-gray-50 border-b">
               <tr>
-                <th className="text-left py-2 px-4 font-semibold text-sm text-gray-600 pr-2">Document #</th>
-                <th className="text-left py-0 px-0 font-semibold text-sm text-gray-600 pr-2">Created On</th>
+                <th className="text-left py-2 px-4 font-semibold text-sm text-gray-600 pr-0">Document #</th>
+                <th className="text-left py-0 px-0 font-semibold text-sm text-gray-600 pr-4">Created On</th>
                 <th className="text-left py-0 px-0 font-semibold text-sm text-gray-600 pr-2">Client</th>
                 <th className="text-left py-0 px-0 font-semibold text-sm text-gray-600 pr-2">Total Amount</th>
-                <th className="text-left py-0 px-0 font-semibold text-sm text-gray-600 pr-2">Created By</th>
-                <th className="text-left py-0 px-0 font-semibold text-sm text-gray-600 pr-2">Document Type</th>
-                <th className="text-right py-3 px-4 font-semibold text-sm text-gray-600">Actions</th>
+                <th className="text-left py-0 px-0 font-semibold text-sm text-gray-600 pr-10">Created By</th>
+                <th className="text-left py-0 px-0 font-semibold text-sm text-gray-600">Document Type</th>
+                <th className="text-right py-3 px-2 font-semibold text-sm text-gray-600">Actions</th>
               </tr>
             </thead>
             <tbody>
@@ -512,15 +512,17 @@ const SavedRecordsManager = () => {
                         <Button
                           variant="ghost"
                           size="sm"
-                          className="text-primary hover:text-primary-dark hover:bg-primary/10"
+                          title="Open Document"
+                          className="text-primary hover:text-primary-dark hover:bg-primary/10 px-0 text-blue-600 text-xs px-1"
                           onClick={() => handleOpen(record.id)}
                         >
-                          <ExternalLink className="w-4 h-4 mr-1" /> Open
+                          <ExternalLink className="w-4 h-4 mr-1 text-blue-600" />
                         </Button>
                         <Button
                           variant="ghost"
+                          title="Delete Document"
                           size="sm"
-                          className="text-red-500 hover:text-red-700 hover:bg-red-50"
+                          className="text-red-500 hover:text-red-700 hover:bg-red-50 px-1"
                           onClick={() => handleDeleteClick(record)}
                         >
                           <Trash2 className="w-4 h-4" />

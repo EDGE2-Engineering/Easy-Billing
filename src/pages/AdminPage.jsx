@@ -129,76 +129,75 @@ const AdminPage = () => {
               <TabsTrigger
                 value="services"
                 title="Services"
-                className="px-4 py-3 rounded-xl data-[state=active]:bg-primary data-[state=active]:text-white transition-all flex items-center gap-2"
+                className="px-2 py-3 rounded-xl data-[state=active]:bg-primary data-[state=active]:text-white transition-all flex items-center gap-2"
               >
                 <HandHeart className="w-4 h-4" /> Services
               </TabsTrigger>
               <TabsTrigger
                 value="tests"
                 title="Tests"
-                className="px-4 py-3 rounded-xl data-[state=active]:bg-primary data-[state=active]:text-white transition-all flex items-center gap-2"
+                className="px-2 py-3 rounded-xl data-[state=active]:bg-primary data-[state=active]:text-white transition-all flex items-center gap-2"
               >
                 <FileText className="w-4 h-4" /> Tests
               </TabsTrigger>
               <TabsTrigger
                 value="unit_types"
                 title="Units"
-                className="px-4 py-3 rounded-xl data-[state=active]:bg-primary data-[state=active]:text-white transition-all flex items-center gap-2"
+                className="px-2 py-3 rounded-xl data-[state=active]:bg-primary data-[state=active]:text-white transition-all flex items-center gap-2"
               >
                 <Ruler className="w-4 h-4" /> Units
               </TabsTrigger>
               <TabsTrigger
                 value="hsn_codes"
                 title="Codes"
-                className="px-4 py-3 rounded-xl data-[state=active]:bg-primary data-[state=active]:text-white transition-all flex items-center gap-2"
+                className="px-2 py-3 rounded-xl data-[state=active]:bg-primary data-[state=active]:text-white transition-all flex items-center gap-2"
               >
                 <Hash className="w-4 h-4" /> Codes
               </TabsTrigger>
               <TabsTrigger
                 value="clients"
                 title="Clients"
-                className="px-4 py-3 rounded-xl data-[state=active]:bg-primary data-[state=active]:text-white transition-all flex items-center gap-2"
+                className="px-2 py-3 rounded-xl data-[state=active]:bg-primary data-[state=active]:text-white transition-all flex items-center gap-2"
               >
                 <BriefcaseBusiness className="w-4 h-4" /> Clients
               </TabsTrigger>
               <TabsTrigger
                 value="pricing"
                 title="Client Pricing"
-                className="px-4 py-3 rounded-xl data-[state=active]:bg-primary data-[state=active]:text-white transition-all flex items-center gap-2"
+                className="px-2 py-3 rounded-xl data-[state=active]:bg-primary data-[state=active]:text-white transition-all flex items-center gap-2"
               >
                 <IndianRupee className="w-4 h-4" /> Pricing
               </TabsTrigger>
               <TabsTrigger
-                value="app_settings"
-                title="App Settings"
-                className="px-4 py-3 rounded-xl data-[state=active]:bg-primary data-[state=active]:text-white transition-all flex items-center gap-2"
+                value="payment_settings"
+                title="Payment Settings"
+                className="px-2 py-3 rounded-xl data-[state=active]:bg-primary data-[state=active]:text-white transition-all flex items-center gap-2"
               >
                 <CreditCard className="w-4 h-4" /> Payment
               </TabsTrigger>
               <TabsTrigger
                 value="terms"
-                title="T&C"
-                className="px-4 py-3 rounded-xl data-[state=active]:bg-primary data-[state=active]:text-white transition-all flex items-center gap-2"
+                title="Terms & Conditions"
+                className="px-2 py-3 rounded-xl data-[state=active]:bg-primary data-[state=active]:text-white transition-all flex items-center gap-2"
               >
                 <FileText className="w-4 h-4" /> T&C
               </TabsTrigger>
               <TabsTrigger
                 value="saved_records"
-                title="Billing History"
-                className="px-4 py-3 rounded-xl data-[state=active]:bg-primary data-[state=active]:text-white transition-all flex items-center gap-2"
+                title="Previously Saved Records"
+                className="px-2 py-3 rounded-xl data-[state=active]:bg-primary data-[state=active]:text-white transition-all flex items-center gap-2"
               >
                 <Database className="w-4 h-4" /> Records
               </TabsTrigger>
               <TabsTrigger
                 value="users"
                 title="User Management"
-                className="px-4 py-3 rounded-xl data-[state=active]:bg-primary data-[state=active]:text-white transition-all flex items-center gap-2"
+                className="px-2 py-3 rounded-xl data-[state=active]:bg-primary data-[state=active]:text-white transition-all flex items-center gap-2"
               >
                 <UserCog className="w-4 h-4" /> Users
               </TabsTrigger>
             </TabsList>
           </div>
-
 
 
           <TabsContent value="services" className="focus-visible:outline-none animate-in fade-in slide-in-from-bottom-2 duration-500">
@@ -219,7 +218,7 @@ const AdminPage = () => {
 
 
 
-          <TabsContent value="app_settings" className="focus-visible:outline-none animate-in fade-in slide-in-from-bottom-2 duration-500">
+          <TabsContent value="payment_settings" className="focus-visible:outline-none animate-in fade-in slide-in-from-bottom-2 duration-500">
             <AdminSettingsManager />
           </TabsContent>
 
