@@ -13,7 +13,7 @@ export const initialSiteContent = {
         // Continuation pages have more space (just header + table)
         itemsPerContinuationPage: 7,
         // T&C Pagination
-        tcItemsFirstPage: 2,
+        tcItemsFirstPage: 3,
         tcItemsContinuationPage: 3
     }
 };

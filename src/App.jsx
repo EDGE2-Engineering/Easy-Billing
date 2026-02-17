@@ -30,7 +30,7 @@ function App() {
                   <UnitTypesProvider>
                     <HSNCodesProvider>
                       <TermsAndConditionsProvider>
-                        <Router>
+                        <Router future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
                           <Helmet>
                             <link rel="preconnect" href="https://fonts.googleapis.com" />
                             <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />

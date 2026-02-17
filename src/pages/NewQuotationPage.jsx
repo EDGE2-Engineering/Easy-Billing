@@ -1650,9 +1650,11 @@ const NewQuotationPage = () => {
                                     </div>
                                     <div className="a4-page-content">
                                         <div className="text-center text-gray-500 text-sm">
-                                            <h2 className="font-semibold text-left text-lg mb-4">Technicals</h2>
+                                            <h2 className="font-semibold text-lg mb-4 text-center">
+                                                Technicals
+                                            </h2>
                                             <div className="text-left text-xs">
-                                                <ul className="list-disc space-y-2">
+                                                <ul className="list-disc space-y-2 ">
                                                     <li>All the field investigation work will be carried out as per IS1892:1979 and relevant Indian Standards.</li>
                                                     <li>Boring / drilling in all kinds of soils will be carried out , the diameter of borehole shall be min 150/100 mm.</li>
                                                     <li>The standard penetrations tests will be conducted as per IS 2131-1981 at depths 1.0/1.5 intervals</li>
@@ -1663,7 +1665,7 @@ const NewQuotationPage = () => {
                                                     <li>Submission of technical report: The technical report will be submitted including detailed borelogs, discussions, recommendations regarding Safe Bearing capacity as per IS 6403 – 1982, IS 8009 Part I – 1980, IS 12070 - 1987</li>
                                                 </ul>
                                             </div>
-                                            <h2 className="font-semibold text-left text-base mt-6 mb-3">Auger:</h2>
+                                            <h2 className="font-semibold text-left text-sm mt-6 mb-3">Auger</h2>
                                             <div className="text-left text-xs">
                                                 <ul className="list-disc space-y-2">
                                                     <li>The Undisturbed / Disturebed soil will be taken at every 1.0/1.5m or at wherever strata changes by using 100 mm diameter, 400 mm long thin walled Shellby tubes.  The ends of the tubes shall be sealed with wax  and marked properly.  If UDS is not obtained due to hard strata or sandy strata,the same is  replaced by SPT.  The depth at which UDS collected and nos. of samples collected shall be recorded in borelogs.</li>
