@@ -1,7 +1,7 @@
 
 import React, { useState, useRef, useEffect } from 'react';
 import { useReactToPrint } from 'react-to-print';
-import { Plus, Trash2, Printer, FileText, ArrowLeft, X, Save, Loader2, CreditCard, ChevronUp, ChevronDown } from 'lucide-react';
+import { Plus, Trash2, Printer, FileText, ArrowLeft, X, Save, Loader2, CreditCard, ChevronUp, ChevronDown, AlertCircle } from 'lucide-react';
 import { Link, useSearchParams } from 'react-router-dom';
 import Navbar from '@/components/Navbar';
 
@@ -157,6 +157,7 @@ const NewQuotationPage = () => {
                         projectAddress: '',
                         email: '',
                         phone: '',
+                        name: parsed.quoteDetails.name || '',
                         date: format(new Date(), 'yyyy-MM-dd'),
                         quoteNumber: `EESIPL/${Math.floor(Math.random() * 10000).toString().padStart(6, '0')}`,
 
@@ -169,7 +170,8 @@ const NewQuotationPage = () => {
                     },
                     items: parsed.items || [],
                     documentType: parsed.documentType || 'Quotation',
-                    discount: parsed.discount || 0
+                    discount: parsed.discount || 0,
+                    contactSelectionIdx: parsed.contactSelectionIdx || ''
                 };
             }
         } catch (error) {
@@ -185,6 +187,7 @@ const NewQuotationPage = () => {
                 projectAddress: '',
                 email: '',
                 phone: '',
+                name: '',
                 date: format(new Date(), 'yyyy-MM-dd'),
                 quoteNumber: `EESIPL/${Math.floor(Math.random() * 10000).toString().padStart(6, '0')}`,
 
@@ -197,7 +200,8 @@ const NewQuotationPage = () => {
             },
             items: [],
             documentType: 'Quotation',
-            discount: 0
+            discount: 0,
+            contactSelectionIdx: ''
         };
     };
 
@@ -216,26 +220,26 @@ const NewQuotationPage = () => {
     const [clearDialogOpen, setClearDialogOpen] = useState(false);
     const [clientNameSelection, setClientNameSelection] = useState(''); // Predefined client or 'Other'
     const [customClientName, setCustomClientName] = useState('');
+    const [contactSelectionIdx, setContactSelectionIdx] = useState(initialState.contactSelectionIdx || '');
 
     // Generate client options from loaded clients
     const CLIENT_OPTIONS = [
         ...(clients || []).map(client => ({
             value: client.clientName,
             label: client.clientName
-        })),
-        { value: 'Other', label: 'Other' }
+        }))
     ];
 
-    // Save to localStorage whenever items, quoteDetails, documentType, or discount changes
     useEffect(() => {
         const stateToSave = {
             quoteDetails,
             items,
             documentType,
-            discount
+            discount,
+            contactSelectionIdx
         };
         localStorage.setItem(STORAGE_KEY, JSON.stringify(stateToSave));
-    }, [items, quoteDetails, documentType, discount]);
+    }, [items, quoteDetails, documentType, discount, contactSelectionIdx]);
 
     // Reset selection and search when switching between Service and Test
     useEffect(() => {
@@ -254,6 +258,31 @@ const NewQuotationPage = () => {
     useEffect(() => {
         setDocNumberError(validateDocNumber(quoteDetails.quoteNumber));
     }, [quoteDetails.quoteNumber]);
+
+    // Sync clientNameSelection with quoteDetails.clientName on mount/load
+    useEffect(() => {
+        if (clients.length > 0 && quoteDetails.clientName) {
+            const foundClient = clients.find(c => (c.clientName || '').trim() === quoteDetails.clientName.trim());
+
+            if (foundClient) {
+                if (clientNameSelection !== foundClient.clientName) {
+                    setClientNameSelection(foundClient.clientName);
+
+                    // Also try to find matching contact or set primary
+                    const contacts = foundClient.contacts || [];
+                    const primaryIdx = contacts.findIndex(con => con.is_primary);
+                    const currentIdx = primaryIdx >= 0 ? primaryIdx : (contacts.length > 0 ? 0 : -1);
+
+                    if (currentIdx >= 0 && contactSelectionIdx === '') {
+                        setContactSelectionIdx(currentIdx.toString());
+                    }
+                }
+            } else if (quoteDetails.clientName !== '' && !clientNameSelection) {
+                setClientNameSelection('Other');
+                setCustomClientName(quoteDetails.clientName);
+            }
+        }
+    }, [clients, quoteDetails.clientName, clientNameSelection, contactSelectionIdx]);
 
     // Load record from Supabase if ID is present
     useEffect(() => {
@@ -433,6 +462,7 @@ const NewQuotationPage = () => {
         setQty(1);
         setClientNameSelection('');
         setCustomClientName('');
+        setContactSelectionIdx('');
         setSavedRecordId(null);
         setSearchParams({});
         localStorage.removeItem(STORAGE_KEY);
@@ -787,6 +817,31 @@ const NewQuotationPage = () => {
                                     )}
                                 </div>
                             </div>
+
+                            <div className="grid grid-cols-2 gap-2">
+                                <div>
+                                    <Label>Date</Label>
+                                    <Input
+                                        type="date"
+                                        className="relative pr-10"
+                                        value={quoteDetails.date}
+                                        onChange={e => setQuoteDetails({ ...quoteDetails, date: e.target.value })}
+                                    />
+
+                                </div>
+                                <div>
+                                    <Label>Discount (%)</Label>
+                                    <Input
+                                        type="number"
+                                        min="0"
+                                        max="100"
+                                        value={discount}
+                                        onChange={e => setDiscount(Number(e.target.value))}
+                                        placeholder="Enter discount %"
+                                    />
+                                </div>
+                            </div>
+
                             {/* <h2 className="text-lg font-semibold mb-4 flex items-center">
                                 <FileText className="w-5 h-5 mr-2 text-primary" />
                                 Client Details
@@ -800,19 +855,32 @@ const NewQuotationPage = () => {
                                             setClientNameSelection(value);
                                             if (value !== 'Other') {
                                                 const selectedClient = clients.find(c => c.clientName === value);
+                                                const contacts = selectedClient?.contacts || [];
+                                                const primaryContact = contacts.find(con => con.is_primary) || contacts[0] || {};
+                                                const primaryIdx = contacts.findIndex(con => con.is_primary);
+
                                                 setQuoteDetails({
                                                     ...quoteDetails,
                                                     clientName: value,
                                                     clientAddress: selectedClient?.clientAddress || '',
-                                                    email: selectedClient?.email || '',
-                                                    phone: selectedClient?.phone || ''
+                                                    email: primaryContact.contact_email || selectedClient?.email || '',
+                                                    phone: primaryContact.contact_phone || selectedClient?.phone || '',
+                                                    name: primaryContact.contact_person || ''
                                                 });
                                                 setCustomClientName('');
+
+                                                // Pre-select the primary contact in the dropdown
+                                                if (primaryIdx >= 0) {
+                                                    setContactSelectionIdx(primaryIdx.toString());
+                                                } else if (contacts.length > 0) {
+                                                    setContactSelectionIdx('0');
+                                                } else {
+                                                    setContactSelectionIdx('');
+                                                }
 
                                                 // Update item prices based on the new client
                                                 if (items.length > 0) {
                                                     const updatedItems = items.map(item => {
-                                                        const newPrice = getAppropiatePrice(item.sourceId, item.type, selectedClient?.id);
                                                         return {
                                                             ...item,
                                                             price: Number(newPrice),
@@ -843,6 +911,68 @@ const NewQuotationPage = () => {
                                             ))}
                                         </SelectContent>
                                     </Select>
+
+                                    {clientNameSelection !== 'Other' && clientNameSelection !== '' && (() => {
+                                        const selectedClient = clients.find(c => (c.clientName || '').trim() === clientNameSelection.trim());
+                                        const contacts = selectedClient?.contacts || [];
+
+                                        if (contacts.length === 0) {
+                                            return (
+                                                <div className="mt-2 pt-2 text-amber-600 text-xs flex items-center bg-amber-50 p-2 rounded border border-amber-100 italic">
+                                                    <AlertCircle className="w-3 h-3 mr-1.5" />
+                                                    Setup a contact for this client in Admin Panel
+                                                </div>
+                                            );
+                                        }
+
+                                        return (
+                                            <div className="mt-2 pt-2 pb-2 border-t border-gray-100">
+                                                <Label className="text-gray-900 font-semibold mb-2 block">
+                                                    Client Contact
+                                                </Label>
+                                                <Select
+                                                    value={contactSelectionIdx}
+                                                    onValueChange={(idx) => {
+                                                        setContactSelectionIdx(idx);
+                                                        const contact = contacts[parseInt(idx)];
+                                                        if (contact) {
+                                                            setQuoteDetails(prev => ({
+                                                                ...prev,
+                                                                email: contact.contact_email || '',
+                                                                phone: contact.contact_phone || '',
+                                                                name: contact.contact_person || ''
+                                                            }));
+                                                            toast({
+                                                                title: "Contact Updated",
+                                                                description: `Using contact details for ${contact.contact_person || 'selected person'}.`
+                                                            });
+                                                        }
+                                                    }}
+                                                >
+                                                    <SelectTrigger className="h-10 text-sm border-gray-200 bg-gray-50/30">
+                                                        <SelectValue placeholder="Pick a contact..." />
+                                                    </SelectTrigger>
+                                                    <SelectContent>
+                                                        {contacts.map((contact, idx) => (
+                                                            <SelectItem key={idx} value={idx.toString()}>
+                                                                <div className="flex flex-col text-left py-1">
+                                                                    <span className="font-medium text-gray-900">
+                                                                        {contact.contact_person || 'Unnamed Contact'} {contact.is_primary ? '(Primary)' : ''}
+                                                                    </span>
+                                                                    {(contact.contact_email || contact.contact_phone) && (
+                                                                        <span className="text-xs text-gray-500">
+                                                                            {[contact.contact_email, contact.contact_phone].filter(Boolean).join(' | ')}
+                                                                        </span>
+                                                                    )}
+                                                                </div>
+                                                            </SelectItem>
+                                                        ))}
+                                                    </SelectContent>
+                                                </Select>
+                                            </div>
+                                        );
+                                    })()}
+
                                     {clientNameSelection === 'Other' && (
                                         <Input
                                             className="mt-2"
@@ -900,49 +1030,7 @@ const NewQuotationPage = () => {
                                         placeholder="Enter project address"
                                     />
                                 </div>
-                                <div className="grid grid-cols-1 gap-4">
-                                    <div>
-                                        <Label>Email Address</Label>
-                                        <Input
-                                            value={quoteDetails.email}
-                                            onChange={e => setQuoteDetails({ ...quoteDetails, email: e.target.value })}
-                                            placeholder="client@example.com"
-                                        />
-                                    </div>
-                                </div>
-                                <div className="grid grid-cols-1 gap-4">
-                                    <div>
-                                        <Label>Phone Number</Label>
-                                        <Input
-                                            value={quoteDetails.phone}
-                                            onChange={e => setQuoteDetails({ ...quoteDetails, phone: e.target.value })}
-                                            placeholder="Enter phone"
-                                        />
-                                    </div>
-                                </div>
-                                <div className="grid grid-cols-2 gap-2">
-                                    <div>
-                                        <Label>Date</Label>
-                                        <Input
-                                            type="date"
-                                            className="relative pr-10"
-                                            value={quoteDetails.date}
-                                            onChange={e => setQuoteDetails({ ...quoteDetails, date: e.target.value })}
-                                        />
 
-                                    </div>
-                                    <div>
-                                        <Label>Discount (%)</Label>
-                                        <Input
-                                            type="number"
-                                            min="0"
-                                            max="100"
-                                            value={discount}
-                                            onChange={e => setDiscount(Number(e.target.value))}
-                                            placeholder="Enter discount %"
-                                        />
-                                    </div>
-                                </div>
                             </div>
                         </div>
 
@@ -1234,6 +1322,7 @@ const NewQuotationPage = () => {
                                                             </h3>
                                                             <p className="font-bold text-gray-900 text-xs">{quoteDetails.clientName || '-'}</p>
                                                             <p className="text-gray-600 whitespace-pre-wrap text-xs">{quoteDetails.clientAddress}</p>
+                                                            <p className="text-gray-600 mt-1 text-xs">Name: {quoteDetails.name || '-'}</p>
                                                             <p className="text-gray-600 mt-1 text-xs">Email: {quoteDetails.email || '-'}</p>
                                                             <p className="text-gray-600 text-xs">Phone: {quoteDetails.phone || '-'}</p>
                                                         </div>

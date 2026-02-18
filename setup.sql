@@ -79,11 +79,11 @@ create table if not exists public.clients (
   id text primary key,
   client_name text not null,
   client_address text default '',
-  email text default '',
-  phone text default '',
+  contacts jsonb default '[]'::jsonb,
   created_at timestamp with time zone default now(),
   updated_at timestamp with time zone default now()
 );
+
 
 alter table public.clients enable row level security;
 
@@ -273,10 +273,46 @@ values
 ('T43','Water Absorption','Paver Blocks','Physical','IS 15658',7,400,'996375');
 
 -- Sample Clients
-insert into public.clients (id, client_name, client_address, email, phone) values
-('C1', 'Indus Towers Ltd.', 'No.12, Subramanya Arcade, ''D'' Block, 7th Floor, Bannerghatta Road, Bengaluru.', 'indus@email.com', '123'),
-('C2', 'Reliance Jio Infocomm Ltd.', 'Bengaluru, Karnataka', 'jio@email.com', '456'),
-('C3', 'ATC Telecom Infrastructure Pvt. Ltd.', 'HM Tower, 1st Floor, Magrath Road Junction, Brigade Road, Ashok Nagar, Bengaluru - 560001, Karnataka, INDIA', 'atc@email.com', '789');
+insert into public.clients (id, client_name, client_address, contacts) values
+(
+  'C1',
+  'Indus Towers Ltd.',
+  'No.12, Subramanya Arcade, ''D'' Block, 7th Floor, Bannerghatta Road, Bengaluru.',
+  '[
+    {
+      "contact_person": "",
+      "contact_email": "indus@email.com",
+      "contact_phone": "123",
+      "is_primary": true
+    }
+  ]'::jsonb
+),
+(
+  'C2',
+  'Reliance Jio Infocomm Ltd.',
+  'Bengaluru, Karnataka',
+  '[
+    {
+      "contact_person": "",
+      "contact_email": "jio@email.com",
+      "contact_phone": "456",
+      "is_primary": true
+    }
+  ]'::jsonb
+),
+(
+  'C3',
+  'ATC Telecom Infrastructure Pvt. Ltd.',
+  'HM Tower, 1st Floor, Magrath Road Junction, Brigade Road, Ashok Nagar, Bengaluru - 560001, Karnataka, INDIA',
+  '[
+    {
+      "contact_person": "",
+      "contact_email": "atc@email.com",
+      "contact_phone": "789",
+      "is_primary": true
+    }
+  ]'::jsonb
+);
 
 -- -----------------------------------------------------------------------------
 -- 6. Table: client_service_prices

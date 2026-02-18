@@ -173,7 +173,7 @@ const AdminTermsManager = () => {
                                             {term.type}
                                         </span>
                                     )}
-                                    <p className="text-gray-800 whitespace-pre-wrap text-sm leading-relaxed">{term.text}</p>
+                                    <p className="text-gray-800 whitespace-pre-wrap text-sm leading-relaxed pl-1">{term.text}</p>
                                 </div>
                             </div>
                             <div className="flex gap-1 shrink-0">

@@ -427,7 +427,7 @@ const AdminServicesManager = () => {
                     </div>
                     <div className="w-full flex justify-end">
                         <div className="flex flex-wrap items-center gap-2">
-                            <div className="flex items-center gap-2 bg-gray-100/50 p-1 rounded-xl">
+                            {/* <div className="flex items-center gap-2 bg-gray-100/50 p-1 rounded-xl">
                                 <input
                                     type="file"
                                     ref={fileImportRef}
@@ -452,7 +452,7 @@ const AdminServicesManager = () => {
                                 >
                                     <Download className="w-3.5 h-3.5 mr-2" /> Export
                                 </Button>
-                            </div>
+                            </div> */}
 
                             <Button
                                 onClick={handleAddNew}

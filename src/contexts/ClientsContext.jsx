@@ -4,9 +4,24 @@ import { supabase } from '@/lib/customSupabaseClient';
 export const ClientsContext = createContext();
 
 const initialClients = [
-    { id: 'C1', clientName: 'Indus Towers Ltd.', clientAddress: '', email: '', phone: '' },
-    { id: 'C2', clientName: 'Reliance Jio Infocomm Ltd.', clientAddress: '', email: '', phone: '' },
-    { id: 'C3', clientName: 'ATC Telecom Infrastructure Pvt. Ltd.', clientAddress: '', email: '', phone: '' }
+    {
+        id: 'C1',
+        clientName: 'Indus Towers Ltd.',
+        clientAddress: 'No.12, Subramanya Arcade, \'D\' Block, 7th Floor, Bannerghatta Road, Bengaluru.',
+        contacts: [{ contact_person: '', contact_email: 'indus@email.com', contact_phone: '123', is_primary: true }]
+    },
+    {
+        id: 'C2',
+        clientName: 'Reliance Jio Infocomm Ltd.',
+        clientAddress: 'Bengaluru, Karnataka',
+        contacts: [{ contact_person: '', contact_email: 'jio@email.com', contact_phone: '456', is_primary: true }]
+    },
+    {
+        id: 'C3',
+        clientName: 'ATC Telecom Infrastructure Pvt. Ltd.',
+        clientAddress: 'HM Tower, 1st Floor, Magrath Road Junction, Brigade Road, Ashok Nagar, Bengaluru - 560001, Karnataka, INDIA',
+        contacts: [{ contact_person: '', contact_email: 'atc@email.com', contact_phone: '789', is_primary: true }]
+    }
 ];
 
 export const ClientsProvider = ({ children }) => {
@@ -15,13 +30,29 @@ export const ClientsProvider = ({ children }) => {
 
     const mapFromDb = useCallback((c) => {
         if (!c) return null;
+        let contacts = Array.isArray(c.contacts) ? c.contacts : [];
+
+        // Migration: If no contacts array exists, create one from legacy email/phone
+        if (contacts.length === 0 && (c.email || c.phone || c.client_name || c.clientName)) {
+            contacts = [{
+                contact_person: '',
+                contact_email: c.email || '',
+                contact_phone: c.phone || '',
+                is_primary: true
+            }];
+        }
+
+        const primaryContact = contacts.find(con => con.is_primary) || contacts[0] || {};
+
         return {
             ...c,
             id: c.id,
             clientName: c.client_name || c.clientName || '',
             clientAddress: c.client_address || c.clientAddress || '',
-            email: c.email || '',
-            phone: c.phone || '',
+            contacts: contacts,
+            // Backward compatibility for UI parts still using single email/phone
+            email: primaryContact.contact_email || c.email || '',
+            phone: primaryContact.contact_phone || c.phone || '',
             createdAt: c.created_at || new Date().toISOString()
         };
     }, []);
@@ -30,8 +61,7 @@ export const ClientsProvider = ({ children }) => {
         id: c.id,
         client_name: c.clientName,
         client_address: c.clientAddress,
-        email: c.email,
-        phone: c.phone
+        contacts: Array.isArray(c.contacts) ? c.contacts : []
     }), []);
 
     const fetchClients = useCallback(async () => {
@@ -48,12 +78,12 @@ export const ClientsProvider = ({ children }) => {
                     try {
                         const parsed = JSON.parse(stored);
                         if (Array.isArray(parsed) && parsed.length > 0) {
-                            setClients(parsed);
+                            setClients(parsed.map(mapFromDb));
                             return;
                         }
                     } catch (e) { }
                 }
-                if (clients.length === 0) setClients(initialClients);
+                if (clients.length === 0) setClients(initialClients.map(mapFromDb));
                 return;
             }
 
@@ -66,16 +96,16 @@ export const ClientsProvider = ({ children }) => {
                     try {
                         const parsed = JSON.parse(stored);
                         if (Array.isArray(parsed) && parsed.length > 0) {
-                            setClients(parsed);
+                            setClients(parsed.map(mapFromDb));
                             return;
                         }
                     } catch (e) { }
                 }
-                setClients(initialClients);
+                setClients(initialClients.map(mapFromDb));
             }
         } catch (error) {
             console.error("Error loading clients:", error);
-            if (clients.length === 0) setClients(initialClients);
+            if (clients.length === 0) setClients(initialClients.map(mapFromDb));
         } finally {
             setLoading(false);
         }
@@ -88,7 +118,7 @@ export const ClientsProvider = ({ children }) => {
             if (stored) {
                 try {
                     const parsed = JSON.parse(stored);
-                    if (Array.isArray(parsed)) setClients(parsed);
+                    if (Array.isArray(parsed)) setClients(parsed.map(mapFromDb));
                 } catch (e) { }
             }
         };
