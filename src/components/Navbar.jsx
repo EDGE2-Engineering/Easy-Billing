@@ -48,7 +48,16 @@ const Navbar = () => {
     { path: '/', label: 'Settings', icon: Settings, roles: ['admin'] }
   ].filter(item => !item.roles || (item.roles.includes('admin') && isAdmin()));
 
-  const isActive = (path) => location.pathname === path;
+  const isActive = (path) => {
+    if (path === '/') {
+      // 'Settings' is root - highlight it for root and for details
+      return location.pathname === '/' ||
+        location.pathname.startsWith('/service/') ||
+        location.pathname.startsWith('/test/');
+    }
+    // Highlighting for /new-quotation
+    return location.pathname.startsWith(path);
+  };
 
   return (
     <nav className="bg-white shadow-md sticky top-0 z-50">
@@ -75,12 +84,12 @@ const Navbar = () => {
               <Link
                 key={item.path}
                 to={item.path}
-                className={`flex items-center space-x-1 transition-colors text-sm font-medium ${isActive(item.path)
-                  ? 'text-primary'
-                  : 'text-gray-700 hover:text-primary'
+                className={`flex items-center space-x-2 px-4 py-2 rounded-xl transition-all text-sm font-semibold ${isActive(item.path)
+                  ? 'bg-primary text-white shadow-sm'
+                  : 'text-gray-600 hover:text-primary hover:bg-gray-300'
                   }`}
               >
-                <item.icon className="w-4 h-4" />
+                <item.icon className={`w-4 h-4 ${isActive(item.path) ? 'text-white' : ''}`} />
                 <span>{item.label}</span>
               </Link>
             ))}
