@@ -34,7 +34,14 @@ const AdminClientsManager = () => {
     const [editingClient, setEditingClient] = useState(null);
     const [isAddingNew, setIsAddingNew] = useState(false);
     const [isSaving, setIsSaving] = useState(false);
+    const [contactErrors, setContactErrors] = useState({});
     const [deleteConfirmation, setDeleteConfirmation] = useState({ isOpen: false, clientId: null, clientName: '' });
+
+    const isValidEmail = (email) => {
+        if (!email) return true; // Don't validate if empty
+        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        return emailRegex.test(email);
+    };
     const [currentPage, setCurrentPage] = useState(1);
     const [itemsPerPage, setItemsPerPage] = useState(10);
     const fileImportRef = useRef(null);
@@ -66,10 +73,20 @@ const AdminClientsManager = () => {
     }, [searchTerm]);
 
     const handleEdit = (client) => {
+        const contacts = Array.isArray(client.contacts) ? client.contacts : [];
         setEditingClient({
             ...client,
-            contacts: Array.isArray(client.contacts) ? client.contacts : []
+            contacts
         });
+
+        // Initialize validation errors for existing contacts
+        const initialErrors = {};
+        contacts.forEach((contact, index) => {
+            if (contact.contact_email && !isValidEmail(contact.contact_email)) {
+                initialErrors[index] = true;
+            }
+        });
+        setContactErrors(initialErrors);
         setIsAddingNew(false);
     };
 
@@ -79,14 +96,24 @@ const AdminClientsManager = () => {
             clientAddress: '',
             contacts: [{ contact_person: '', contact_email: '', contact_phone: '', is_primary: true }]
         });
+        setContactErrors({});
         setIsAddingNew(true);
     };
 
     const handleSave = async () => {
+        if (Object.values(contactErrors).some(err => err)) {
+            toast({ title: "Validation Error", description: "Please fix invalid email formats before saving.", variant: "destructive" });
+            return;
+        }
+
         setIsSaving(true);
         try {
             // Clean up contacts (remove empty ones if needed, but at least ensure primary exists)
-            const cleanedContacts = (editingClient.contacts || []).filter(c => c.contact_email || c.contact_phone || c.contact_person);
+            const cleanedContacts = (editingClient.contacts || []).map(c => ({
+                ...c,
+                contact_email: c.contact_email?.trim() || ''
+            })).filter(c => c.contact_email || c.contact_phone || c.contact_person);
+
             if (cleanedContacts.length > 0 && !cleanedContacts.some(c => c.is_primary)) {
                 cleanedContacts[0].is_primary = true;
             }
@@ -109,6 +136,7 @@ const AdminClientsManager = () => {
                 sendTelegramNotification(message);
             }
             setEditingClient(null);
+            setContactErrors({});
             setIsAddingNew(false);
         } catch (error) {
             console.error(error);
@@ -148,13 +176,21 @@ const AdminClientsManager = () => {
     };
 
     const handleContactChange = (index, field, value) => {
+        let finalValue = value;
+        if (field === 'contact_email') {
+            // Strip ALL spaces as the user types
+            finalValue = value.replace(/\s/g, '');
+            const isValid = isValidEmail(finalValue);
+            setContactErrors(prev => ({ ...prev, [index]: !isValid }));
+        }
+
         setEditingClient(prev => {
             const newContacts = [...(prev.contacts || [])];
             if (field === 'is_primary' && value === true) {
                 // Only one primary contact allowed
                 newContacts.forEach((c, i) => c.is_primary = (i === index));
             } else {
-                newContacts[index] = { ...newContacts[index], [field]: value };
+                newContacts[index] = { ...newContacts[index], [field]: finalValue };
             }
             return { ...prev, contacts: newContacts };
         });
@@ -312,12 +348,16 @@ const AdminClientsManager = () => {
                                             />
                                         </div>
                                         <div className="space-y-2">
-                                            <Label>Email</Label>
+                                            <Label className={contactErrors[index] ? "text-red-500" : ""}>Email</Label>
                                             <Input
                                                 value={contact.contact_email || ''}
                                                 onChange={(e) => handleContactChange(index, 'contact_email', e.target.value)}
                                                 placeholder="Email"
+                                                className={contactErrors[index] ? "border-red-500 focus-visible:ring-red-500" : ""}
                                             />
+                                            {contactErrors[index] && (
+                                                <p className="text-xs text-red-500 mt-1">Please enter a valid email address.</p>
+                                            )}
                                         </div>
                                         <div className="space-y-2">
                                             <Label>Phone</Label>

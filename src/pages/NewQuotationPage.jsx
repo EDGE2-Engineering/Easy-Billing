@@ -850,6 +850,7 @@ const NewQuotationPage = () => {
                                 <div>
                                     <Label>Client Name</Label>
                                     <Select
+                                        
                                         value={clientNameSelection}
                                         onValueChange={(value) => {
                                             setClientNameSelection(value);
@@ -881,6 +882,7 @@ const NewQuotationPage = () => {
                                                 // Update item prices based on the new client
                                                 if (items.length > 0) {
                                                     const updatedItems = items.map(item => {
+                                                        const newPrice = getAppropiatePrice(item.sourceId, item.type, selectedClient?.id);
                                                         return {
                                                             ...item,
                                                             price: Number(newPrice),
@@ -900,12 +902,14 @@ const NewQuotationPage = () => {
                                             }
                                         }}
                                     >
-                                        <SelectTrigger>
-                                            <SelectValue placeholder="Select client" />
+                                        <SelectTrigger className="h-15 text-sm border-gray-200 bg-gray-50/30" style={{ textAlign: 'left' }}>
+                                            <SelectValue
+                                                placeholder="Select client"
+                                            />
                                         </SelectTrigger>
                                         <SelectContent>
                                             {CLIENT_OPTIONS.map(option => (
-                                                <SelectItem key={option.value} value={option.value}>
+                                                <SelectItem key={option.value} value={option.value} className="font-normal text-sm justify-start max-w-[420px]">
                                                     {option.label}
                                                 </SelectItem>
                                             ))}
@@ -927,7 +931,7 @@ const NewQuotationPage = () => {
 
                                         return (
                                             <div className="mt-2 pt-2 pb-2 border-t border-gray-100">
-                                                <Label className="text-gray-900 font-semibold mb-2 block">
+                                                <Label className="text-gray-900 mb-2 block">
                                                     Client Contact
                                                 </Label>
                                                 <Select
@@ -1198,7 +1202,7 @@ const NewQuotationPage = () => {
                                         });
                                     }}
                                     placeholder="Select T&C types..."
-                                    className="mt-1"
+                                    className="mt-1 text-sm"
                                     classNamePrefix="react-select"
                                     styles={{
                                         control: (base) => ({
