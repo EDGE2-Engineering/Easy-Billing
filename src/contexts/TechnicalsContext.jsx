@@ -1,17 +1,16 @@
-import React, { createContext, useState, useContext, useEffect } from 'react';
+import React, { createContext, useState, useContext, useEffect, useCallback, useMemo } from 'react';
 import { supabase } from '@/lib/customSupabaseClient';
 import { useToast } from '@/components/ui/use-toast';
 
 const TechnicalsContext = createContext();
 
-export const useTechnicals = () => useContext(TechnicalsContext);
 
-export const TechnicalsProvider = ({ children }) => {
+const TechnicalsProvider = ({ children }) => {
     const [technicals, setTechnicals] = useState([]);
     const [loading, setLoading] = useState(true);
     const { toast } = useToast();
 
-    const fetchTechnicals = async () => {
+    const fetchTechnicals = useCallback(async () => {
         setLoading(true);
         try {
             const { data, error } = await supabase
@@ -26,9 +25,9 @@ export const TechnicalsProvider = ({ children }) => {
         } finally {
             setLoading(false);
         }
-    };
+    }, []);
 
-    const addTechnical = async (text, type) => {
+    const addTechnical = useCallback(async (text, type) => {
         try {
             const { data, error } = await supabase
                 .from('technicals')
@@ -42,9 +41,9 @@ export const TechnicalsProvider = ({ children }) => {
             console.error('Error adding technical:', error);
             throw error;
         }
-    };
+    }, []);
 
-    const updateTechnical = async (id, text, type) => {
+    const updateTechnical = useCallback(async (id, text, type) => {
         try {
             const { data, error } = await supabase
                 .from('technicals')
@@ -59,9 +58,9 @@ export const TechnicalsProvider = ({ children }) => {
             console.error('Error updating technical:', error);
             throw error;
         }
-    };
+    }, []);
 
-    const deleteTechnical = async (id) => {
+    const deleteTechnical = useCallback(async (id) => {
         try {
             const { error } = await supabase
                 .from('technicals')
@@ -74,15 +73,33 @@ export const TechnicalsProvider = ({ children }) => {
             console.error('Error deleting technical:', error);
             throw error;
         }
-    };
+    }, []);
 
     useEffect(() => {
         fetchTechnicals();
-    }, []);
+    }, [fetchTechnicals]);
+
+    const contextValue = useMemo(() => ({
+        technicals,
+        loading,
+        addTechnical,
+        updateTechnical,
+        deleteTechnical,
+        fetchTechnicals
+    }), [technicals, loading, addTechnical, updateTechnical, deleteTechnical, fetchTechnicals]);
 
     return (
-        <TechnicalsContext.Provider value={{ technicals, loading, addTechnical, updateTechnical, deleteTechnical, fetchTechnicals }}>
+        <TechnicalsContext.Provider value={contextValue}>
             {children}
         </TechnicalsContext.Provider>
     );
 };
+export const useTechnicals = () => {
+    const context = useContext(TechnicalsContext);
+    if (!context) {
+        throw new Error('useTechnicals must be used within a TechnicalsProvider');
+    }
+    return context;
+};
+
+export { TechnicalsContext, TechnicalsProvider };

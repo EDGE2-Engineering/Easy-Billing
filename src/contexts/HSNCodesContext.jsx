@@ -1,10 +1,10 @@
 
-import React, { createContext, useState, useEffect, useCallback, useContext } from 'react';
+import React, { createContext, useState, useEffect, useCallback, useContext, useMemo } from 'react';
 import { supabase } from '@/lib/customSupabaseClient';
 
-export const HSNCodesContext = createContext();
+const HSNCodesContext = createContext();
 
-export const HSNCodesProvider = ({ children }) => {
+const HSNCodesProvider = ({ children }) => {
     const [hsnCodes, setHsnCodes] = useState([]);
     const [loading, setLoading] = useState(true);
 
@@ -31,7 +31,7 @@ export const HSNCodesProvider = ({ children }) => {
         }
     }, []);
 
-    const addHsnCode = async (hsnData) => {
+    const addHsnCode = useCallback(async (hsnData) => {
         try {
             const { data, error } = await supabase
                 .from('hsn_sac_codes')
@@ -46,9 +46,9 @@ export const HSNCodesProvider = ({ children }) => {
             console.error("Error adding HSN code:", error);
             throw error;
         }
-    };
+    }, []);
 
-    const updateHsnCode = async (id, hsnData) => {
+    const updateHsnCode = useCallback(async (id, hsnData) => {
         try {
             const { data, error } = await supabase
                 .from('hsn_sac_codes')
@@ -64,9 +64,9 @@ export const HSNCodesProvider = ({ children }) => {
             console.error("Error updating HSN code:", error);
             throw error;
         }
-    };
+    }, []);
 
-    const deleteHsnCode = async (id) => {
+    const deleteHsnCode = useCallback(async (id) => {
         try {
             const { error } = await supabase
                 .from('hsn_sac_codes')
@@ -79,24 +79,34 @@ export const HSNCodesProvider = ({ children }) => {
             console.error("Error deleting HSN code:", error);
             throw error;
         }
-    };
+    }, []);
 
     useEffect(() => {
         fetchHsnCodes();
     }, [fetchHsnCodes]);
 
+    const contextValue = useMemo(() => ({
+        hsnCodes,
+        loading,
+        refreshHsnCodes: fetchHsnCodes,
+        addHsnCode,
+        updateHsnCode,
+        deleteHsnCode
+    }), [hsnCodes, loading, fetchHsnCodes, addHsnCode, updateHsnCode, deleteHsnCode]);
+
     return (
-        <HSNCodesContext.Provider value={{
-            hsnCodes,
-            loading,
-            refreshHsnCodes: fetchHsnCodes,
-            addHsnCode,
-            updateHsnCode,
-            deleteHsnCode
-        }}>
+        <HSNCodesContext.Provider value={contextValue}>
             {children}
         </HSNCodesContext.Provider>
     );
 };
 
-export const useHSNCodes = () => useContext(HSNCodesContext);
+export const useHSNCodes = () => {
+    const context = useContext(HSNCodesContext);
+    if (!context) {
+        throw new Error('useHSNCodes must be used within a HSNCodesProvider');
+    }
+    return context;
+};
+
+export { HSNCodesContext, HSNCodesProvider };

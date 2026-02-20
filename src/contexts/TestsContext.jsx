@@ -1,11 +1,11 @@
 
-import React, { createContext, useState, useEffect, useCallback } from 'react';
+import React, { createContext, useState, useEffect, useCallback, useMemo } from 'react';
 import { supabase } from '@/lib/customSupabaseClient';
 import { initialTests } from '@/data/tests';
 
-export const TestsContext = createContext();
+const TestsContext = createContext();
 
-export const TestsProvider = ({ children }) => {
+const TestsProvider = ({ children }) => {
     const [tests, setTests] = useState([]);
     const [clientTestPrices, setClientTestPrices] = useState([]);
     const [loading, setLoading] = useState(true);
@@ -125,7 +125,7 @@ export const TestsProvider = ({ children }) => {
         }
     }, [tests]);
 
-    const updateTest = async (updatedTest) => {
+    const updateTest = useCallback(async (updatedTest) => {
 
         setTests(prev => prev.map(t => t.id === updatedTest.id ? updatedTest : t));
         try {
@@ -137,9 +137,9 @@ export const TestsProvider = ({ children }) => {
             console.warn("Update Test Exception:", err);
             throw err;
         }
-    };
+    }, [mapToDb]);
 
-    const addTest = async (newTest) => {
+    const addTest = useCallback(async (newTest) => {
 
         const tempId = newTest.id || `tst_${Date.now()}`;
         const testWithId = { ...newTest, id: tempId, created_at: new Date().toISOString() };
@@ -151,9 +151,9 @@ export const TestsProvider = ({ children }) => {
             console.warn("Add Test Exception:", err);
             throw err;
         }
-    };
+    }, [mapToDb]);
 
-    const deleteTest = async (id) => {
+    const deleteTest = useCallback(async (id) => {
         setTests(prev => prev.filter(t => t.id !== id));
         try {
             const { error } = await supabase.from('tests').delete().eq('id', id);
@@ -161,9 +161,9 @@ export const TestsProvider = ({ children }) => {
         } catch (err) {
             console.warn("Delete Test Exception:", err);
         }
-    };
+    }, []);
 
-    const updateClientTestPrice = async (clientId, testId, price) => {
+    const updateClientTestPrice = useCallback(async (clientId, testId, price) => {
         try {
             console.log(`Updating client test price: client=${clientId}, test=${testId}, price=${price}`);
             const { data, error } = await supabase
@@ -190,9 +190,9 @@ export const TestsProvider = ({ children }) => {
             console.error("Exception in updateClientTestPrice:", err);
             throw err;
         }
-    };
+    }, []);
 
-    const deleteClientTestPrice = async (clientId, testId) => {
+    const deleteClientTestPrice = useCallback(async (clientId, testId) => {
         try {
             const { error } = await supabase
                 .from('client_test_prices')
@@ -206,25 +206,35 @@ export const TestsProvider = ({ children }) => {
             console.error("Error deleting client test price:", err);
             throw err;
         }
-    };
+    }, []);
+
+    const contextValue = useMemo(() => ({
+        tests,
+        clientTestPrices,
+        loading,
+        updateTest,
+        addTest,
+        deleteTest,
+        updateClientTestPrice,
+        deleteClientTestPrice,
+        setTests,
+        refreshTests: fetchTests,
+        refreshClientTestPrices: fetchClientTestPrices
+    }), [tests, clientTestPrices, loading, updateTest, addTest, deleteTest, updateClientTestPrice, deleteClientTestPrice, fetchTests, fetchClientTestPrices]);
 
     return (
-        <TestsContext.Provider value={{
-            tests,
-            clientTestPrices,
-            loading,
-            updateTest,
-            addTest,
-            deleteTest,
-            updateClientTestPrice,
-            deleteClientTestPrice,
-            setTests,
-            refreshTests: fetchTests,
-            refreshClientTestPrices: fetchClientTestPrices
-        }}>
+        <TestsContext.Provider value={contextValue}>
             {children}
         </TestsContext.Provider>
     );
 };
 
-export const useTests = () => React.useContext(TestsContext);
+export const useTests = () => {
+    const context = React.useContext(TestsContext);
+    if (!context) {
+        throw new Error('useTests must be used within a TestsProvider');
+    }
+    return context;
+};
+
+export { TestsContext, TestsProvider };

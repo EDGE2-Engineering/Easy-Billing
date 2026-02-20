@@ -1,7 +1,7 @@
-import React, { createContext, useState, useEffect, useCallback } from 'react';
+import React, { createContext, useState, useEffect, useCallback, useMemo } from 'react';
 import { supabase } from '@/lib/customSupabaseClient';
 
-export const ClientsContext = createContext();
+const ClientsContext = createContext();
 
 const initialClients = [
     {
@@ -24,7 +24,7 @@ const initialClients = [
     }
 ];
 
-export const ClientsProvider = ({ children }) => {
+const ClientsProvider = ({ children }) => {
     const [clients, setClients] = useState([]);
     const [loading, setLoading] = useState(true);
 
@@ -132,7 +132,7 @@ export const ClientsProvider = ({ children }) => {
         }
     }, [clients]);
 
-    const updateClient = async (updatedClient) => {
+    const updateClient = useCallback(async (updatedClient) => {
         // Check for duplicate client names
         if (updatedClient.clientName) {
             const existingWithName = clients.find(
@@ -172,9 +172,9 @@ export const ClientsProvider = ({ children }) => {
             setClients(previousClients);
             throw err;
         }
-    };
+    }, [clients, mapToDb, mapFromDb]);
 
-    const addClient = async (newClient) => {
+    const addClient = useCallback(async (newClient) => {
         // Check for duplicate client names
         if (newClient.clientName) {
             const existingWithName = clients.find(
@@ -216,9 +216,9 @@ export const ClientsProvider = ({ children }) => {
             setClients(previousClients);
             throw err;
         }
-    };
+    }, [clients, mapToDb, mapFromDb]);
 
-    const deleteClient = async (id) => {
+    const deleteClient = useCallback(async (id) => {
         const previousClients = [...clients];
         setClients(prev => prev.filter(c => c.id !== id));
 
@@ -238,13 +238,31 @@ export const ClientsProvider = ({ children }) => {
             setClients(previousClients);
             throw err;
         }
-    };
+    }, [clients]);
+
+    const contextValue = useMemo(() => ({
+        clients,
+        loading,
+        updateClient,
+        addClient,
+        deleteClient,
+        setClients,
+        refreshClients: fetchClients
+    }), [clients, loading, updateClient, addClient, deleteClient, fetchClients]);
 
     return (
-        <ClientsContext.Provider value={{ clients, loading, updateClient, addClient, deleteClient, setClients, refreshClients: fetchClients }}>
+        <ClientsContext.Provider value={contextValue}>
             {children}
         </ClientsContext.Provider>
     );
 };
 
-export const useClients = () => React.useContext(ClientsContext);
+export const useClients = () => {
+    const context = React.useContext(ClientsContext);
+    if (!context) {
+        throw new Error('useClients must be used within a ClientsProvider');
+    }
+    return context;
+};
+
+export { ClientsContext, ClientsProvider };

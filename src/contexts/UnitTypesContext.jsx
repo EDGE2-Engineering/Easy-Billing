@@ -1,10 +1,10 @@
 
-import React, { createContext, useState, useEffect, useCallback, useContext } from 'react';
+import React, { createContext, useState, useEffect, useCallback, useContext, useMemo } from 'react';
 import { supabase } from '@/lib/customSupabaseClient';
 
-export const UnitTypesContext = createContext();
+const UnitTypesContext = createContext();
 
-export const UnitTypesProvider = ({ children }) => {
+const UnitTypesProvider = ({ children }) => {
     const [unitTypes, setUnitTypes] = useState([]);
     const [loading, setLoading] = useState(true);
 
@@ -31,7 +31,7 @@ export const UnitTypesProvider = ({ children }) => {
         }
     }, []);
 
-    const addUnitType = async (unitType) => {
+    const addUnitType = useCallback(async (unitType) => {
         try {
             const { data, error } = await supabase
                 .from('service_unit_types')
@@ -46,9 +46,9 @@ export const UnitTypesProvider = ({ children }) => {
             console.error("Error adding unit type:", error);
             throw error;
         }
-    };
+    }, []);
 
-    const updateUnitType = async (id, unitType) => {
+    const updateUnitType = useCallback(async (id, unitType) => {
         try {
             const { data, error } = await supabase
                 .from('service_unit_types')
@@ -64,9 +64,9 @@ export const UnitTypesProvider = ({ children }) => {
             console.error("Error updating unit type:", error);
             throw error;
         }
-    };
+    }, []);
 
-    const deleteUnitType = async (id) => {
+    const deleteUnitType = useCallback(async (id) => {
         try {
             const { error } = await supabase
                 .from('service_unit_types')
@@ -79,24 +79,34 @@ export const UnitTypesProvider = ({ children }) => {
             console.error("Error deleting unit type:", error);
             throw error;
         }
-    };
+    }, []);
 
     useEffect(() => {
         fetchUnitTypes();
     }, [fetchUnitTypes]);
 
+    const contextValue = useMemo(() => ({
+        unitTypes,
+        loading,
+        refreshUnitTypes: fetchUnitTypes,
+        addUnitType,
+        updateUnitType,
+        deleteUnitType
+    }), [unitTypes, loading, fetchUnitTypes, addUnitType, updateUnitType, deleteUnitType]);
+
     return (
-        <UnitTypesContext.Provider value={{
-            unitTypes,
-            loading,
-            refreshUnitTypes: fetchUnitTypes,
-            addUnitType,
-            updateUnitType,
-            deleteUnitType
-        }}>
+        <UnitTypesContext.Provider value={contextValue}>
             {children}
         </UnitTypesContext.Provider>
     );
 };
 
-export const useUnitTypes = () => useContext(UnitTypesContext);
+export const useUnitTypes = () => {
+    const context = useContext(UnitTypesContext);
+    if (!context) {
+        throw new Error('useUnitTypes must be used within a UnitTypesProvider');
+    }
+    return context;
+};
+
+export { UnitTypesContext, UnitTypesProvider };

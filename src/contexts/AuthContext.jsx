@@ -1,5 +1,5 @@
 
-import React, { createContext, useState, useEffect, useContext } from 'react';
+import React, { createContext, useState, useEffect, useContext, useCallback, useMemo } from 'react';
 import { supabase } from '@/lib/customSupabaseClient';
 import { sendTelegramNotification } from '@/lib/notifier';
 
@@ -7,14 +7,15 @@ import { sendTelegramNotification } from '@/lib/notifier';
 const AuthContext = createContext();
 
 
-export const AuthProvider = ({ children }) => {
+const AuthProvider = ({ children }) => {
     const [user, setUser] = useState(null);
+    const [profile, setProfile] = useState(null);
     const [loading, setLoading] = useState(true);
 
-    const notifyLogin = async (username, fullName) => {
+    const notifyLogin = useCallback(async (username, fullName) => {
         const message = `🔔 *Login Alert*\n\nUser: \`${fullName}\` (@${username})`;
         await sendTelegramNotification(message);
-    };
+    }, []);
 
     useEffect(() => {
         // Check for existing session in localStorage
@@ -30,7 +31,7 @@ export const AuthProvider = ({ children }) => {
         setLoading(false);
     }, []);
 
-    const login = async (username, password) => {
+    const login = useCallback(async (username, password) => {
         try {
             const { data, error } = await supabase
                 .from('app_users')
@@ -54,7 +55,7 @@ export const AuthProvider = ({ children }) => {
             setUser(sessionUser);
             localStorage.setItem('app_session', JSON.stringify(sessionUser));
 
-            // Send login notification via Zapier
+            // Send login notification
             notifyLogin(sessionUser.username, sessionUser.fullName);
 
             return sessionUser;
@@ -62,28 +63,40 @@ export const AuthProvider = ({ children }) => {
             console.error("Login error:", err.message);
             throw err;
         }
-    };
+    }, [notifyLogin]);
 
-    const logout = () => {
+    const logout = useCallback(() => {
         setUser(null);
         localStorage.removeItem('app_session');
-    };
+    }, []);
 
-    const isSuperAdmin = () => user?.role === 'super_admin';
-    const isAdmin = () => user?.role === 'admin' || user?.role === 'super_admin';
-    const isStandard = () => user?.role === 'standard';
+    const isSuperAdmin = useCallback(() => user?.role === 'super_admin', [user?.role]);
+    const isAdmin = useCallback(() => user?.role === 'admin' || user?.role === 'super_admin', [user?.role]);
+    const isStandard = useCallback(() => user?.role === 'standard', [user?.role]);
+
+    const contextValue = useMemo(() => ({
+        user,
+        loading,
+        login,
+        logout,
+        isSuperAdmin,
+        isAdmin,
+        isStandard
+    }), [user, loading, login, logout, isSuperAdmin, isAdmin, isStandard]);
 
     return (
-        <AuthContext.Provider value={{ user, loading, login, logout, isSuperAdmin, isAdmin, isStandard }}>
+        <AuthContext.Provider value={contextValue}>
             {children}
         </AuthContext.Provider>
     );
 };
 
-export const useAuth = () => {
+const useAuth = () => {
     const context = useContext(AuthContext);
     if (!context) {
         throw new Error("useAuth must be used within an AuthProvider");
     }
     return context;
 };
+
+export { AuthContext, AuthProvider, useAuth };

@@ -1,13 +1,17 @@
-import React, { createContext, useContext, useEffect, useState, useCallback } from 'react';
+import React, { createContext, useContext, useEffect, useState, useCallback, useMemo } from 'react';
 import { supabase } from '@/lib/customSupabaseClient';
 
 const SettingsContext = createContext();
 
-export const useSettings = () => {
-    return useContext(SettingsContext);
+const useSettings = () => {
+    const context = useContext(SettingsContext);
+    if (!context) {
+        throw new Error('useSettings must be used within a SettingsProvider');
+    }
+    return context;
 };
 
-export const SettingsProvider = ({ children }) => {
+const SettingsProvider = ({ children }) => {
     const [settings, setSettings] = useState({
         tax_cgst: 9,
         tax_sgst: 9
@@ -42,7 +46,7 @@ export const SettingsProvider = ({ children }) => {
         }
     }, []);
 
-    const updateSetting = async (key, value) => {
+    const updateSetting = useCallback(async (key, value) => {
         // Optimistic update
         setSettings(prev => ({ ...prev, [key]: value }));
 
@@ -65,15 +69,23 @@ export const SettingsProvider = ({ children }) => {
             console.error("Update Setting Exception:", err);
             throw err;
         }
-    };
+    }, [fetchSettings]);
 
     useEffect(() => {
         fetchSettings();
     }, [fetchSettings]);
 
+    const contextValue = useMemo(() => ({
+        settings,
+        updateSetting,
+        loading,
+        fetchSettings
+    }), [settings, loading, updateSetting, fetchSettings]);
+
     return (
-        <SettingsContext.Provider value={{ settings, updateSetting, loading, fetchSettings }}>
+        <SettingsContext.Provider value={contextValue}>
             {children}
         </SettingsContext.Provider>
     );
 };
+export { SettingsContext, SettingsProvider, useSettings };

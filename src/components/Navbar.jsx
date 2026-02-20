@@ -46,8 +46,6 @@ const Navbar = ({ isDirty = false, isSaving = false }) => {
     { path: '/doc/new', label: 'Create', icon: FileText, roles: ['admin'] },
     { path: '/settings/services', label: 'Settings', icon: Settings, roles: ['admin'] }
   ].filter(item => {
-    // Hide 'Create' if we are already on a document page as requested
-    if (item.path === '/doc/new' && location.pathname.startsWith('/doc')) return false;
     return !item.roles || (item.roles.includes('admin') && isAdmin());
   });
 
@@ -88,6 +86,7 @@ const Navbar = ({ isDirty = false, isSaving = false }) => {
                 <Link
                   key={item.path}
                   to={item.path}
+                  state={item.path === '/doc/new' ? { forceReset: Date.now() } : undefined}
                   className={`flex items-center space-x-2 px-4 py-2 rounded-xl transition-all text-sm font-semibold ${isActive(item.path)
                     ? 'bg-primary text-white shadow-sm'
                     : 'text-gray-600 hover:text-primary hover:bg-gray-300'
@@ -144,6 +143,7 @@ const Navbar = ({ isDirty = false, isSaving = false }) => {
                   <Link
                     key={item.path}
                     to={item.path}
+                    state={item.path === '/doc/new' ? { forceReset: Date.now() } : undefined}
                     onClick={() => setIsOpen(false)}
                     className={`flex items-center space-x-3 py-3 px-4 rounded-lg transition-colors ${isActive(item.path)
                       ? 'bg-primary text-white'

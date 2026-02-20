@@ -1,11 +1,11 @@
 
-import React, { createContext, useState, useEffect, useCallback } from 'react';
+import React, { createContext, useState, useEffect, useCallback, useMemo } from 'react';
 import { supabase } from '@/lib/customSupabaseClient';
 import { initialServices } from '@/data/services';
 
-export const ServicesContext = createContext();
+const ServicesContext = createContext();
 
-export const ServicesProvider = ({ children }) => {
+const ServicesProvider = ({ children }) => {
     const [services, setServices] = useState([]);
     const [clientServicePrices, setClientServicePrices] = useState([]);
     const [loading, setLoading] = useState(true);
@@ -127,7 +127,7 @@ export const ServicesProvider = ({ children }) => {
         }
     }, [services]);
 
-    const updateService = async (updatedService) => {
+    const updateService = useCallback(async (updatedService) => {
 
         const previousServices = [...services];
         setServices(prev => prev.map(s => s.id === updatedService.id ? updatedService : s));
@@ -158,9 +158,9 @@ export const ServicesProvider = ({ children }) => {
             setServices(previousServices);
             throw err;
         }
-    };
+    }, [services, mapToDb, mapFromDb]);
 
-    const addService = async (newService) => {
+    const addService = useCallback(async (newService) => {
 
         const tempId = newService.id || `srv_${Date.now()}`;
         const serviceWithId = { ...newService, id: tempId, created_at: new Date().toISOString() };
@@ -193,9 +193,9 @@ export const ServicesProvider = ({ children }) => {
             setServices(previousServices);
             throw err;
         }
-    };
+    }, [services, mapToDb, mapFromDb]);
 
-    const deleteService = async (id) => {
+    const deleteService = useCallback(async (id) => {
         const previousServices = [...services];
         setServices(prev => prev.filter(s => s.id !== id));
 
@@ -215,9 +215,9 @@ export const ServicesProvider = ({ children }) => {
             setServices(previousServices);
             throw err;
         }
-    };
+    }, [services]);
 
-    const updateClientServicePrice = async (clientId, serviceId, price) => {
+    const updateClientServicePrice = useCallback(async (clientId, serviceId, price) => {
         try {
             console.log(`Updating client service price: client=${clientId}, service=${serviceId}, price=${price}`);
             const { data, error } = await supabase
@@ -244,9 +244,9 @@ export const ServicesProvider = ({ children }) => {
             console.error("Exception in updateClientServicePrice:", err);
             throw err;
         }
-    };
+    }, []);
 
-    const deleteClientServicePrice = async (clientId, serviceId) => {
+    const deleteClientServicePrice = useCallback(async (clientId, serviceId) => {
         try {
             const { error } = await supabase
                 .from('client_service_prices')
@@ -260,25 +260,35 @@ export const ServicesProvider = ({ children }) => {
             console.error("Error deleting client service price:", err);
             throw err;
         }
-    };
+    }, []);
+
+    const contextValue = useMemo(() => ({
+        services,
+        clientServicePrices,
+        loading,
+        updateService,
+        addService,
+        deleteService,
+        updateClientServicePrice,
+        deleteClientServicePrice,
+        setServices,
+        refreshServices: fetchServices,
+        refreshClientServicePrices: fetchClientServicePrices
+    }), [services, clientServicePrices, loading, updateService, addService, deleteService, updateClientServicePrice, deleteClientServicePrice, fetchServices, fetchClientServicePrices]);
 
     return (
-        <ServicesContext.Provider value={{
-            services,
-            clientServicePrices,
-            loading,
-            updateService,
-            addService,
-            deleteService,
-            updateClientServicePrice,
-            deleteClientServicePrice,
-            setServices,
-            refreshServices: fetchServices,
-            refreshClientServicePrices: fetchClientServicePrices
-        }}>
+        <ServicesContext.Provider value={contextValue}>
             {children}
         </ServicesContext.Provider>
     );
 };
 
-export const useServices = () => React.useContext(ServicesContext);
+export const useServices = () => {
+    const context = React.useContext(ServicesContext);
+    if (!context) {
+        throw new Error('useServices must be used within a ServicesProvider');
+    }
+    return context;
+};
+
+export { ServicesContext, ServicesProvider };

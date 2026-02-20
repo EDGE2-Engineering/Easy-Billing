@@ -126,8 +126,9 @@ const NewQuotationPage = () => {
     const { id: pathId } = useParams();
     const navigate = useNavigate();
     const [savedRecordId, setSavedRecordId] = useState(pathId || searchParams.get('id') || null);
-
+    const [loadedDocumentType, setLoadedDocumentType] = useState(null);
     const [isSavingRecord, setIsSavingRecord] = useState(false);
+    const [lastSavedData, setLastSavedData] = useState(null);
 
 
     const taxCGST = settings?.tax_cgst ? Number(settings.tax_cgst) : 9;
@@ -169,12 +170,33 @@ const NewQuotationPage = () => {
     const [customClientName, setCustomClientName] = useState('');
     const [contactSelectionIdx, setContactSelectionIdx] = useState('');
 
+    const currentData = useMemo(() => ({
+        quoteDetails,
+        items,
+        documentType,
+        discount
+    }), [quoteDetails, items, documentType, discount]);
+
     // Navigation guard for unsaved changes (Browser back/forward/links)
-    const isDirty = useMemo(() => items.length > 0 || quoteDetails.clientName !== '' || quoteDetails.projectName !== '', [items.length, quoteDetails.clientName, quoteDetails.projectName]);
+    const isDirty = useMemo(() => {
+        if (!lastSavedData) return false;
+        try {
+            return JSON.stringify(currentData) !== lastSavedData;
+        } catch (e) {
+            return false;
+        }
+    }, [currentData, lastSavedData]);
+
+    // Initial snapshot for new documents
+    useEffect(() => {
+        if (!pathId && !searchParams.get('id') && !lastSavedData) {
+            setLastSavedData(JSON.stringify(currentData));
+        }
+    }, [pathId, searchParams]);
 
     const blocker = useBlocker(
         ({ nextLocation }) =>
-            isDirty && !isSavingRecord && nextLocation.pathname !== location.pathname
+            isDirty && !isSavingRecord && (nextLocation.pathname !== location.pathname || nextLocation.state?.forceReset)
     );
 
     const handleReset = React.useCallback(() => {
@@ -191,6 +213,16 @@ const NewQuotationPage = () => {
         setCustomClientName('');
         setContactSelectionIdx('');
         setSavedRecordId(null);
+        setLoadedDocumentType(null);
+
+        const initialSnapshot = {
+            quoteDetails: defaultQuoteDetails,
+            items: [],
+            documentType: 'Quotation',
+            discount: 0
+        };
+        setLastSavedData(JSON.stringify(initialSnapshot));
+
         navigate('/doc/new', { replace: true });
     }, [defaultQuoteDetails, setSearchParams, navigate]);
 
@@ -215,10 +247,11 @@ const NewQuotationPage = () => {
 
     // Path-based logic: handle reset via /doc/new or forceReset state
     useEffect(() => {
-        if (location.pathname === '/doc/new' || location.state?.forceReset) {
+        const isNewPathButNotReset = location.pathname === '/doc/new' && savedRecordId !== null;
+        if (isNewPathButNotReset || location.state?.forceReset) {
             handleReset();
         }
-    }, [location.pathname, location.state?.forceReset, handleReset]);
+    }, [location.pathname, location.state?.forceReset, handleReset, savedRecordId]);
 
     // Generate client options from loaded clients
     const CLIENT_OPTIONS = [
@@ -284,13 +317,25 @@ const NewQuotationPage = () => {
 
                 if (data && data.content) {
                     const content = data.content;
-                    setQuoteDetails(content.quoteDetails || {});
-                    setItems(content.items || []);
-                    setDocumentType(data.document_type || 'Quotation');
-                    setDiscount(content.discount || 0);
+                    const loadedQuoteDetails = content.quoteDetails || {};
+                    const loadedItems = content.items || [];
+                    const loadedDocType = data.document_type || 'Quotation';
+                    const loadedDiscount = content.discount || 0;
+
+                    setQuoteDetails(loadedQuoteDetails);
+                    setItems(loadedItems);
+                    setDocumentType(loadedDocType);
+                    setLoadedDocumentType(loadedDocType);
+                    setDiscount(loadedDiscount);
                     setSavedRecordId(data.id);
 
-
+                    const snapshot = {
+                        quoteDetails: loadedQuoteDetails,
+                        items: loadedItems,
+                        documentType: loadedDocType,
+                        discount: loadedDiscount
+                    };
+                    setLastSavedData(JSON.stringify(snapshot));
 
                     toast({
                         title: `${data.document_type} Loaded`,
@@ -308,10 +353,10 @@ const NewQuotationPage = () => {
         };
 
         const id = pathId || searchParams.get('id');
-        if (id) {
+        if (id && !isSavingRecord) {
             loadFromSupabase(id);
         }
-    }, [searchParams]);
+    }, [searchParams, pathId, isSavingRecord]); // Removed clients from dependencies to break loop
 
     const handleSaveToDatabase = async () => {
         if (!user) {
@@ -325,9 +370,12 @@ const NewQuotationPage = () => {
 
         setIsSavingRecord(true);
         try {
-            // Generate doc number on first save (when no savedRecordId exists)
+            // Detect if the document type has changed from what was loaded
+            const isTypeChanged = savedRecordId && loadedDocumentType && documentType !== loadedDocumentType;
+
+            // Generate doc number on first save OR when doc type has changed
             let docNumber = quoteDetails.quoteNumber;
-            if (!savedRecordId && !docNumber) {
+            if ((!savedRecordId || isTypeChanged) && (!docNumber || isTypeChanged)) {
                 docNumber = await getNextDocNumber(supabase, documentType);
             }
 
@@ -350,7 +398,7 @@ const NewQuotationPage = () => {
             };
 
             let error;
-            if (savedRecordId) {
+            if (savedRecordId && !isTypeChanged) {
                 // Update existing – keep the same doc number
                 const { error: updateError } = await supabase
                     .from('saved_records')
@@ -358,7 +406,7 @@ const NewQuotationPage = () => {
                     .eq('id', savedRecordId);
                 error = updateError;
             } else {
-                // Create new
+                // Create new (Clone if isTypeChanged)
                 const { data, error: insertError } = await supabase
                     .from('saved_records')
                     .insert([recordData])
@@ -367,6 +415,7 @@ const NewQuotationPage = () => {
 
                 if (!insertError && data) {
                     setSavedRecordId(data.id);
+                    setLoadedDocumentType(documentType); // Update loaded type to new one
                     navigate(`/doc/${data.id}`, { replace: true });
                 }
                 error = insertError;
@@ -377,15 +426,23 @@ const NewQuotationPage = () => {
             // Update the doc number in state after successful save
             setQuoteDetails(updatedQuoteDetails);
 
+            const snapshot = {
+                quoteDetails: updatedQuoteDetails,
+                items,
+                documentType,
+                discount
+            };
+            setLastSavedData(JSON.stringify(snapshot));
+
             toast({
                 title: "Success",
-                description: savedRecordId ? `${documentType} updated successfully.` : `${documentType} saved as ${docNumber}.`
+                description: (savedRecordId && !isTypeChanged) ? `${documentType} updated successfully.` : `${documentType} saved as ${docNumber}.`
             });
 
             // Send Telegram Notification
             try {
-                const action = savedRecordId ? "Updated" : "Created";
-                const emoji = savedRecordId ? "📝" : "📄";
+                const action = (savedRecordId && !isTypeChanged) ? "Updated" : "Created";
+                const emoji = (savedRecordId && !isTypeChanged) ? "📝" : "📄";
                 const message = `${emoji} *${documentType} ${action}*\n\n` +
                     `Number: \`${docNumber}\`\n` +
                     `Client: \`${quoteDetails.clientName}\`\n` +
@@ -831,7 +888,7 @@ const NewQuotationPage = () => {
                                         className="bg-gray-100 cursor-not-allowed"
                                     />
                                     {!quoteDetails.quoteNumber && (
-                                        <p className="text-xs text-red-500 mt-1 italic">* doc number will be generated only on saving the doc</p>
+                                        <p className="text-xs text-red-500 mt-1 italic">* {documentType} number will be generated when you save.</p>
                                     )}
                                 </div>
                             </div>
@@ -1354,7 +1411,7 @@ const NewQuotationPage = () => {
                                                                 {documentType.toUpperCase()}
                                                             </h3>
                                                             <p className="text-gray-500 mt-1 text-xs break-all">
-                                                                {quoteDetails.quoteNumber ? `#${quoteDetails.quoteNumber}` : <span className="text-red-500 italic">* Pending – save to generate</span>}
+                                                                {quoteDetails.quoteNumber ? `#${quoteDetails.quoteNumber}` : <span className="text-red-500 italic">Pending</span>}
                                                             </p>
                                                             <p className="text-gray-500 mt-1 text-xs">
                                                                 Date: {format(new Date(quoteDetails.date), 'dd MMM yyyy')}

@@ -1,17 +1,16 @@
-import React, { createContext, useState, useContext, useEffect } from 'react';
+import React, { createContext, useState, useContext, useEffect, useCallback, useMemo } from 'react';
 import { supabase } from '@/lib/customSupabaseClient';
 import { useToast } from '@/components/ui/use-toast';
 
 const TermsAndConditionsContext = createContext();
 
-export const useTermsAndConditions = () => useContext(TermsAndConditionsContext);
 
-export const TermsAndConditionsProvider = ({ children }) => {
+const TermsAndConditionsProvider = ({ children }) => {
     const [terms, setTerms] = useState([]);
     const [loading, setLoading] = useState(true);
     const { toast } = useToast();
 
-    const fetchTerms = async () => {
+    const fetchTerms = useCallback(async () => {
         setLoading(true);
         try {
             const { data, error } = await supabase
@@ -27,9 +26,9 @@ export const TermsAndConditionsProvider = ({ children }) => {
         } finally {
             setLoading(false);
         }
-    };
+    }, []);
 
-    const addTerm = async (text, type = 'general') => {
+    const addTerm = useCallback(async (text, type = 'general') => {
         try {
             const { data, error } = await supabase
                 .from('terms_and_conditions')
@@ -43,9 +42,9 @@ export const TermsAndConditionsProvider = ({ children }) => {
             console.error('Error adding term:', error);
             throw error;
         }
-    };
+    }, []);
 
-    const updateTerm = async (id, text, type) => {
+    const updateTerm = useCallback(async (id, text, type) => {
         try {
             const { data, error } = await supabase
                 .from('terms_and_conditions')
@@ -60,9 +59,9 @@ export const TermsAndConditionsProvider = ({ children }) => {
             console.error('Error updating term:', error);
             throw error;
         }
-    };
+    }, []);
 
-    const deleteTerm = async (id) => {
+    const deleteTerm = useCallback(async (id) => {
         try {
             const { error } = await supabase
                 .from('terms_and_conditions')
@@ -75,15 +74,33 @@ export const TermsAndConditionsProvider = ({ children }) => {
             console.error('Error deleting term:', error);
             throw error;
         }
-    };
+    }, []);
 
     useEffect(() => {
         fetchTerms();
-    }, []);
+    }, [fetchTerms]);
+
+    const contextValue = useMemo(() => ({
+        terms,
+        loading,
+        addTerm,
+        updateTerm,
+        deleteTerm,
+        fetchTerms
+    }), [terms, loading, addTerm, updateTerm, deleteTerm, fetchTerms]);
 
     return (
-        <TermsAndConditionsContext.Provider value={{ terms, loading, addTerm, updateTerm, deleteTerm, fetchTerms }}>
+        <TermsAndConditionsContext.Provider value={contextValue}>
             {children}
         </TermsAndConditionsContext.Provider>
     );
 };
+export const useTermsAndConditions = () => {
+    const context = useContext(TermsAndConditionsContext);
+    if (!context) {
+        throw new Error('useTermsAndConditions must be used within a TermsAndConditionsProvider');
+    }
+    return context;
+};
+
+export { TermsAndConditionsContext, TermsAndConditionsProvider };

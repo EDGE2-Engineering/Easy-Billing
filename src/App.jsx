@@ -25,11 +25,7 @@ const router = createHashRouter([
   },
   {
     path: "/settings/:tab?",
-    element: (
-      <ProtectedRoute>
-        <AdminPage />
-      </ProtectedRoute>
-    ),
+    element: <AdminPage />,
   },
   {
     path: "/doc",
