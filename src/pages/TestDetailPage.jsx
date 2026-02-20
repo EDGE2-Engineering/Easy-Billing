@@ -18,7 +18,7 @@ const TestDetailPage = () => {
 
     React.useEffect(() => {
         if (!loading && isStandard()) {
-            navigate('/new-quotation');
+            navigate('/doc');
         }
     }, [user, loading, navigate]);
 

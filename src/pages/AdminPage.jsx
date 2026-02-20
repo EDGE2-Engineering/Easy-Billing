@@ -26,22 +26,34 @@ import { useToast } from '@/components/ui/use-toast';
 
 import { supabase } from '@/lib/customSupabaseClient';
 
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useParams } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 
 const AdminPage = () => {
   const { user, loading, logout, isStandard } = useAuth();
+  const { tab } = useParams();
   const navigate = useNavigate();
-  const [mainTab, setMainTab] = useState('services');
+  const [mainTab, setMainTab] = useState(tab || 'services');
   const [isPasswordRecovery, setIsPasswordRecovery] = useState(false);
 
   const { toast } = useToast();
 
   useEffect(() => {
     if (isStandard()) {
-      navigate('/new-quotation');
+      navigate('/doc');
     }
   }, [user, navigate]);
+
+  useEffect(() => {
+    if (tab) {
+      setMainTab(tab);
+    }
+  }, [tab]);
+
+  const handleTabChange = (value) => {
+    setMainTab(value);
+    navigate(`/settings/${value}`);
+  };
 
   const handleLoginSuccess = () => {
     toast({ title: "Welcome back", description: "You have successfully logged in." });
@@ -94,14 +106,14 @@ const AdminPage = () => {
           </div>
         </div> */}
 
-        <Tabs value={mainTab} onValueChange={setMainTab} className="w-full space-y-4">
+        <Tabs value={mainTab} onValueChange={handleTabChange} className="w-full space-y-4">
           {/* Mobile View: Select Dropdown */}
           <div className="block md:hidden relative">
             <label htmlFor="admin-tabs" className="sr-only">Select a section</label>
             <select
               id="admin-tabs"
               value={mainTab}
-              onChange={(e) => setMainTab(e.target.value)}
+              onChange={(e) => handleTabChange(e.target.value)}
               className="w-full bg-white border border-gray-200 rounded-xl px-4 py-3 text-gray-900 font-medium focus:ring-2 focus:ring-primary focus:border-primary transition-all shadow-sm outline-none appearance-none"
             >
 

@@ -1,6 +1,6 @@
 
 import React, { useState } from 'react';
-import { Link, useLocation } from 'react-router-dom';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Menu, X, Lock, FileText, Settings, LogOut, User } from 'lucide-react';
 import { initialSiteContent } from '@/data/config';
@@ -21,7 +21,8 @@ import {
 } from "@/components/ui/alert-dialog";
 
 
-const Navbar = () => {
+const Navbar = ({ isDirty = false, isSaving = false }) => {
+  const navigate = useNavigate();
   const { user, logout, isAdmin } = useAuth();
   const { toast } = useToast();
   const [isOpen, setIsOpen] = useState(false);
@@ -29,39 +30,41 @@ const Navbar = () => {
   const location = useLocation();
   const content = initialSiteContent;
 
+
+
   const handleLogout = () => {
     setLogoutDialogOpen(true);
   };
 
   const confirmLogout = () => {
     logout();
-    // Clear relevant storage keys
-    const keysToClear = ['quotation_draft', 'services', 'tests', 'clients'];
-    keysToClear.forEach(key => localStorage.removeItem(key));
-
-    toast({ title: "Logged Out", description: "Storage cleared and logged out successfully." });
+    toast({ title: "Logged Out", description: "Logged out successfully." });
     setLogoutDialogOpen(false);
   };
 
   const navItems = [
-    { path: '/new-quotation', label: 'Create New', icon: FileText, roles: ['admin'] },
-    { path: '/', label: 'Settings', icon: Settings, roles: ['admin'] }
-  ].filter(item => !item.roles || (item.roles.includes('admin') && isAdmin()));
+    { path: '/doc/new', label: 'Create', icon: FileText, roles: ['admin'] },
+    { path: '/settings/services', label: 'Settings', icon: Settings, roles: ['admin'] }
+  ].filter(item => {
+    // Hide 'Create' if we are already on a document page as requested
+    if (item.path === '/doc/new' && location.pathname.startsWith('/doc')) return false;
+    return !item.roles || (item.roles.includes('admin') && isAdmin());
+  });
 
   const isActive = (path) => {
-    if (path === '/') {
-      // 'Settings' is root - highlight it for root and for details
-      return location.pathname === '/' ||
+    if (path === '/settings/services') {
+      return location.pathname.startsWith('/settings') ||
         location.pathname.startsWith('/service/') ||
         location.pathname.startsWith('/test/');
     }
-    // Highlighting for /new-quotation
-    return location.pathname.startsWith(path);
+    const searchParams = new URLSearchParams(location.search);
+    const isCreatePage = location.pathname === '/doc' && !searchParams.get('id');
+    return location.pathname.startsWith(path) || (path === '/doc/new' && isCreatePage);
   };
 
   return (
     <nav className="bg-white shadow-md sticky top-0 z-50">
-      <div className="container mx-auto px-4">
+      <div className="container mx-auto px-2">
         <div className="flex items-center justify-between h-16">
           <Link to="/" className="flex items-center space-x-2">
             <div className="flex items-center justify-center bg-white p-1 rounded-md shadow-sm">
@@ -79,20 +82,22 @@ const Navbar = () => {
             </span>
           </Link>
 
-          <div className="hidden md:flex items-center space-x-6">
-            {navItems.map((item) => (
-              <Link
-                key={item.path}
-                to={item.path}
-                className={`flex items-center space-x-2 px-4 py-2 rounded-xl transition-all text-sm font-semibold ${isActive(item.path)
-                  ? 'bg-primary text-white shadow-sm'
-                  : 'text-gray-600 hover:text-primary hover:bg-gray-300'
-                  }`}
-              >
-                <item.icon className={`w-4 h-4 ${isActive(item.path) ? 'text-white' : ''}`} />
-                <span>{item.label}</span>
-              </Link>
-            ))}
+          <div className="hidden md:flex items-center space-x-2">
+            {navItems.map((item) => {
+              return (
+                <Link
+                  key={item.path}
+                  to={item.path}
+                  className={`flex items-center space-x-2 px-4 py-2 rounded-xl transition-all text-sm font-semibold ${isActive(item.path)
+                    ? 'bg-primary text-white shadow-sm'
+                    : 'text-gray-600 hover:text-primary hover:bg-gray-300'
+                    }`}
+                >
+                  <item.icon className={`w-4 h-4 ${isActive(item.path) ? 'text-white' : ''}`} />
+                  <span>{item.label}</span>
+                </Link>
+              );
+            })}
             {user && (
               <div className="flex items-center gap-4">
                 <div className="bg-blue-50 text-blue-700 px-3 py-1.5 rounded-lg text-xs font-medium flex items-center">
@@ -134,20 +139,22 @@ const Navbar = () => {
             className="md:hidden bg-white border-t overflow-hidden"
           >
             <div className="container mx-auto px-4 py-4 space-y-2">
-              {navItems.map((item) => (
-                <Link
-                  key={item.path}
-                  to={item.path}
-                  onClick={() => setIsOpen(false)}
-                  className={`flex items-center space-x-3 py-3 px-4 rounded-lg transition-colors ${isActive(item.path)
-                    ? 'bg-primary text-white'
-                    : 'text-gray-700 hover:bg-gray-100'
-                    }`}
-                >
-                  <item.icon className="w-5 h-5" />
-                  <span className="font-medium">{item.label}</span>
-                </Link>
-              ))}
+              {navItems.map((item) => {
+                return (
+                  <Link
+                    key={item.path}
+                    to={item.path}
+                    onClick={() => setIsOpen(false)}
+                    className={`flex items-center space-x-3 py-3 px-4 rounded-lg transition-colors ${isActive(item.path)
+                      ? 'bg-primary text-white'
+                      : 'text-gray-700 hover:bg-gray-100'
+                      }`}
+                  >
+                    <item.icon className="w-5 h-5" />
+                    <span className="font-medium">{item.label}</span>
+                  </Link>
+                );
+              })}
               {user && (
                 <>
                   <div className="flex items-center space-x-3 py-3 px-4 rounded-lg bg-blue-50 text-blue-700 mb-2">
@@ -181,17 +188,19 @@ const Navbar = () => {
               Clear Data & Logout?
             </AlertDialogTitle>
             <AlertDialogDescription>
-              Are you sure you want to logout? This will also clear all locally saved quotation drafts and cached data for security.
+              Are you sure you want to logout?
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel>Cancel</AlertDialogCancel>
             <AlertDialogAction onClick={confirmLogout} className="bg-red-600 hover:bg-red-700 text-white">
-              Logout and Clear Data
+              Logout
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+
     </nav>
   );
 };

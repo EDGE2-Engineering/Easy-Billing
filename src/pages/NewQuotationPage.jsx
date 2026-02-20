@@ -1,10 +1,10 @@
 
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef, useEffect, useMemo } from 'react';
 import { useReactToPrint } from 'react-to-print';
 import { Plus, Trash2, Printer, FileText, ArrowLeft, X, Save, Loader2, CreditCard, ChevronUp, ChevronDown, AlertCircle, Axe, TestTube, BriefcaseBusiness } from 'lucide-react';
-import { Link, useSearchParams } from 'react-router-dom';
+import { Link, useSearchParams, useLocation, useNavigate, useParams, useBlocker } from 'react-router-dom';
 import Navbar from '@/components/Navbar';
-import { generateDocIDByDocType } from '@/utils/docUtils';
+import { getNextDocNumber } from '@/utils/docUtils';
 
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -49,7 +49,6 @@ import { supabase } from '@/lib/customSupabaseClient';
 import { useToast } from '@/components/ui/use-toast';
 import { sendTelegramNotification } from '@/lib/notifier';
 
-const STORAGE_KEY = 'quotation_draft';
 
 // Helper function to convert number to words (Indian numbering system)
 const numberToWords = (num) => {
@@ -112,20 +111,6 @@ const numberToWords = (num) => {
     return result + ' Only';
 };
 
-// Helper function to validate document number
-const validateDocNumber = (number) => {
-    if (!number) return "Document number is required";
-    if (!number.startsWith('EESIPL')) {
-        return "Document number must start with 'EESIPL'";
-    }
-    if (/\s/.test(number)) {
-        return "Document number cannot contain spaces";
-    }
-    if (!/^[A-Za-z0-9/]+$/.test(number)) {
-        return "Document number can only contain letters, numbers, and '/'";
-    }
-    return "";
-};
 
 const NewQuotationPage = () => {
     const { services, clientServicePrices } = useServices();
@@ -137,95 +122,103 @@ const NewQuotationPage = () => {
     const { user, isStandard } = useAuth();
     const { toast } = useToast();
     const [searchParams, setSearchParams] = useSearchParams();
-    const [savedRecordId, setSavedRecordId] = useState(searchParams.get('id') || null);
+    const location = useLocation();
+    const { id: pathId } = useParams();
+    const navigate = useNavigate();
+    const [savedRecordId, setSavedRecordId] = useState(pathId || searchParams.get('id') || null);
+
     const [isSavingRecord, setIsSavingRecord] = useState(false);
+
 
     const taxCGST = settings?.tax_cgst ? Number(settings.tax_cgst) : 9;
     const taxSGST = settings?.tax_sgst ? Number(settings.tax_sgst) : 9;
     const taxTotalPercent = taxCGST + taxSGST;
 
-    // Load initial state from localStorage
-    const loadSavedState = () => {
-        try {
-            const saved = localStorage.getItem(STORAGE_KEY);
-            if (saved) {
-                const parsed = JSON.parse(saved);
-                return {
-                    quoteDetails: parsed.quoteDetails || {
-                        clientName: '',
-                        clientAddress: '',
-                        contractorName: '',
-                        contractorAddress: '',
-                        projectName: '',
-                        projectAddress: '',
-                        email: '',
-                        phone: '',
-                        name: parsed.quoteDetails.name || '',
-                        date: format(new Date(), 'yyyy-MM-dd'),
-                        quoteNumber: generateDocIDByDocType(parsed.documentType || 'Quotation'),
+    const defaultQuoteDetails = useMemo(() => ({
+        clientName: '',
+        clientAddress: '',
+        contractorName: '',
+        contractorAddress: '',
+        projectName: '',
+        projectAddress: '',
+        email: '',
+        phone: '',
+        name: '',
+        date: format(new Date(), 'yyyy-MM-dd'),
+        quoteNumber: '',
 
-                        generatedBy: parsed.quoteDetails.generatedBy || '',
-                        paymentDate: parsed.quoteDetails.paymentDate || '',
-                        paymentMode: parsed.quoteDetails.paymentMode || '',
-                        paymentAmount: parsed.quoteDetails.paymentAmount || '',
-                        bankDetails: parsed.quoteDetails.bankDetails || '',
-                        selectedTcTypes: parsed.quoteDetails.selectedTcTypes || [],
-                        selectedTechTypes: parsed.quoteDetails.selectedTechTypes || []
-                    },
-                    items: parsed.items || [],
-                    documentType: parsed.documentType || 'Quotation',
-                    discount: parsed.discount || 0,
-                    contactSelectionIdx: parsed.contactSelectionIdx || ''
-                };
-            }
-        } catch (error) {
-            console.error('Error loading saved quotation:', error);
-        }
-        return {
-            quoteDetails: {
-                clientName: '',
-                clientAddress: '',
-                contractorName: '',
-                contractorAddress: '',
-                projectName: '',
-                projectAddress: '',
-                email: '',
-                phone: '',
-                name: '',
-                date: format(new Date(), 'yyyy-MM-dd'),
-                quoteNumber: generateDocIDByDocType('Quotation'),
+        generatedBy: user?.fullName || '',
+        paymentDate: '',
+        paymentMode: '',
+        paymentAmount: '',
+        bankDetails: '',
+        selectedTcTypes: [],
+        selectedTechTypes: []
+    }), [user?.fullName]);
 
-                generatedBy: user?.fullName || '',
-                paymentDate: '',
-                paymentMode: '',
-                paymentAmount: '',
-                bankDetails: '',
-                selectedTcTypes: [],
-                selectedTechTypes: []
-            },
-            items: [],
-            documentType: 'Quotation',
-            discount: 0,
-            contactSelectionIdx: ''
-        };
-    };
-
-    const initialState = loadSavedState();
-
-    const [quoteDetails, setQuoteDetails] = useState(initialState.quoteDetails);
-    const [docNumberError, setDocNumberError] = useState('');
-    const [items, setItems] = useState(initialState.items);
+    const [quoteDetails, setQuoteDetails] = useState(defaultQuoteDetails);
+    const [items, setItems] = useState([]);
     const [newItemType, setNewItemType] = useState('service'); // 'service' or 'test'
     const [selectedItemId, setSelectedItemId] = useState('');
     const [qty, setQty] = useState(1);
-    const [documentType, setDocumentType] = useState(initialState.documentType); // 'Tax Invoice', 'Quotation', 'Proforma Invoice', 'Purchase Order', or 'Delivery Challan'
-    const [discount, setDiscount] = useState(initialState.discount);
+    const [documentType, setDocumentType] = useState('Quotation'); // 'Tax Invoice', 'Quotation', 'Proforma Invoice', 'Purchase Order', or 'Delivery Challan'
+    const [discount, setDiscount] = useState(0);
     const [comboboxOpen, setComboboxOpen] = useState(false);
     const [searchValue, setSearchValue] = useState('');
-    const [clearDialogOpen, setClearDialogOpen] = useState(false);
     const [clientNameSelection, setClientNameSelection] = useState(''); // Predefined client or 'Other'
     const [customClientName, setCustomClientName] = useState('');
-    const [contactSelectionIdx, setContactSelectionIdx] = useState(initialState.contactSelectionIdx || '');
+    const [contactSelectionIdx, setContactSelectionIdx] = useState('');
+
+    // Navigation guard for unsaved changes (Browser back/forward/links)
+    const isDirty = useMemo(() => items.length > 0 || quoteDetails.clientName !== '' || quoteDetails.projectName !== '', [items.length, quoteDetails.clientName, quoteDetails.projectName]);
+
+    const blocker = useBlocker(
+        ({ nextLocation }) =>
+            isDirty && !isSavingRecord && nextLocation.pathname !== location.pathname
+    );
+
+    const handleReset = React.useCallback(() => {
+        setQuoteDetails(defaultQuoteDetails);
+        setItems([]);
+        setNewItemType('service');
+        setSelectedItemId('');
+        setQty(1);
+        setDocumentType('Quotation');
+        setDiscount(0);
+        setComboboxOpen(false);
+        setSearchValue('');
+        setClientNameSelection('');
+        setCustomClientName('');
+        setContactSelectionIdx('');
+        setSavedRecordId(null);
+        navigate('/doc/new', { replace: true });
+    }, [defaultQuoteDetails, setSearchParams, navigate]);
+
+    const handleBack = () => {
+        navigate('/');
+    };
+
+    // Navigation guard for unsaved changes (Page reload/close)
+
+
+    useEffect(() => {
+        const handleBeforeUnload = (e) => {
+            if (isDirty) {
+                e.preventDefault();
+                e.returnValue = ''; // Standard way to show confirmation
+            }
+        };
+
+        window.addEventListener('beforeunload', handleBeforeUnload);
+        return () => window.removeEventListener('beforeunload', handleBeforeUnload);
+    }, [isDirty]);
+
+    // Path-based logic: handle reset via /doc/new or forceReset state
+    useEffect(() => {
+        if (location.pathname === '/doc/new' || location.state?.forceReset) {
+            handleReset();
+        }
+    }, [location.pathname, location.state?.forceReset, handleReset]);
 
     // Generate client options from loaded clients
     const CLIENT_OPTIONS = [
@@ -235,16 +228,7 @@ const NewQuotationPage = () => {
         }))
     ];
 
-    useEffect(() => {
-        const stateToSave = {
-            quoteDetails,
-            items,
-            documentType,
-            discount,
-            contactSelectionIdx
-        };
-        localStorage.setItem(STORAGE_KEY, JSON.stringify(stateToSave));
-    }, [items, quoteDetails, documentType, discount, contactSelectionIdx]);
+
 
     // Reset selection and search when switching between Service and Test
     useEffect(() => {
@@ -259,10 +243,7 @@ const NewQuotationPage = () => {
         }
     }, [user, quoteDetails.generatedBy]);
 
-    // Validate document number whenever it changes
-    useEffect(() => {
-        setDocNumberError(validateDocNumber(quoteDetails.quoteNumber));
-    }, [quoteDetails.quoteNumber]);
+
 
     // Sync clientNameSelection with quoteDetails.clientName on mount/load
     useEffect(() => {
@@ -309,6 +290,8 @@ const NewQuotationPage = () => {
                     setDiscount(content.discount || 0);
                     setSavedRecordId(data.id);
 
+
+
                     toast({
                         title: `${data.document_type} Loaded`,
                         description: `Loaded ${data.document_type} ${data.quote_number}`
@@ -324,7 +307,7 @@ const NewQuotationPage = () => {
             }
         };
 
-        const id = searchParams.get('id');
+        const id = pathId || searchParams.get('id');
         if (id) {
             loadFromSupabase(id);
         }
@@ -340,29 +323,25 @@ const NewQuotationPage = () => {
             return;
         }
 
-        // Validate document number before saving
-        const error = validateDocNumber(quoteDetails.quoteNumber);
-        if (error) {
-            setDocNumberError(error);
-            toast({
-                title: "Invalid Document Number",
-                description: error,
-                variant: "destructive"
-            });
-            return;
-        }
-
         setIsSavingRecord(true);
         try {
+            // Generate doc number on first save (when no savedRecordId exists)
+            let docNumber = quoteDetails.quoteNumber;
+            if (!savedRecordId && !docNumber) {
+                docNumber = await getNextDocNumber(supabase, documentType);
+            }
+
+            const updatedQuoteDetails = { ...quoteDetails, quoteNumber: docNumber };
+
             const recordData = {
-                quote_number: quoteDetails.quoteNumber,
+                quote_number: docNumber,
                 document_type: documentType,
                 client_name: quoteDetails.clientName,
                 payment_date: quoteDetails.paymentDate || null,
                 payment_mode: quoteDetails.paymentMode || null,
                 bank_details: quoteDetails.bankDetails || null,
                 content: {
-                    quoteDetails,
+                    quoteDetails: updatedQuoteDetails,
                     items,
                     discount
                 },
@@ -372,7 +351,7 @@ const NewQuotationPage = () => {
 
             let error;
             if (savedRecordId) {
-                // Update existing
+                // Update existing – keep the same doc number
                 const { error: updateError } = await supabase
                     .from('saved_records')
                     .update(recordData)
@@ -388,16 +367,19 @@ const NewQuotationPage = () => {
 
                 if (!insertError && data) {
                     setSavedRecordId(data.id);
-                    setSearchParams({ id: data.id });
+                    navigate(`/doc/${data.id}`, { replace: true });
                 }
                 error = insertError;
             }
 
             if (error) throw error;
 
+            // Update the doc number in state after successful save
+            setQuoteDetails(updatedQuoteDetails);
+
             toast({
                 title: "Success",
-                description: savedRecordId ? `${documentType} updated successfully.` : `${documentType} saved successfully.`
+                description: savedRecordId ? `${documentType} updated successfully.` : `${documentType} saved as ${docNumber}.`
             });
 
             // Send Telegram Notification
@@ -405,7 +387,7 @@ const NewQuotationPage = () => {
                 const action = savedRecordId ? "Updated" : "Created";
                 const emoji = savedRecordId ? "📝" : "📄";
                 const message = `${emoji} *${documentType} ${action}*\n\n` +
-                    `Number: \`${quoteDetails.quoteNumber}\`\n` +
+                    `Number: \`${docNumber}\`\n` +
                     `Client: \`${quoteDetails.clientName}\`\n` +
                     `${action} By: \`${user.fullName}\``;
                 await sendTelegramNotification(message);
@@ -427,7 +409,7 @@ const NewQuotationPage = () => {
                 ));
 
             if (isUniqueError) {
-                finalErrorMessage = `A ${documentType.toLowerCase()} with number "${quoteDetails.quoteNumber}" already exists in the system. Please use a unique number.`;
+                finalErrorMessage = `A ${documentType.toLowerCase()} with this number already exists. Please try saving again.`;
             }
 
             toast({
@@ -438,40 +420,6 @@ const NewQuotationPage = () => {
         } finally {
             setIsSavingRecord(false);
         }
-    };
-
-    const handleClear = () => {
-        setQuoteDetails({
-            clientName: '',
-            clientAddress: '',
-            contractorName: '',
-            contractorAddress: '',
-            projectName: '',
-            projectAddress: '',
-            email: '',
-            phone: '',
-            date: format(new Date(), 'yyyy-MM-dd'),
-            quoteNumber: generateDocIDByDocType('Quotation'),
-
-            generatedBy: user?.fullName || '',
-            paymentDate: '',
-            paymentMode: '',
-            paymentAmount: '',
-            bankDetails: '',
-            selectedTcTypes: []
-        });
-        setItems([]);
-        setDocumentType('Quotation');
-        setDiscount(0);
-        setSelectedItemId('');
-        setQty(1);
-        setClientNameSelection('');
-        setCustomClientName('');
-        setContactSelectionIdx('');
-        setSavedRecordId(null);
-        setSearchParams({});
-        localStorage.removeItem(STORAGE_KEY);
-        setClearDialogOpen(false);
     };
 
     const getAppropiatePrice = (itemId, type, clientId) => {
@@ -501,13 +449,11 @@ const NewQuotationPage = () => {
     });
 
     const triggerPrint = async () => {
-        // Validate document number before printing
-        const error = validateDocNumber(quoteDetails.quoteNumber);
-        if (error) {
-            setDocNumberError(error);
+        // Ensure document has been saved (and thus has a doc number) before printing
+        if (!quoteDetails.quoteNumber) {
             toast({
-                title: "Invalid Document Number",
-                description: error,
+                title: "Save Required",
+                description: "Please save the document first to generate a document number before printing.",
                 variant: "destructive"
             });
             return;
@@ -828,27 +774,21 @@ const NewQuotationPage = () => {
     return (
         <div className="h-screen flex flex-col bg-gray-50 overflow-hidden">
             <div className="shrink-0">
-                <Navbar />
+                <Navbar isDirty={isDirty} isSaving={isSavingRecord} />
             </div>
 
             <div className="flex-1 flex flex-col min-h-0 container mx-auto px-4 py-4">
                 <div className="flex justify-between items-center mb-4 shrink-0">
                     <div className="flex items-center gap-4">
                         {!isStandard() && (
-                            <Link to="/" className="text-gray-500 hover:text-gray-900">
+                            <button onClick={handleBack} className="text-gray-500 hover:text-gray-900 transition-colors">
                                 <ArrowLeft className="w-6 h-6" />
-                            </Link>
+                            </button>
                         )}
                         <h1 className="text-1xl font-bold text-gray-900">Create new {documentType}</h1>
                     </div>
                     <div className="flex items-center gap-2">
-                        <Button
-                            variant="outline"
-                            onClick={() => setClearDialogOpen(true)}
-                            className="text-red-600 hover:text-red-700 hover:bg-red-50 border-red-200"
-                        >
-                            <X className="w-4 h-4 mr-2" /> Clear
-                        </Button>
+
                         <Button onClick={handleSaveToDatabase} disabled={isSavingRecord} className="bg-green-800 hover:bg-green-900 text-white">
                             {isSavingRecord ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : <Save className="w-4 h-4 mr-2" />}
                             {savedRecordId ? 'Update' : 'Save'} {documentType}
@@ -868,7 +808,6 @@ const NewQuotationPage = () => {
                                 <Label>Document Type</Label>
                                 <Select value={documentType} onValueChange={(newType) => {
                                     setDocumentType(newType);
-                                    setQuoteDetails(prev => ({ ...prev, quoteNumber: generateDocIDByDocType(newType) }));
                                 }}>
                                     <SelectTrigger>
                                         <SelectValue placeholder="Select Type" />
@@ -886,16 +825,13 @@ const NewQuotationPage = () => {
                                 <div>
                                     <Label>{documentType} Number</Label>
                                     <Input
-                                        value={quoteDetails.quoteNumber}
-                                        onChange={e => {
-                                            const val = e.target.value;
-                                            setQuoteDetails({ ...quoteDetails, quoteNumber: val });
-                                        }}
-                                        placeholder="Enter number"
-                                        className={docNumberError ? "border-red-500 focus-visible:ring-red-500" : ""}
+                                        value={quoteDetails.quoteNumber || ''}
+                                        readOnly
+                                        placeholder="Auto-generated on save"
+                                        className="bg-gray-100 cursor-not-allowed"
                                     />
-                                    {docNumberError && (
-                                        <p className="text-xs text-red-500 mt-1">{docNumberError}</p>
+                                    {!quoteDetails.quoteNumber && (
+                                        <p className="text-xs text-red-500 mt-1 italic">* doc number will be generated only on saving the doc</p>
                                     )}
                                 </div>
                             </div>
@@ -1418,7 +1354,7 @@ const NewQuotationPage = () => {
                                                                 {documentType.toUpperCase()}
                                                             </h3>
                                                             <p className="text-gray-500 mt-1 text-xs break-all">
-                                                                #{quoteDetails.quoteNumber}
+                                                                {quoteDetails.quoteNumber ? `#${quoteDetails.quoteNumber}` : <span className="text-red-500 italic">* Pending – save to generate</span>}
                                                             </p>
                                                             <p className="text-gray-500 mt-1 text-xs">
                                                                 Date: {format(new Date(quoteDetails.date), 'dd MMM yyyy')}
@@ -1496,7 +1432,7 @@ const NewQuotationPage = () => {
                                             {page.isContinuation && (
                                                 <div className="border-b pb-3 mb-4">
                                                     <h3 className="text-lg font-bold text-gray-900">
-                                                        {documentType} #{quoteDetails.quoteNumber} (Continued)
+                                                        {documentType} {quoteDetails.quoteNumber ? `#${quoteDetails.quoteNumber}` : ''} (Continued)
                                                     </h3>
                                                 </div>
                                             )}
@@ -1655,7 +1591,7 @@ const NewQuotationPage = () => {
                                         {/* Page Footer */}
                                         <div className="a4-page-footer">
                                             <span>EDGE2 Engineering Solutions India Pvt. Ltd.</span>
-                                            <span>{documentType} #{quoteDetails.quoteNumber} | Page {page.pageNumber} of {totalPages}</span>
+                                            <span>{documentType} {quoteDetails.quoteNumber ? `#${quoteDetails.quoteNumber}` : '#Pending'} | Page {page.pageNumber} of {totalPages}</span>
                                         </div>
                                     </div>
                                 ))}
@@ -1789,7 +1725,7 @@ const NewQuotationPage = () => {
                                         {/* Page Footer */}
                                         <div className="a4-page-footer">
                                             <span>EDGE2 Engineering Solutions India Pvt. Ltd.</span>
-                                            <span>{documentType} #{quoteDetails.quoteNumber} | Page {totalItemPages + 1} of {totalPages}</span>
+                                            <span>{documentType} {quoteDetails.quoteNumber ? `#${quoteDetails.quoteNumber}` : '#Pending'} | Page {totalItemPages + 1} of {totalPages}</span>
                                         </div>
                                     </div>
                                 </div>
@@ -1858,7 +1794,7 @@ const NewQuotationPage = () => {
                                         {/* Page Footer */}
                                         <div className="a4-page-footer">
                                             <span>EDGE2 Engineering Solutions India Pvt. Ltd.</span>
-                                            <span>{documentType} #{quoteDetails.quoteNumber} | Page {totalItemPages + 2 + tcIndex} of {totalPages}</span>
+                                            <span>{documentType} {quoteDetails.quoteNumber ? `#${quoteDetails.quoteNumber}` : '#Pending'} | Page {totalItemPages + 2 + tcIndex} of {totalPages}</span>
                                         </div>
                                     </div>
                                 ))}
@@ -1916,7 +1852,7 @@ const NewQuotationPage = () => {
                                         {/* Page Footer */}
                                         <div className="a4-page-footer">
                                             <span>EDGE2 Engineering Solutions India Pvt. Ltd.</span>
-                                            <span>{documentType} #{quoteDetails.quoteNumber} | Page {totalItemPages + tcPages.length + (techIndex + 1)} of {totalPages}</span>
+                                            <span>{documentType} {quoteDetails.quoteNumber ? `#${quoteDetails.quoteNumber}` : '#Pending'} | Page {totalItemPages + tcPages.length + (techIndex + 1)} of {totalPages}</span>
                                         </div>
                                     </div>
                                 ))}
@@ -1927,22 +1863,22 @@ const NewQuotationPage = () => {
             </div>
 
 
-            {/* Clear Confirmation Dialog */}
-            <AlertDialog open={clearDialogOpen} onOpenChange={setClearDialogOpen}>
+
+            <AlertDialog open={blocker.state === 'blocked'} onOpenChange={(open) => !open && blocker.reset()}>
                 <AlertDialogContent>
                     <AlertDialogHeader>
-                        <AlertDialogTitle className="flex items-center text-red-600">
-                            Clear {documentType}?
-                        </AlertDialogTitle>
+                        <AlertDialogTitle className="flex items-center text-amber-600">Unsaved Changes</AlertDialogTitle>
                         <AlertDialogDescription>
-                            Are you sure you want to clear all items and start a new {documentType.toLowerCase()}?
-                            This action cannot be undone and all your current data will be lost.
+                            You have unsaved changes in your document. Leaving this page will discard all details added. Are you sure you want to leave?
                         </AlertDialogDescription>
                     </AlertDialogHeader>
                     <AlertDialogFooter>
-                        <AlertDialogCancel>Cancel</AlertDialogCancel>
-                        <AlertDialogAction onClick={handleClear} className="bg-red-600 hover:bg-red-700 text-white">
-                            Yes, Clear All
+                        <AlertDialogCancel onClick={() => blocker.reset()}>Stay on Page</AlertDialogCancel>
+                        <AlertDialogAction
+                            onClick={() => blocker.proceed()}
+                            className="bg-amber-600 hover:bg-amber-700 text-white"
+                        >
+                            Leave and Discard
                         </AlertDialogAction>
                     </AlertDialogFooter>
                 </AlertDialogContent>

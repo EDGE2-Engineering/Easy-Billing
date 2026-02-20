@@ -1,5 +1,4 @@
-import React from 'react';
-import { HashRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
+import { createHashRouter, RouterProvider, Navigate } from 'react-router-dom';
 import ProtectedRoute from '@/components/ProtectedRoute';
 import { Helmet, HelmetProvider } from 'react-helmet-async';
 import { AuthProvider } from '@/contexts/AuthContext';
@@ -19,6 +18,74 @@ import AdminPage from '@/pages/AdminPage';
 import NewQuotationPage from '@/pages/NewQuotationPage.jsx';
 import DeviceRestriction from '@/components/DeviceRestriction';
 
+const router = createHashRouter([
+  {
+    path: "/",
+    element: <Navigate to="/settings/services" replace />,
+  },
+  {
+    path: "/settings/:tab?",
+    element: (
+      <ProtectedRoute>
+        <AdminPage />
+      </ProtectedRoute>
+    ),
+  },
+  {
+    path: "/doc",
+    element: (
+      <ProtectedRoute>
+        <NewQuotationPage />
+      </ProtectedRoute>
+    ),
+  },
+  {
+    path: "/doc/:id",
+    element: (
+      <ProtectedRoute>
+        <NewQuotationPage />
+      </ProtectedRoute>
+    ),
+  },
+  {
+    path: "/doc/new",
+    element: (
+      <ProtectedRoute>
+        <NewQuotationPage />
+      </ProtectedRoute>
+    ),
+  },
+  {
+    path: "/service/:id",
+    element: (
+      <ProtectedRoute>
+        <ServiceDetailPage />
+      </ProtectedRoute>
+    ),
+  },
+  {
+    path: "/test/:id",
+    element: (
+      <ProtectedRoute>
+        <TestDetailPage />
+      </ProtectedRoute>
+    ),
+  },
+  {
+    path: "/admin",
+    element: <Navigate to="/" replace />,
+  },
+], {
+  future: {
+    v7_startTransition: true,
+    v7_relativeSplatPath: true,
+    v7_normalizeFormMethod: true,
+    v7_partialHydration: true,
+    v7_skipActionErrorRevalidation: true,
+    v7_fetcherPersist: true,
+  }
+});
+
 function App() {
   return (
     <HelmetProvider>
@@ -32,45 +99,21 @@ function App() {
                     <HSNCodesProvider>
                       <TermsAndConditionsProvider>
                         <TechnicalsProvider>
-                          <Router future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
-                            <Helmet>
-                              <link rel="preconnect" href="https://fonts.googleapis.com" />
-                              <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
-                              <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
-                            </Helmet>
-                            <div className="min-h-screen bg-[#F5F1ED]">
-                              <Routes>
-                                <Route path="/" element={<AdminPage />} />
-                                <Route
-                                  path="/new-quotation"
-                                  element={
-                                    <ProtectedRoute>
-                                      <NewQuotationPage />
-                                    </ProtectedRoute>
-                                  }
-                                />
-                                <Route
-                                  path="/service/:id"
-                                  element={
-                                    <ProtectedRoute>
-                                      <ServiceDetailPage />
-                                    </ProtectedRoute>
-                                  }
-                                />
-                                <Route
-                                  path="/test/:id"
-                                  element={
-                                    <ProtectedRoute>
-                                      <TestDetailPage />
-                                    </ProtectedRoute>
-                                  }
-                                />
-                                {/* Redirect old admin route to root */}
-                                <Route path="/admin" element={<Navigate to="/" replace />} />
-                              </Routes>
-                              <Toaster />
-                            </div>
-                          </Router>
+                          <Helmet>
+                            <link rel="preconnect" href="https://fonts.googleapis.com" />
+                            <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
+                            <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
+                          </Helmet>
+                          <div className="min-h-screen bg-[#F5F1ED]">
+                            <RouterProvider
+                              router={router}
+                              future={{
+                                v7_startTransition: true,
+                                v7_relativeSplatPath: true,
+                              }}
+                            />
+                            <Toaster />
+                          </div>
                         </TechnicalsProvider>
                       </TermsAndConditionsProvider>
                     </HSNCodesProvider>

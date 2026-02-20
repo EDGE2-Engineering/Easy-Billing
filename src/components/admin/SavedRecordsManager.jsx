@@ -121,8 +121,8 @@ const SavedRecordsManager = () => {
     }
   };
 
-  const handleOpen = (recordId) => {
-    navigate(`/new-quotation?id=${recordId}`);
+  const handleOpen = (recordId, docNumber) => {
+    navigate(`/doc/${recordId}`);
   };
 
   const uniqueUsers = Array.from(new Set(records
@@ -521,7 +521,7 @@ const SavedRecordsManager = () => {
                           size="sm"
                           title="Open Document"
                           className="text-primary hover:text-primary-dark hover:bg-primary/10 px-0 text-blue-600 text-xs px-1"
-                          onClick={() => handleOpen(record.id)}
+                          onClick={() => handleOpen(record.id, record.quote_number)}
                         >
                           <ExternalLink className="w-4 h-4 mr-1 text-blue-600" />
                         </Button>
