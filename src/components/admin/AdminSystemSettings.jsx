@@ -26,12 +26,7 @@ const AdminSystemSettings = () => {
                         >
                             <Hash className="w-4 h-4" /> Codes
                         </TabsTrigger>
-                        <TabsTrigger
-                            value="payment_settings"
-                            className="px-6 py-2 rounded-lg data-[state=active]:bg-primary data-[state=active]:text-white transition-all flex items-center gap-2"
-                        >
-                            <CreditCard className="w-4 h-4" /> Payment
-                        </TabsTrigger>
+                        
                         <TabsTrigger
                             value="terms"
                             className="px-6 py-2 rounded-lg data-[state=active]:bg-primary data-[state=active]:text-white transition-all flex items-center gap-2"
@@ -43,6 +38,12 @@ const AdminSystemSettings = () => {
                             className="px-6 py-2 rounded-lg data-[state=active]:bg-primary data-[state=active]:text-white transition-all flex items-center gap-2"
                         >
                             <Axe className="w-4 h-4" /> Technicals
+                        </TabsTrigger>
+                        <TabsTrigger
+                            value="payment_settings"
+                            className="px-6 py-2 rounded-lg data-[state=active]:bg-primary data-[state=active]:text-white transition-all flex items-center gap-2"
+                        >
+                            <CreditCard className="w-4 h-4" /> Payment
                         </TabsTrigger>
                     </TabsList>
                 </div>
