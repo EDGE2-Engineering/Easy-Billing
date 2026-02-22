@@ -143,7 +143,7 @@ const AdminSystemSettings = () => {
                         </div>
 
                         <div className="bg-primary/5 p-6 rounded-xl border border-primary/10">
-                            <h3 className="text-sm font-bold text-primary uppercase tracking-widest mb-4">Quick Tips</h3>
+                            <h3 className="text-sm font-bold text-primary uppercase tracking-widest mb-4">System Details</h3>
                             <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
                                 <div className="space-y-1">
                                     <p className="text-xs font-bold text-gray-900">Searchable Lists</p>
