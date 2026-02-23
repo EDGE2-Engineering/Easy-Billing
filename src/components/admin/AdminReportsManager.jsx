@@ -177,11 +177,11 @@ const AdminReportsManager = () => {
                                     <td className="py-4 px-6 text-sm text-gray-500">
                                         {format(new Date(report.created_at), 'dd MMM yyyy')}
                                     </td>
-                                    <td className="py-4 px-6 text-right space-x-2">
-                                        <Button variant="ghost" size="icon" title="Edit Report" onClick={() => handleEdit(report)}>
+                                    <td className="py-3 px-2 text-right space-x-0">
+                                        <Button variant="ghost" className="px-2" size="icon" title="Edit Report" onClick={() => handleEdit(report)}>
                                             <FileText className="w-4 h-4 text-blue-600" />
                                         </Button>
-                                        <Button variant="ghost" size="icon" title="Delete" onClick={() => handleDeleteClick(report)}>
+                                        <Button variant="ghost" className="px-2" size="icon" title="Delete" onClick={() => handleDeleteClick(report)}>
                                             <Trash2 className="w-4 h-4 text-red-500" />
                                         </Button>
                                     </td>

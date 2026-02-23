@@ -446,7 +446,7 @@ const MaterialInwardManager = () => {
 
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 py-4">
                     <div className="space-y-2">
-                        <Label htmlFor="po_wo_number">PO/WO Number</Label>
+                        <Label htmlFor="po_wo_number">Purchase Order/Work Order Number</Label>
                         <Input
                             id="po_wo_number"
                             placeholder="e.g. PO/2026/001"
@@ -781,10 +781,10 @@ const MaterialInwardManager = () => {
                                             {record.app_users?.full_name || '-'}
                                         </td>
                                         <td className="py-3 px-4 text-right">
-                                            <div className="flex justify-end space-x-2">
+                                            <div className="flex justify-end space-x-4">
                                                 <Button
                                                     variant="ghost"
-                                                    size="sm"
+                                                    size="sm px-2"
                                                     onClick={() => handleEdit(record)}
                                                     className="text-blue-600"
                                                 >
@@ -792,7 +792,7 @@ const MaterialInwardManager = () => {
                                                 </Button>
                                                 <Button
                                                     variant="ghost"
-                                                    size="sm"
+                                                    size="sm px-2"
                                                     onClick={() => handleDeleteClick(record)}
                                                     className="text-red-500"
                                                 >

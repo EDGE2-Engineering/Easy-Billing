@@ -32,6 +32,7 @@ import reportTemplateHtml from '@/templates/report-template.html?raw'
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/lib/customSupabaseClient';
 import { sendTelegramNotification } from '@/lib/notifier';
+import { getSiteContent } from '@/data/config';
 
 
 const soilTypes = [
@@ -83,6 +84,7 @@ function fillTemplate(template, data) {
 }
 
 const NewReportForm = ({ editReport, onCancel, onSuccess }) => {
+    const siteName = getSiteContent().global?.siteName || "Easy Billing";
     const { user } = useAuth();
     const { toast } = useToast();
     const [isPreviewOpen, setIsPreviewOpen] = useState(false);
@@ -481,7 +483,7 @@ const NewReportForm = ({ editReport, onCancel, onSuccess }) => {
             longitude: (77.5 + Math.random() * 0.1).toFixed(6),
             siteId: `SITE-${1000 + Math.floor(Math.random() * 9000)}`,
             anchorId: `ANC-${Math.floor(Math.random() * 1000)}`,
-            siteName: 'Project Green Meadows',
+            siteName: `Project ${siteName}`,
             siteAddress: 'Sy No. 45/2, Ullal Village, Yeshwanthpur Hobli, Bengaluru North',
             surveyDate: new Date().toISOString().split('T')[0],
             groundWaterTable: 'Not Encountered',
@@ -1846,8 +1848,8 @@ const NewReportForm = ({ editReport, onCancel, onSuccess }) => {
                     <CardContent className="p-2 sm:p-6">
                         <form id="report-form" onSubmit={handleSubmit} className="space-y-8">
                             <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-                                <TabsList className="grid w-full grid-cols-4 lg:grid-cols-8 mb-8 h-auto gap-2 p-1">
-                                    <TabsTrigger value="basic" className="flex items-center gap-1 relative">
+                                <TabsList className="bg-white p-1 border border-gray-200 rounded-xl shadow-sm h-auto inline-flex mb-8 w-full justify-center">
+                                    <TabsTrigger value="basic" className="px-3 py-2 rounded-xl data-[state=active]:bg-primary data-[state=active]:text-white transition-all flex items-center gap-2 relative">
                                         <MapPin className="w-4 h-4" />
                                         <span className="hidden sm:inline">Basic Info</span>
                                         <span className="sm:hidden">Basic</span>
@@ -1858,7 +1860,7 @@ const NewReportForm = ({ editReport, onCancel, onSuccess }) => {
                                             </span>
                                         )}
                                     </TabsTrigger>
-                                    <TabsTrigger value="borehole" className="flex items-center gap-1 relative">
+                                    <TabsTrigger value="borehole" className="px-3 py-2 rounded-xl data-[state=active]:bg-primary data-[state=active]:text-white transition-all flex items-center gap-2 relative">
                                         <ListTree className="w-4 h-4" />
                                         <span className="hidden sm:inline">Borehole Logs</span>
                                         <span className="sm:hidden">Bore</span>
@@ -1869,7 +1871,7 @@ const NewReportForm = ({ editReport, onCancel, onSuccess }) => {
                                             </span>
                                         )}
                                     </TabsTrigger>
-                                    <TabsTrigger value="lab" className="flex items-center gap-1 relative">
+                                    <TabsTrigger value="lab" className="px-3 py-2 rounded-xl data-[state=active]:bg-primary data-[state=active]:text-white transition-all flex items-center gap-2 relative">
                                         <TestTube className="w-4 h-4" />
                                         <span className="hidden sm:inline">Lab Tests</span>
                                         <span className="sm:hidden">Lab</span>
@@ -1880,7 +1882,7 @@ const NewReportForm = ({ editReport, onCancel, onSuccess }) => {
                                             </span>
                                         )}
                                     </TabsTrigger>
-                                    <TabsTrigger value="pointload" className="flex items-center gap-1 relative">
+                                    <TabsTrigger value="pointload" className="px-3 py-2 rounded-xl data-[state=active]:bg-primary data-[state=active]:text-white transition-all flex items-center gap-2 relative">
                                         <ArrowDownFromLine className="w-4 h-4" />
                                         <span className="hidden sm:inline">Point Load</span>
                                         <span className="sm:hidden">Point</span>
@@ -1891,7 +1893,7 @@ const NewReportForm = ({ editReport, onCancel, onSuccess }) => {
                                             </span>
                                         )}
                                     </TabsTrigger>
-                                    <TabsTrigger value="sbc" className="flex items-center gap-1 relative">
+                                    <TabsTrigger value="sbc" className="px-3 py-2 rounded-xl data-[state=active]:bg-primary data-[state=active]:text-white transition-all flex items-center gap-2 relative">
                                         <LandPlot className="w-4 h-4" />
                                         <span className="hidden sm:inline">SBC Details</span>
                                         <span className="sm:hidden">SBC</span>
@@ -1902,9 +1904,9 @@ const NewReportForm = ({ editReport, onCancel, onSuccess }) => {
                                             </span>
                                         )}
                                     </TabsTrigger>
-                                    <TabsTrigger value="rock" className="flex items-center gap-1 relative">
+                                    <TabsTrigger value="rock" className="px-3 py-2 rounded-xl data-[state=active]:bg-primary data-[state=active]:text-white transition-all flex items-center gap-2 relative">
                                         <Layers className="w-4 h-4" />
-                                        <span className="hidden sm:inline">Foundation </span>
+                                        <span className="hidden sm:inline">Foundation</span>
                                         <span className="sm:hidden">Rock</span>
                                         {Object.values(errors).some(e => e.tab === 'rock') && (
                                             <span className="absolute -top-1 -right-1 flex h-2 w-2">
@@ -1913,7 +1915,7 @@ const NewReportForm = ({ editReport, onCancel, onSuccess }) => {
                                             </span>
                                         )}
                                     </TabsTrigger>
-                                    <TabsTrigger value="survey" className="flex items-center gap-1 relative">
+                                    <TabsTrigger value="survey" className="px-3 py-2 rounded-xl data-[state=active]:bg-primary data-[state=active]:text-white transition-all flex items-center gap-2 relative">
                                         <ClipboardList className="w-4 h-4" />
                                         <span className="hidden sm:inline">Survey</span>
                                         <span className="sm:hidden">Survey</span>
@@ -1924,9 +1926,9 @@ const NewReportForm = ({ editReport, onCancel, onSuccess }) => {
                                             </span>
                                         )}
                                     </TabsTrigger>
-                                    <TabsTrigger value="recommendations" className="flex items-center gap-1 relative">
+                                    <TabsTrigger value="recommendations" className="px-3 py-2 rounded-xl data-[state=active]:bg-primary data-[state=active]:text-white transition-all flex items-center gap-2 relative">
                                         <Lightbulb className="w-4 h-4" />
-                                        <span className="hidden sm:inline">Recommendation</span>
+                                        <span className="hidden sm:inline">Recommendations</span>
                                         <span className="sm:hidden">Rec</span>
                                         {Object.values(errors).some(e => e.tab === 'recommendations') && (
                                             <span className="absolute -top-1 -right-1 flex h-2 w-2">
@@ -2609,7 +2611,7 @@ const NewReportForm = ({ editReport, onCancel, onSuccess }) => {
                                                                     <th className="px-3 py-3 min-w-[100px]">Depth (m)</th>
                                                                     <th className="px-3 py-3 min-w-[150px]">Nature of Sampling</th>
                                                                     <th className="px-3 py-3 min-w-[150px]">Soil Type</th>
-                                                                    <th className="px-3 py-3 min-w-[100px]">Water Table</th>
+                                                                    <th className="px-3 py-0 min-w-[60px]">Water Table</th>
                                                                     <th className="px-3 py-3 min-w-[150px]">SPT Depth at Intervals</th>
                                                                     <th className="px-3 py-3 min-w-[120px]">Shear Params</th>
                                                                     <th className="px-3 py-3 min-w-[100px]">Core Length</th>
@@ -2673,7 +2675,7 @@ const NewReportForm = ({ editReport, onCancel, onSuccess }) => {
                                                                                     </div>
                                                                                 )}
                                                                         </td>
-                                                                        <td className="px-2 py-2 text-center">
+                                                                        <td className="px-0 py-2 text-center">
                                                                             <div className="flex justify-center">
                                                                                 <Checkbox
                                                                                     checked={log.waterTable}

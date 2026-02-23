@@ -23,9 +23,11 @@ import { supabase } from '@/lib/customSupabaseClient';
 
 import { useNavigate, useParams } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
+import { getSiteContent } from '@/data/config';
 
 const AdminPage = () => {
   const { user, loading, logout, isAdmin, isStandard } = useAuth();
+  const siteName = getSiteContent().global?.siteName || "Easy Billing";
   const { tab } = useParams();
   const navigate = useNavigate();
   const [mainTab, setMainTab] = useState(tab || 'inward_register');
@@ -68,7 +70,7 @@ const AdminPage = () => {
     return (
       <>
         <Helmet>
-          <title>Reset Password | EDGE2 Easy Billing</title>
+          <title>Reset Password | EDGE2 {siteName}</title>
         </Helmet>
         <UpdatePassword />
       </>
@@ -79,7 +81,7 @@ const AdminPage = () => {
     return (
       <>
         <Helmet>
-          <title>Admin Login | EDGE2 Easy Billing</title>
+          <title>Admin Login | EDGE2 {siteName}</title>
         </Helmet>
         <AdminLogin onLoginSuccess={handleLoginSuccess} />
       </>
@@ -89,7 +91,7 @@ const AdminPage = () => {
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col">
       <Helmet>
-        <title>Settings | EDGE2 Easy Billing</title>
+        <title>Settings | EDGE2 {siteName}</title>
       </Helmet>
 
       <Navbar />

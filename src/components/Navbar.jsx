@@ -3,7 +3,7 @@ import React, { useState } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Menu, X, Lock, FileText, Settings, LogOut, User } from 'lucide-react';
-import { initialSiteContent } from '@/data/config';
+import { getSiteContent } from '@/data/config';
 import { useToast } from '@/components/ui/use-toast';
 import { Button } from '@/components/ui/button';
 
@@ -28,7 +28,7 @@ const Navbar = ({ isDirty = false, isSaving = false }) => {
   const [isOpen, setIsOpen] = useState(false);
   const [logoutDialogOpen, setLogoutDialogOpen] = useState(false);
   const location = useLocation();
-  const content = initialSiteContent;
+  const content = getSiteContent();
 
 
 

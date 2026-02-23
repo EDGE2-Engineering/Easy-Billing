@@ -13,9 +13,10 @@ import AdminTechnicalsManager from './AdminTechnicalsManager';
 import AdminDepartmentsManager from './AdminDepartmentsManager';
 import AdminServicesManager from './AdminServicesManager';
 import AdminTestsManager from './AdminTestsManager';
-import { enableInfoDiagramZoom } from '../../data/config';
+import { enableInfoDiagramZoom, getSiteContent } from '../../data/config';
 
 const AdminSystemSettings = () => {
+    const siteName = getSiteContent().global?.siteName || "Easy Billing";
     return (
         <div className="space-y-4">
             <Tabs defaultValue="services" className="w-full">
@@ -119,7 +120,7 @@ const AdminSystemSettings = () => {
                             <h2 className="text-2xl font-bold text-gray-900 flex items-center gap-3 mb-2">
                                 <Info className="w-6 h-6 text-primary" /> System Information & Help
                             </h2>
-                            <p className="text-gray-500">Learn how to use the EDGE2 Easy Billing & Inward Management System effectively.</p>
+                            <p className="text-gray-500">Learn how to use the EDGE2 {siteName} & Inward Management System effectively.</p>
                         </div>
 
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
