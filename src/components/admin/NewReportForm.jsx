@@ -93,6 +93,9 @@ const NewReportForm = ({ editReport, onCancel, onSuccess }) => {
     const [activeSoilField, setActiveSoilField] = useState(null);
     const [filteredSoilTypes, setFilteredSoilTypes] = useState(soilTypes);
     const [showSoilSuggestions, setShowSoilSuggestions] = useState(false);
+    const [jobOrders, setJobOrders] = useState([]);
+    const [filteredJobOrders, setFilteredJobOrders] = useState([]);
+    const [showJobOrderSuggestions, setShowJobOrderSuggestions] = useState(false);
     const [saveConfirmation, setSaveConfirmation] = useState({ isOpen: false, isGenerating: false });
 
     useEffect(() => {
@@ -107,6 +110,23 @@ const NewReportForm = ({ editReport, onCancel, onSuccess }) => {
         };
         if (user) {
             fetchClients();
+        }
+    }, [user]);
+
+    useEffect(() => {
+        const fetchJobOrders = async () => {
+            try {
+                if (!user) return;
+                const { data } = await supabase
+                    .from('material_inward_register')
+                    .select('job_order_no, client_id, clients(client_name, client_address)');
+                if (data) setJobOrders(data);
+            } catch (error) {
+                console.error('Error fetching job orders:', error);
+            }
+        };
+        if (user) {
+            fetchJobOrders();
         }
     }, [user]);
 
@@ -144,6 +164,31 @@ const NewReportForm = ({ editReport, onCancel, onSuccess }) => {
             clientAddress: client.client_address || prev.clientAddress
         }));
         setShowClientSuggestions(false);
+    };
+
+    const handleJobOrderSearch = (e) => {
+        const value = e.target.value;
+        setFormData(prev => ({ ...prev, jobOrderNumber: value }));
+
+        if (value.trim()) {
+            const filtered = jobOrders.filter(jo =>
+                jo.job_order_no?.toLowerCase().includes(value.toLowerCase())
+            );
+            setFilteredJobOrders(filtered);
+            setShowJobOrderSuggestions(true);
+        } else {
+            setShowJobOrderSuggestions(false);
+        }
+    };
+
+    const selectJobOrder = (jo) => {
+        setFormData(prev => ({
+            ...prev,
+            jobOrderNumber: jo.job_order_no,
+            client: jo.clients?.client_name || prev.client,
+            clientAddress: jo.clients?.client_address || prev.clientAddress
+        }));
+        setShowJobOrderSuggestions(false);
     };
 
     // Get initial form data from localStorage or use defaults
@@ -637,6 +682,7 @@ const NewReportForm = ({ editReport, onCancel, onSuccess }) => {
         if (!formData.projectType || formData.projectType === '__other__') newErrors.projectType = { message: 'Project Type is required', tab: 'basic' };
         if (!formData.reportId) newErrors.reportId = { message: 'Report ID is required', tab: 'basic' };
         if (!formData.projectDetails) newErrors.projectDetails = { message: 'Project Details are required', tab: 'basic' };
+        if (!formData.jobOrderNumber) newErrors.jobOrderNumber = { message: 'Job Order Number is required', tab: 'basic' };
         if (!formData.client) newErrors.client = { message: 'Client is required', tab: 'basic' };
         if (!formData.siteId) newErrors.siteId = { message: 'Site ID is required', tab: 'basic' };
         if (!formData.siteName) newErrors.siteName = { message: 'Site Name is required', tab: 'basic' };
@@ -1633,8 +1679,8 @@ const NewReportForm = ({ editReport, onCancel, onSuccess }) => {
         try {
             if (!user) throw new Error('Authentication required');
 
-            const { data: existing } = await supabase.from('saved_records')
-                .select('*').eq('document_type', 'Report').eq('quote_number', formData.reportId).single();
+            const { data: existing } = await supabase.from('reports')
+                .select('*').eq('report_number', formData.reportId).maybeSingle();
 
             if (existing && existing.id !== formData.id) {
                 setSaveConfirmation({ isOpen: true, isGenerating: false });
@@ -1662,8 +1708,8 @@ const NewReportForm = ({ editReport, onCancel, onSuccess }) => {
         try {
             if (!user) throw new Error('Authentication required');
 
-            const { data: existing } = await supabase.from('saved_records')
-                .select('*').eq('document_type', 'Report').eq('quote_number', formData.reportId).single();
+            const { data: existing } = await supabase.from('reports')
+                .select('*').eq('report_number', formData.reportId).maybeSingle();
 
             if (existing && existing.id !== formData.id) {
                 setSaveConfirmation({ isOpen: true, isGenerating: true });
@@ -1684,8 +1730,7 @@ const NewReportForm = ({ editReport, onCancel, onSuccess }) => {
             setIsSaving(true);
 
             const payload = {
-                quote_number: formData.reportId,
-                document_type: 'Report',
+                report_number: formData.reportId,
                 client_name: formData.client,
                 content: formData,
                 created_by: user.id,
@@ -1694,9 +1739,9 @@ const NewReportForm = ({ editReport, onCancel, onSuccess }) => {
 
             if (existingRecord || formData.id) {
                 const updateId = existingRecord ? existingRecord.id : formData.id;
-                await supabase.from('saved_records').update(payload).eq('id', updateId);
+                await supabase.from('reports').update(payload).eq('id', updateId);
             } else {
-                await supabase.from('saved_records').insert([payload]);
+                await supabase.from('reports').insert([payload]);
             }
 
             toast({
@@ -1958,6 +2003,47 @@ const NewReportForm = ({ editReport, onCancel, onSuccess }) => {
                                                     className={errors.reportId ? "border-red-500 focus:ring-red-500 focus-visible:ring-red-500" : ""}
                                                 />
                                                 {errors.reportId && <p className="text-xs text-red-500 mt-1">{errors.reportId.message}</p>}
+                                            </div>
+
+                                            <div className="space-y-2 relative">
+                                                <Label htmlFor="jobOrderNumber" className={errors.jobOrderNumber ? "text-red-500" : ""}>Job Order Number</Label>
+                                                <div className="relative">
+                                                    <Input
+                                                        id="jobOrderNumber"
+                                                        name="jobOrderNumber"
+                                                        placeholder="Search Job Order Number..."
+                                                        value={formData.jobOrderNumber}
+                                                        onChange={(e) => {
+                                                            handleJobOrderSearch(e);
+                                                            if (errors.jobOrderNumber) setErrors(prev => {
+                                                                const newErrors = { ...prev };
+                                                                delete newErrors.jobOrderNumber;
+                                                                return newErrors;
+                                                            });
+                                                        }}
+                                                        onFocus={() => {
+                                                            if (formData.jobOrderNumber?.trim() && filteredJobOrders.length > 0) {
+                                                                setShowJobOrderSuggestions(true);
+                                                            }
+                                                        }}
+                                                        className={errors.jobOrderNumber ? "border-red-500 focus:ring-red-500 focus-visible:ring-red-500" : ""}
+                                                    />
+                                                    {showJobOrderSuggestions && filteredJobOrders.length > 0 && (
+                                                        <div className="absolute z-50 w-full mt-1 bg-white border border-gray-200 rounded-md shadow-lg max-h-60 overflow-auto py-1 animate-in fade-in zoom-in-95 duration-100">
+                                                            {filteredJobOrders.map((jo, idx) => (
+                                                                <button
+                                                                    key={idx}
+                                                                    className="w-full text-left px-4 py-2 text-sm hover:bg-gray-100 flex flex-col"
+                                                                    onClick={() => selectJobOrder(jo)}
+                                                                >
+                                                                    <span className="font-semibold">{jo.job_order_no}</span>
+                                                                    <span className="text-xs text-gray-500 truncate">{jo.clients?.client_name}</span>
+                                                                </button>
+                                                            ))}
+                                                        </div>
+                                                    )}
+                                                </div>
+                                                {errors.jobOrderNumber && <p className="text-xs text-red-500 mt-1">{errors.jobOrderNumber.message}</p>}
                                             </div>
 
                                             <div className="col-span-full space-y-2">

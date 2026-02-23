@@ -40,9 +40,8 @@ const AdminReportsManager = () => {
         setLoading(true);
         try {
             const { data, error } = await supabase
-                .from('saved_records')
+                .from('reports')
                 .select('*, app_users(full_name)')
-                .eq('document_type', 'Report')
                 .order('created_at', { ascending: false });
 
             if (error) throw error;
@@ -73,14 +72,14 @@ const AdminReportsManager = () => {
         setDeleteConfirmation({
             isOpen: true,
             reportId: report.id,
-            reportNumber: report.quote_number
+            reportNumber: report.report_number
         });
     };
 
     const confirmDelete = async () => {
         try {
             const { error } = await supabase
-                .from('saved_records')
+                .from('reports')
                 .delete()
                 .eq('id', deleteConfirmation.reportId);
 
@@ -121,7 +120,7 @@ const AdminReportsManager = () => {
     }
 
     const filteredReports = reports.filter(r =>
-        (r.quote_number?.toLowerCase() || '').includes(searchTerm.toLowerCase()) ||
+        (r.report_number?.toLowerCase() || '').includes(searchTerm.toLowerCase()) ||
         (r.client_name?.toLowerCase() || '').includes(searchTerm.toLowerCase())
     );
 
@@ -171,7 +170,7 @@ const AdminReportsManager = () => {
                             filteredReports.map((report) => (
                                 <tr key={report.id} className="hover:bg-gray-50/80 transition-colors">
                                     <td className="py-4 px-6">
-                                        <span className="font-mono font-semibold text-gray-900">{report.quote_number}</span>
+                                        <span className="font-mono font-semibold text-gray-900">{report.report_number}</span>
                                     </td>
                                     <td className="py-4 px-6 text-sm text-gray-700">{report.client_name || '-'}</td>
                                     <td className="py-4 px-6 text-sm text-gray-700">{report.app_users?.full_name || '-'}</td>

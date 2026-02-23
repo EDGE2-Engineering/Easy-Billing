@@ -7,8 +7,6 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Settings, LayoutDashboard, Home, FileText, User, Save, Loader2, UserCog, Plus, Database, HandHeart, IndianRupee, Ruler, BriefcaseBusiness, Hash, CreditCard, TestTube, Axe, Package, Cpu } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 
-import AdminServicesManager from '@/components/admin/AdminServicesManager.jsx';
-import AdminTestsManager from '@/components/admin/AdminTestsManager.jsx';
 import AdminClientsManager from '@/components/admin/AdminClientsManager.jsx';
 import AdminClientPricingManager from '@/components/admin/AdminClientPricingManager.jsx';
 import AdminUsersManager from '@/components/admin/AdminUsersManager.jsx';
@@ -30,7 +28,7 @@ const AdminPage = () => {
   const { user, loading, logout, isAdmin, isStandard } = useAuth();
   const { tab } = useParams();
   const navigate = useNavigate();
-  const [mainTab, setMainTab] = useState(tab || 'services');
+  const [mainTab, setMainTab] = useState(tab || 'inward_register');
   const [isPasswordRecovery, setIsPasswordRecovery] = useState(false);
 
   const { toast } = useToast();
@@ -110,8 +108,6 @@ const AdminPage = () => {
               {!isStandard() && <option value="inward_register">Inward Register</option>}
               {!isStandard() && <option value="reports">Reports</option>}
               <option value="saved_records">Saved Records</option>
-              {!isStandard() && <option value="services">Services</option>}
-              {!isStandard() && <option value="tests">Tests</option>}
               {!isStandard() && <option value="clients">Clients</option>}
               {!isStandard() && <option value="pricing">Client Pricing</option>}
               {!isStandard() && <option value="system">System Settings</option>}
@@ -155,20 +151,6 @@ const AdminPage = () => {
               {!isStandard() && (
                 <>
                   <TabsTrigger
-                    value="services"
-                    title="Services"
-                    className="px-2 py-3 rounded-xl data-[state=active]:bg-primary data-[state=active]:text-white transition-all flex items-center gap-2 data-[state=active]:p-2"
-                  >
-                    <HandHeart className="w-4 h-4" /> Services
-                  </TabsTrigger>
-                  <TabsTrigger
-                    value="tests"
-                    title="Tests"
-                    className="px-2 py-3 rounded-xl data-[state=active]:bg-primary data-[state=active]:text-white transition-all flex items-center gap-2 data-[state=active]:p-2"
-                  >
-                    <TestTube className="w-4 h-4" /> Tests
-                  </TabsTrigger>
-                  <TabsTrigger
                     value="clients"
                     title="Clients"
                     className="px-2 py-3 rounded-xl data-[state=active]:bg-primary data-[state=active]:text-white transition-all flex items-center gap-2 data-[state=active]:p-2"
@@ -200,14 +182,6 @@ const AdminPage = () => {
               )}
             </TabsList>
           </div>
-
-          <TabsContent value="services" className="focus-visible:outline-none animate-in fade-in slide-in-from-bottom-2 duration-500">
-            <AdminServicesManager />
-          </TabsContent>
-
-          <TabsContent value="tests" className="focus-visible:outline-none animate-in fade-in slide-in-from-bottom-2 duration-500">
-            <AdminTestsManager />
-          </TabsContent>
 
           <TabsContent value="clients" className="focus-visible:outline-none animate-in fade-in slide-in-from-bottom-2 duration-500">
             <AdminClientsManager />
