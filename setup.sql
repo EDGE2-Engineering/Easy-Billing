@@ -702,6 +702,7 @@ CREATE TABLE public.material_inward_register (
         'REPORT_RELEASED',
         'COMPLETED'
     )),
+    po_wo_number VARCHAR(50),
     created_by UUID NOT NULL REFERENCES public.app_users(id) ON DELETE CASCADE,
     updated_by UUID REFERENCES public.app_users(id) ON DELETE CASCADE,
     created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
