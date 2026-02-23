@@ -30,6 +30,8 @@ create table public.services (
   num_bhs numeric default 0,
   measure text default 'NA',
   hsn_code text default '',
+  tc_list text[] default '{}',
+  tech_list text[] default '{}',
   created_at timestamptz default now(),
   updated_at timestamptz default now()
 );
@@ -57,6 +59,8 @@ create table public.tests (
   num_days numeric default 0,
   price numeric default 0,
   hsn_code text default '',
+  tc_list text[] default '{}',
+  tech_list text[] default '{}',
   created_at timestamptz default now(),
   updated_at timestamptz default now()
 );
@@ -698,6 +702,7 @@ CREATE TABLE public.material_inward_register (
         'REPORT_RELEASED',
         'COMPLETED'
     )),
+    po_wo_number VARCHAR(50),
     created_by UUID NOT NULL REFERENCES public.app_users(id) ON DELETE CASCADE,
     updated_by UUID REFERENCES public.app_users(id) ON DELETE CASCADE,
     created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
