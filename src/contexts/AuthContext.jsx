@@ -3,6 +3,7 @@ import React, { createContext, useState, useEffect, useContext, useCallback, use
 import { useAuth as useOidcAuth } from "react-oidc-context";
 import { cognitoAuth } from '@/lib/cognitoAuth';
 import { sendTelegramNotification } from '@/lib/notifier';
+import { cognitoConfig } from '@/config';
 
 
 const AuthContext = createContext();
@@ -18,8 +19,29 @@ const AuthProvider = ({ children }) => {
         await sendTelegramNotification(message);
     }, []);
 
+    const syncUserToDb = useCallback(async (userData, token) => {
+        try {
+            await dynamoGenericApi.save('user', {
+                id: userData.id,
+                username: userData.username,
+                full_name: userData.full_name,
+                email: userData.email,
+                role: userData.role,
+                is_active: true
+            }, token);
+        } catch (error) {
+            console.error('Failed to sync user to database:', error);
+        }
+    }, []);
+
     // Sync OIDC auth state to our internal user state
     useEffect(() => {
+        // Skip syncing if we just logged out to prevent auto-login loop
+        if (localStorage.getItem('edge2_just_logged_out') === 'true') {
+            setLoading(false);
+            return;
+        }
+
         if (auth.isAuthenticated && auth.user) {
             const session = cognitoAuth.getSession(auth);
             if (session) {
@@ -28,6 +50,7 @@ const AuthProvider = ({ children }) => {
                     // Only notify on first-time user recognition in this session
                     if (!user) {
                         notifyLogin(session.user.username, session.user.full_name);
+                        syncUserToDb(session.user, session.idToken);
                     }
                     setUser({
                         ...session.user,
@@ -50,9 +73,11 @@ const AuthProvider = ({ children }) => {
         await auth.signinRedirect();
     }, [auth]);
 
-    const logout = useCallback(() => {
-        auth.signoutRedirect();
+    const logout = useCallback(async () => {
         setUser(null);
+        await auth.removeUser();
+        localStorage.setItem('edge2_just_logged_out', 'true');
+        window.location.href = cognitoConfig.getLogoutUrl();
     }, [auth]);
 
     const isSuperAdmin = useCallback(() => {

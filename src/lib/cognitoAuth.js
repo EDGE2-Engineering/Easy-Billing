@@ -20,6 +20,7 @@ export const cognitoAuth = {
                 email: auth.user.profile.email,
                 username: auth.user.profile.email, // Use email as username
                 full_name: auth.user.profile.name || auth.user.profile.email,
+                name: auth.user.profile.name || auth.user.profile.email,
                 // Role mapping - check custom attributes or groups
                 role: auth.user.profile['custom:role'] || auth.user.profile.role || 'standard',
                 is_active: true,

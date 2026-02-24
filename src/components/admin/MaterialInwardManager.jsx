@@ -87,7 +87,11 @@ const MaterialInwardManager = () => {
 
             let filteredData = data || [];
             if (isStandard()) {
-                filteredData = filteredData.filter(r => r.created_by === user.username);
+                filteredData = filteredData.filter(r =>
+                    r.created_by === user.id ||
+                    r.created_by === user.username ||
+                    r.created_by === user.name
+                );
             }
 
             setRecords(filteredData);
@@ -123,7 +127,7 @@ const MaterialInwardManager = () => {
                     quantity: '',
                     received_date: format(new Date(), 'yyyy-MM-dd'),
                     received_time: format(new Date(), 'HH:mm'),
-                    received_by: user.username,
+                    received_by: user.id || user.username,
                     expected_test_days: 7
                 }
             ]
@@ -137,7 +141,7 @@ const MaterialInwardManager = () => {
             samples: record.content?.samples?.map(s => ({
                 ...s,
                 received_date: s.received_date ? format(new Date(s.received_date), 'yyyy-MM-dd') : format(new Date(), 'yyyy-MM-dd'),
-                received_by: s.received_by || user.username
+                received_by: s.received_by || user.id || user.username
             })) || []
         });
         setIsAddingNew(false);
@@ -154,7 +158,7 @@ const MaterialInwardManager = () => {
                     quantity: '',
                     received_date: format(new Date(), 'yyyy-MM-dd'),
                     received_time: format(new Date(), 'HH:mm'),
-                    received_by: user.username,
+                    received_by: user.id || user.username,
                     expected_test_days: 7
                 }
             ]
@@ -199,8 +203,8 @@ const MaterialInwardManager = () => {
                         expected_test_days: parseInt(sample.expected_test_days) || 7
                     }))
                 },
-                created_by: isAddingNew ? user.username : editingRecord.created_by,
-                updated_by: user.username,
+                created_by: isAddingNew ? (user.id || user.name || user.username) : editingRecord.created_by,
+                updated_by: user.id || user.name || user.username,
                 updated_at: new Date().toISOString()
             };
 
@@ -217,7 +221,7 @@ const MaterialInwardManager = () => {
             // Telegram Notification
             const action = isAddingNew ? 'New Entry' : 'Entry Updated';
             const emoji = isAddingNew ? '📥' : '✏️';
-            const message = `${emoji} *Material Inward ${action}*\n\nJob Order No: \`${recordData.job_order_no}\`\nClient: \`${clientName}\`\nSamples: \`${recordData.content.samples.length}\`\nBy: \`${user?.fullName || 'Unknown'}\``;
+            const message = `${emoji} *Material Inward ${action}*\n\nJob Order No: \`${recordData.job_order_no}\`\nClient: \`${clientName}\`\nSamples: \`${recordData.content.samples.length}\`\nBy: \`${user?.full_name || user?.name || 'Unknown'}\``;
             sendTelegramNotification(message);
 
             setEditingRecord(null);
@@ -248,7 +252,7 @@ const MaterialInwardManager = () => {
             toast({ title: "Record Deleted", description: "The inward record has been removed.", variant: "destructive" });
 
             // Telegram Notification
-            const message = `🗑️ *Material Inward Deleted*\n\nJob Order No: \`${deleteConfirmation.jobOrderNo}\`\nBy: \`${user?.fullName || 'Unknown'}\``;
+            const message = `🗑️ *Material Inward Deleted*\n\nJob Order No: \`${deleteConfirmation.jobOrderNo}\`\nBy: \`${user?.full_name || user?.name || 'Unknown'}\``;
             sendTelegramNotification(message);
 
             fetchRecords();
@@ -394,7 +398,7 @@ const MaterialInwardManager = () => {
                                 <SelectValue placeholder="Select a client" />
                             </SelectTrigger>
                             <SelectContent>
-                                {clients.map(client => (
+                                {clientsList.map(client => (
                                     <SelectItem key={client.id} value={client.id}>{client.client_name}</SelectItem>
                                 ))}
                             </SelectContent>
@@ -708,7 +712,7 @@ const MaterialInwardManager = () => {
                                             </span>
                                         </td>
                                         <td className="py-3 px-4 text-sm text-gray-600">
-                                            {appUsers.find(u => u.username === record.created_by)?.full_name || record.created_by || '-'}
+                                            {appUsers.find(u => u.id === record.created_by || u.username === record.created_by)?.full_name || record.created_by || '-'}
                                         </td>
                                         <td className="py-3 px-4 text-right">
                                             <div className="flex justify-end space-x-4">

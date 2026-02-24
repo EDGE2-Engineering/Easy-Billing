@@ -111,7 +111,7 @@ const Navbar = ({ isDirty = false, isSaving = false }) => {
               <div className="flex items-center gap-4">
                 <div className="bg-blue-50 text-blue-700 px-3 py-1.5 rounded-lg text-xs font-medium flex items-center">
                   <User className="w-3.5 h-3.5 mr-1.5" />
-                  {user?.fullName || user?.username || 'Admin'}
+                  {user?.name || user?.username || 'Admin'}
                 </div>
                 <Button
                   variant="ghost"
@@ -170,7 +170,7 @@ const Navbar = ({ isDirty = false, isSaving = false }) => {
                   <div className="flex items-center space-x-3 py-3 px-4 rounded-lg bg-blue-50 text-blue-700 mb-2">
                     <User className="w-5 h-5" />
                     <span className="font-medium text-sm">
-                      Logged in as {user?.fullName || user?.username || 'Admin'}
+                      Logged in as {user?.name || user?.username || 'Admin'}
                     </span>
                   </div>
                   <button
