@@ -10,7 +10,7 @@ import { Button } from '@/components/ui/button';
 import AdminClientsManager from '@/components/admin/AdminClientsManager.jsx';
 import AdminClientPricingManager from '@/components/admin/AdminClientPricingManager.jsx';
 import AdminUsersManager from '@/components/admin/AdminUsersManager.jsx';
-import SavedRecordsManager from '@/components/admin/SavedRecordsManager.jsx';
+import AccountsManager from '@/components/admin/AccountsManager.jsx';
 import AdminSystemSettings from '@/components/admin/AdminSystemSettings.jsx';
 import AdminReportsManager from '@/components/admin/AdminReportsManager.jsx';
 import MaterialInwardManager from '@/components/admin/MaterialInwardManager';
@@ -36,9 +36,9 @@ const AdminPage = () => {
   const { toast } = useToast();
 
   useEffect(() => {
-    const allowedTabs = ['saved_records', 'inward_register', 'reports'];
+    const allowedTabs = ['accounts', 'inward_register', 'reports'];
     if (isStandard() && !allowedTabs.includes(mainTab)) {
-      navigate('/settings/saved_records');
+      navigate('/settings/accounts');
     }
   }, [user, navigate, mainTab, isStandard]);
 
@@ -109,7 +109,7 @@ const AdminPage = () => {
             >
               {!isStandard() && <option value="inward_register">Inward Register</option>}
               {!isStandard() && <option value="reports">Reports</option>}
-              <option value="saved_records">Saved Records</option>
+              <option value="accounts">Accounts</option>
               {!isStandard() && <option value="clients">Clients</option>}
               {!isStandard() && <option value="pricing">Client Pricing</option>}
               {!isStandard() && <option value="system">System Settings</option>}
@@ -144,11 +144,11 @@ const AdminPage = () => {
                 </TabsTrigger>
               )}
               <TabsTrigger
-                value="saved_records"
-                title="Previously Saved Records"
+                value="accounts"
+                title="Manage Accounts"
                 className="px-2 py-3 rounded-xl data-[state=active]:bg-primary data-[state=active]:text-white transition-all flex items-center gap-2 data-[state=active]:p-2"
               >
-                <Database className="w-4 h-4" /> Records
+                <Database className="w-4 h-4" /> Accounts
               </TabsTrigger>
               {!isStandard() && (
                 <>
@@ -193,8 +193,8 @@ const AdminPage = () => {
             <AdminClientPricingManager />
           </TabsContent>
 
-          <TabsContent value="saved_records" className="focus-visible:outline-none animate-in fade-in slide-in-from-bottom-2 duration-500">
-            <SavedRecordsManager />
+          <TabsContent value="accounts" className="focus-visible:outline-none animate-in fade-in slide-in-from-bottom-2 duration-500">
+            <AccountsManager />
           </TabsContent>
 
           <TabsContent value="inward_register" className="focus-visible:outline-none animate-in fade-in slide-in-from-bottom-2 duration-500">

@@ -8,8 +8,8 @@ drop table if exists public.clients cascade;
 drop table if exists public.app_settings cascade;
 drop table if exists public.client_service_prices cascade;
 drop table if exists public.client_test_prices cascade;
-drop table if exists public.app_users cascade;
-drop table if exists public.saved_records cascade;
+drop table if exists public.users cascade;
+drop table if exists public.accounts cascade;
 drop table if exists public.material_samples cascade;
 drop table if exists public.material_inward_register cascade;
 drop table if exists public.reports cascade;
@@ -66,8 +66,8 @@ create table public.clients (
   updated_at timestamptz default now()
 );
 
--- 4. app_users
-create table public.app_users (
+-- 4. users
+create table public.users (
   id uuid primary key default gen_random_uuid(),
   username text unique not null,
   password text not null,
@@ -138,8 +138,8 @@ create table public.client_test_prices (
   primary key (client_id, test_id)
 );
 
--- 12. saved_records
-create table public.saved_records (
+-- 12. accounts
+create table public.accounts (
   id uuid primary key default gen_random_uuid(),
   quote_number text unique not null,
   document_type text not null,
@@ -148,7 +148,7 @@ create table public.saved_records (
   payment_mode text,
   bank_details text,
   content jsonb not null,
-  created_by uuid references public.app_users(id),
+  created_by uuid references public.users(id),
   created_at timestamptz default now(),
   updated_at timestamptz default now()
 );
@@ -173,8 +173,8 @@ create table public.material_inward_register (
     'COMPLETED'
   )),
   po_wo_number varchar(50),
-  created_by uuid not null references public.app_users(id) on delete cascade,
-  updated_by uuid references public.app_users(id) on delete cascade,
+  created_by uuid not null references public.users(id) on delete cascade,
+  updated_by uuid references public.users(id) on delete cascade,
   created_at timestamptz default current_timestamp,
   updated_at timestamptz default current_timestamp
 );
@@ -189,7 +189,7 @@ create table public.material_samples (
   status varchar(30) default 'RECEIVED',
   received_date date not null,
   received_time time,
-  received_by uuid not null references public.app_users(id) on delete cascade,
+  received_by uuid not null references public.users(id) on delete cascade,
   expected_test_days int,
   created_at timestamptz default current_timestamp,
   updated_at timestamptz default current_timestamp
@@ -201,7 +201,7 @@ create table public.reports (
   report_number text unique not null,
   client_name text,
   content jsonb not null,
-  created_by uuid references public.app_users(id),
+  created_by uuid references public.users(id),
   created_at timestamptz default now(),
   updated_at timestamptz default now()
 );
@@ -235,13 +235,13 @@ alter table public.client_test_prices enable row level security;
 create policy "Client test prices are viewable by everyone" on public.client_test_prices for select using ( true );
 create policy "Allow public management of client test prices" on public.client_test_prices for all using ( true ) with check ( true );
 
-alter table public.app_users enable row level security;
-create policy "Users are viewable by everyone" on public.app_users for select using ( true );
-create policy "Allow public management of users" on public.app_users for all using ( true ) with check ( true );
+alter table public.users enable row level security;
+create policy "Users are viewable by everyone" on public.users for select using ( true );
+create policy "Allow public management of users" on public.users for all using ( true ) with check ( true );
 
-alter table public.saved_records enable row level security;
-create policy "Saved records are viewable by everyone" on public.saved_records for select using ( true );
-create policy "Allow public management of saved records" on public.saved_records for all using ( true ) with check ( true );
+alter table public.accounts enable row level security;
+create policy "Accounts are viewable by everyone" on public.accounts for select using ( true );
+create policy "Allow public management of accounts" on public.accounts for all using ( true ) with check ( true );
 
 alter table public.service_unit_types enable row level security;
 create policy "Service unit types are viewable by everyone" on public.service_unit_types for select using ( true );
@@ -418,7 +418,7 @@ insert into public.clients (id, client_name, client_address, contacts) values
 ('C3','ATC Telecom Infrastructure Pvt. Ltd.','HM Tower, 1st Floor, Magrath Road Junction, Brigade Road, Ashok Nagar, Bengaluru - 560001, Karnataka, INDIA','[{"contact_person": "", "contact_email": "atc@email.com", "contact_phone": "789", "is_primary": true}]'::jsonb);
 
 -- 2.4 Sample Users
-insert into public.app_users (username, password, full_name, role, is_active) values
+insert into public.users (username, password, full_name, role, is_active) values
 ('admin', 'admin123', 'Administrator', 'admin', true),
 ('user', 'user123', 'Standard User', 'standard', true),
 ('test', 'test123', 'Test User', 'standard', false)

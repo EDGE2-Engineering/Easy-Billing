@@ -75,7 +75,7 @@ const MaterialInwardManager = () => {
     const fetchUsers = async () => {
         try {
             const { data, error } = await supabase
-                .from('app_users')
+                .from('users')
                 .select('id, full_name')
                 .eq('is_active', true)
                 .order('full_name');
@@ -94,7 +94,7 @@ const MaterialInwardManager = () => {
                 .select(`
           *,
           clients(client_name),
-          app_users!material_inward_register_created_by_fkey(full_name),
+          users!material_inward_register_created_by_fkey(full_name),
           material_samples(received_date)
         `);
 
@@ -778,7 +778,7 @@ const MaterialInwardManager = () => {
                                             </span>
                                         </td>
                                         <td className="py-3 px-4 text-sm text-gray-600">
-                                            {record.app_users?.full_name || '-'}
+                                            {record.users?.full_name || '-'}
                                         </td>
                                         <td className="py-3 px-4 text-right">
                                             <div className="flex justify-end space-x-4">

@@ -41,7 +41,7 @@ const AdminReportsManager = () => {
         try {
             const { data, error } = await supabase
                 .from('reports')
-                .select('*, app_users(full_name)')
+                .select('*, users(full_name)')
                 .order('created_at', { ascending: false });
 
             if (error) throw error;
@@ -173,7 +173,7 @@ const AdminReportsManager = () => {
                                         <span className="font-mono font-semibold text-gray-900">{report.report_number}</span>
                                     </td>
                                     <td className="py-4 px-6 text-sm text-gray-700">{report.client_name || '-'}</td>
-                                    <td className="py-4 px-6 text-sm text-gray-700">{report.app_users?.full_name || '-'}</td>
+                                    <td className="py-4 px-6 text-sm text-gray-700">{report.users?.full_name || '-'}</td>
                                     <td className="py-4 px-6 text-sm text-gray-500">
                                         {format(new Date(report.created_at), 'dd MMM yyyy')}
                                     </td>
