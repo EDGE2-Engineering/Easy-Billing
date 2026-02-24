@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -15,6 +15,20 @@ const AdminLogin = ({ onLoginSuccess }) => {
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  const [hasAttemptedAutoLogin, setHasAttemptedAutoLogin] = useState(false);
+
+  // Auto-redirect to Cognito if not already authenticated
+  useEffect(() => {
+    // Only attempt auto-redirect once to prevent loops
+    if (!hasAttemptedAutoLogin && !isLoading) {
+      console.log("AdminLogin: Attempting automatic redirect to Cognito...");
+      setHasAttemptedAutoLogin(true);
+      login().catch(err => {
+        console.error("Auto-login failed:", err);
+        // If auto-login fails, we just stay on this page with the button
+      });
+    }
+  }, [login, hasAttemptedAutoLogin, isLoading]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -33,96 +47,50 @@ const AdminLogin = ({ onLoginSuccess }) => {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-50 px-4 font-sans">
-      <div className="max-w-md w-full bg-white rounded-xl shadow-lg p-8 border border-gray-100 animate-in fade-in zoom-in-95 duration-300">
+    <div className="min-h-screen flex items-center justify-center bg-gray-50 px-4 font-sans text-center">
+      <div className="max-w-md w-full bg-white rounded-xl shadow-lg p-10 border border-gray-100 animate-in fade-in zoom-in-95 duration-300">
 
-        {/* Header */}
-        <div className="text-center mb-8">
-          <div className="mx-auto mb-4 flex items-center justify-center">
+        {/* Logo and Welcome */}
+        <div className="mb-8">
+          <div className="mx-auto mb-6 flex items-center justify-center">
             <img
               src={`${import.meta.env.BASE_URL}edge2-logo.png`}
               alt="EDGE2 Logo"
-              className="h-16 w-auto object-contain"
+              className="h-20 w-auto object-contain"
             />
           </div>
-          <h1 className="text-xl font-bold text-gray-900">{content.global?.siteName || "Easy Billing"}</h1>
-          <p className="text-gray-500 mt-2 text-sm">Sign in with your username and password</p>
+          <h1 className="text-2xl font-bold text-gray-900 mb-2">{content.global?.siteName || "Easy Billing"}</h1>
+          <p className="text-gray-500 text-sm">Welcome to the management portal. Please sign in to continue.</p>
         </div>
 
-        {/* Form */}
-        <form onSubmit={handleSubmit} className="space-y-5">
+        {error && (
+          <div className="bg-red-50 border border-red-100 text-red-600 p-3 rounded-lg text-sm flex items-start mb-6 text-left">
+            <AlertCircle className="w-4 h-4 mr-2 mt-0.5 flex-shrink-0" />
+            <span>{error}</span>
+          </div>
+        )}
 
-          {error && (
-            <div className="bg-red-50 border border-red-100 text-red-600 p-3 rounded-lg text-sm flex items-start animate-in fade-in slide-in-from-top-1">
-              <AlertCircle className="w-4 h-4 mr-2 mt-0.5 flex-shrink-0" />
-              <span>{error}</span>
-            </div>
+        <Button
+          onClick={() => login()}
+          className="w-full bg-primary hover:bg-primary-dark text-white h-12 font-semibold text-lg transition-all rounded-xl shadow-md hover:shadow-lg"
+          disabled={isLoading}
+        >
+          {isLoading ? (
+            <>
+              <Loader2 className="w-5 h-5 mr-3 animate-spin" /> Connecting...
+            </>
+          ) : (
+            <>
+              Sign In with Cognito
+            </>
           )}
+        </Button>
 
-          <div className="space-y-2">
-            <Label htmlFor="username">Username</Label>
-            <div className="relative">
-              <User className="absolute left-3 top-3 w-4 h-4 text-gray-400" />
-              <Input
-                id="username"
-                type="text"
-                placeholder="Enter username"
-                value={username}
-                onChange={(e) => setUsername(e.target.value)}
-                className="pl-10"
-                autoComplete="username"
-                required
-              />
-            </div>
-          </div>
-
-          <div className="space-y-2">
-            <Label htmlFor="password">Password</Label>
-            <div className="relative">
-              <Lock className="absolute left-3 top-3 w-4 h-4 text-gray-400" />
-              <Input
-                id="password"
-                type={showPassword ? "text" : "password"}
-                placeholder="Enter password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                className="pl-10 pr-10"
-                autoComplete="current-password"
-                required
-              />
-              <button
-                type="button"
-                onClick={() => setShowPassword(!showPassword)}
-                className="absolute right-3 top-3 text-gray-400 hover:text-gray-600 focus:outline-none transition-colors"
-                aria-label={showPassword ? "Hide password" : "Show password"}
-              >
-                {showPassword ? (
-                  <EyeOff className="w-4 h-4" />
-                ) : (
-                  <Eye className="w-4 h-4" />
-                )}
-              </button>
-            </div>
-          </div>
-
-          <Button
-            type="submit"
-            className="w-full bg-primary hover:bg-primary-dark text-white h-11 font-medium transition-all"
-            disabled={isLoading}
-          >
-            {isLoading ? (
-              <>
-                <Loader2 className="w-4 h-4 mr-2 animate-spin" /> Authenticating...
-              </>
-            ) : 'Login'}
-          </Button>
-
-          <div className="text-center pt-2">
-            <p className="text-xs text-gray-400 flex items-center justify-center gap-1">
-              <ShieldCheck className="w-3 h-3" /> Protected By EDGE2 Engineering Solutions India Pvt. Ltd.
-            </p>
-          </div>
-        </form>
+        <div className="mt-8 pt-6 border-t border-gray-50">
+          <p className="text-xs text-gray-400 flex items-center justify-center gap-1">
+            <ShieldCheck className="w-3 h-3" /> Protected By EDGE2 Engineering Solutions India Pvt. Ltd.
+          </p>
+        </div>
       </div>
     </div>
   );

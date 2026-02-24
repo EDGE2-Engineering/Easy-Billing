@@ -1,12 +1,4 @@
-/**
- * Document type code mapping and ID generation utility.
- *
- * Format: EESIPL/{YYYY}/{MM}/{CODE}/{NNN}
- *   - YYYY  = current 4-digit year
- *   - MM    = current 2-digit month (01–12)
- *   - CODE  = 2-letter document type code
- *   - NNN   = 3-digit sequential number (zero-padded)
- */
+import { dynamoGenericApi } from '../lib/dynamoGenericApi';
 
 const DOC_TYPE_CODES = {
     'Quotation': 'QN',
@@ -27,11 +19,12 @@ const buildDocID = (code, yyyy, mm, seq) =>
  * for the given document type in the current year/month,
  * then return the next sequential document ID.
  *
- * @param {object} supabaseClient – Supabase client instance
+ * @param {object} _unused – No longer used
  * @param {string} docType – e.g. 'Quotation', 'Tax Invoice', etc.
+ * @param {string} idToken - Cognito ID token
  * @returns {Promise<string>} e.g. "EESIPL/2026/02/QN/003"
  */
-export const getNextDocNumber = async (supabaseClient, docType) => {
+export const getNextDocNumber = async (_unused, docType, idToken) => {
     const code = DOC_TYPE_CODES[docType] || 'QN';
     const now = new Date();
     const yyyy = String(now.getFullYear());
@@ -41,21 +34,23 @@ export const getNextDocNumber = async (supabaseClient, docType) => {
     const prefix = `EESIPL/${yyyy}/${mm}/${code}/`;
 
     try {
-        // Fetch all matching records for this type + year/month, sorted desc
-        const { data, error } = await supabaseClient
-            .from('accounts')
-            .select('quote_number')
-            .eq('document_type', docType)
-            .like('quote_number', `${prefix}%`)
-            .order('quote_number', { ascending: false })
-            .limit(1);
+        // Fetch all accounts from DynamoDB
+        // Note: For better performance in large datasets, a GSI with sort key on quote_number would be better
+        const accounts = await dynamoGenericApi.listByType('account', idToken);
 
-        if (error) throw error;
+        // Filter those that match the prefix and type
+        const matchingAccounts = accounts
+            .filter(acc =>
+                acc.document_type === docType &&
+                acc.quote_number &&
+                acc.quote_number.startsWith(prefix)
+            )
+            .sort((a, b) => b.quote_number.localeCompare(a.quote_number));
 
         let nextSeq = 1;
 
-        if (data && data.length > 0) {
-            const lastNumber = data[0].quote_number; // e.g. "EESIPL/2026/02/QN/005"
+        if (matchingAccounts.length > 0) {
+            const lastNumber = matchingAccounts[0].quote_number; // e.g. "EESIPL/2026/02/QN/005"
             const parts = lastNumber.split('/');
             const lastSeq = parseInt(parts[parts.length - 1], 10);
             if (!isNaN(lastSeq)) {
@@ -70,3 +65,4 @@ export const getNextDocNumber = async (supabaseClient, docType) => {
         return buildDocID(code, yyyy, mm, 1);
     }
 };
+

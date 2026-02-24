@@ -45,7 +45,7 @@ import ReactSelect from 'react-select';
 import { Check, ChevronsUpDown } from 'lucide-react';
 import { format } from 'date-fns';
 import { getSiteContent } from '@/data/config';
-import { supabase } from '@/lib/customSupabaseClient';
+import { dynamoGenericApi } from '@/lib/dynamoGenericApi';
 import { useToast } from '@/components/ui/use-toast';
 import { sendTelegramNotification } from '@/lib/notifier';
 
@@ -119,7 +119,7 @@ const NewQuotationPage = () => {
     const { settings } = useSettings();
     const { terms } = useTermsAndConditions();
     const { technicals } = useTechnicals();
-    const { user, isStandard } = useAuth();
+    const { user, idToken } = useAuth();
     const { toast } = useToast();
     const [searchParams, setSearchParams] = useSearchParams();
     const location = useLocation();
@@ -318,17 +318,11 @@ const NewQuotationPage = () => {
 
     // Load record from Supabase if ID is present
     useEffect(() => {
-        const loadFromSupabase = async (id) => {
+        const loadRecord = async (id) => {
             try {
-                const { data, error } = await supabase
-                    .from('accounts')
-                    .select('*')
-                    .eq('id', id)
-                    .single();
+                const data = await dynamoGenericApi.getById(id, idToken);
 
-                if (error) throw error;
-
-                if (data && data.content) {
+                if (data) {
                     const content = data.content;
                     const loadedQuoteDetails = content.quoteDetails || {};
                     const loadedItems = content.items || [];
@@ -354,6 +348,13 @@ const NewQuotationPage = () => {
                         title: `${data.document_type} Loaded`,
                         description: `Loaded ${data.document_type} ${data.quote_number}`
                     });
+                } else {
+                    toast({
+                        title: "Error",
+                        description: "Record not found.",
+                        variant: "destructive"
+                    });
+                    navigate('/settings/accounts'); // Or a more appropriate redirect
                 }
             } catch (err) {
                 console.error('Error loading record:', err);
@@ -367,9 +368,9 @@ const NewQuotationPage = () => {
 
         const id = pathId || searchParams.get('id');
         if (id && !isSavingRecord) {
-            loadFromSupabase(id);
+            loadRecord(id);
         }
-    }, [searchParams, pathId, isSavingRecord]); // Removed clients from dependencies to break loop
+    }, [searchParams, pathId, isSavingRecord, idToken, navigate]); // Removed clients from dependencies to break loop
 
     const handleSaveToDatabase = async () => {
         if (!user) {
@@ -385,23 +386,25 @@ const NewQuotationPage = () => {
         try {
             // Detect if the document type has changed from what was loaded
             const isTypeChanged = savedRecordId && loadedDocumentType && documentType !== loadedDocumentType;
+            const isEdit = !!savedRecordId && !isTypeChanged;
 
             // Generate doc number on first save OR when doc type has changed
             let docNumber = quoteDetails.quoteNumber;
             if ((!savedRecordId || isTypeChanged) && (!docNumber || isTypeChanged)) {
-                docNumber = await getNextDocNumber(supabase, documentType);
+                docNumber = await getNextDocNumber(null, documentType, idToken);
             }
 
             const updatedQuoteDetails = { ...quoteDetails, quoteNumber: docNumber };
 
             const recordData = {
-                quote_number: docNumber,
+                id: isEdit ? savedRecordId : undefined, // Only include ID if updating existing record
+                document_number: docNumber,
                 document_type: documentType,
                 client_name: quoteDetails.clientName,
                 payment_date: quoteDetails.paymentDate || null,
                 payment_mode: quoteDetails.paymentMode || null,
                 bank_details: quoteDetails.bankDetails || null,
-                content: {
+                content: { // Store the full current state in 'content'
                     quoteDetails: updatedQuoteDetails,
                     items,
                     discount
@@ -410,75 +413,62 @@ const NewQuotationPage = () => {
                 updated_at: new Date().toISOString()
             };
 
-            let error;
-            if (savedRecordId && !isTypeChanged) {
-                // Update existing – keep the same doc number
-                const { error: updateError } = await supabase
-                    .from('accounts')
-                    .update(recordData)
-                    .eq('id', savedRecordId);
-                error = updateError;
-            } else {
-                // Create new (Clone if isTypeChanged)
-                const { data, error: insertError } = await supabase
-                    .from('accounts')
-                    .insert([recordData])
-                    .select()
-                    .single();
+            const savedRecord = await dynamoGenericApi.save('account', recordData, idToken);
 
-                if (!insertError && data) {
-                    setSavedRecordId(data.id);
-                    setLoadedDocumentType(documentType); // Update loaded type to new one
-                    navigate(`/doc/${data.id}`, { replace: true });
+            if (savedRecord) {
+                setSavedRecordId(savedRecord.id);
+                setLoadedDocumentType(documentType); // Update loaded type to new one
+                setQuoteDetails(updatedQuoteDetails); // Update the doc number in state after successful save
+
+                const snapshot = {
+                    quoteDetails: updatedQuoteDetails,
+                    items,
+                    documentType,
+                    discount
+                };
+                setLastSavedData(JSON.stringify(snapshot));
+
+                toast({
+                    title: "Success",
+                    description: isEdit ? `${documentType} updated successfully.` : `${documentType} saved as ${docNumber}.`
+                });
+
+                // Navigate to the new URL if it's a new record or type changed
+                if (!isEdit) {
+                    navigate(`/doc/${savedRecord.id}`, { replace: true });
                 }
-                error = insertError;
+
+                // Send Telegram Notification
+                try {
+                    const action = isEdit ? "Updated" : "Created";
+                    const emoji = isEdit ? "📝" : "📄";
+                    const totalAmount = calculateTotal(); // Assuming calculateTotal is available
+                    const message = `${emoji} *${documentType} ${action}*\n\n` +
+                        `Number: \`${docNumber}\`\n` +
+                        `Client: \`${quoteDetails.clientName}\`\n` +
+                        `Amount: \`₹${totalAmount.toFixed(2)}\`\n` +
+                        `${action} By: \`${user.fullName}\``;
+                    await sendTelegramNotification(message);
+                } catch (notifyErr) {
+                    console.error('Error sending Telegram notification:', notifyErr);
+                }
+            } else {
+                throw new Error("Failed to save record to DynamoDB.");
             }
 
-            if (error) throw error;
-
-            // Update the doc number in state after successful save
-            setQuoteDetails(updatedQuoteDetails);
-
-            const snapshot = {
-                quoteDetails: updatedQuoteDetails,
-                items,
-                documentType,
-                discount
-            };
-            setLastSavedData(JSON.stringify(snapshot));
-
-            toast({
-                title: "Success",
-                description: (savedRecordId && !isTypeChanged) ? `${documentType} updated successfully.` : `${documentType} saved as ${docNumber}.`
-            });
-
-            // Send Telegram Notification
-            try {
-                const action = (savedRecordId && !isTypeChanged) ? "Updated" : "Created";
-                const emoji = (savedRecordId && !isTypeChanged) ? "📝" : "📄";
-                const message = `${emoji} *${documentType} ${action}*\n\n` +
-                    `Number: \`${docNumber}\`\n` +
-                    `Client: \`${quoteDetails.clientName}\`\n` +
-                    `${action} By: \`${user.fullName}\``;
-                await sendTelegramNotification(message);
-            } catch (notifyErr) {
-                console.error('Error sending Telegram notification:', notifyErr);
-            }
         } catch (err) {
             console.error('Error saving record:', err);
 
             let finalErrorMessage = err.message || "Failed to save record.";
 
-            // Comprehensive check for Supabase/Postgres unique constraint violation (23505)
-            const isUniqueError =
-                err.code === '23505' ||
-                String(err.code) === '23505' ||
-                (err.message && (
-                    err.message.toLowerCase().includes('unique constraint') ||
-                    err.message.toLowerCase().includes('already exists')
-                ));
-
-            if (isUniqueError) {
+            // Comprehensive check for unique constraint violation (DynamoDB might return different error codes/messages)
+            // For DynamoDB, this would typically be handled by conditional writes or specific error parsing.
+            // For now, a generic check for "already exists" in message.
+            if (err.message && (
+                err.message.toLowerCase().includes('unique constraint') ||
+                err.message.toLowerCase().includes('already exists') ||
+                err.message.toLowerCase().includes('duplicate')
+            )) {
                 finalErrorMessage = `A ${documentType.toLowerCase()} with this number already exists. Please try saving again.`;
             }
 
@@ -703,7 +693,7 @@ const NewQuotationPage = () => {
         const firstPageItems = [];
 
         firstPageTypes.forEach(type => {
-            const typeTerms = terms.filter(t => t.type === type);
+            const typeTerms = terms.filter(t => t.term_type === type);
             if (typeTerms.length > 0) {
                 if (type !== 'general' && type !== 'General') {
                     firstPageItems.push({ type: 'header', text: type, id: `header-${type}` });
@@ -734,7 +724,7 @@ const NewQuotationPage = () => {
             const pageItems = [];
 
             pageTypes.forEach(type => {
-                const typeTerms = terms.filter(t => t.type === type);
+                const typeTerms = terms.filter(t => t.term_type === type);
                 if (typeTerms.length > 0) {
                     if (type !== 'general' && type !== 'General') {
                         pageItems.push({ type: 'header', text: type, id: `header-${type}` });
@@ -778,7 +768,7 @@ const NewQuotationPage = () => {
         const firstPageItems = [];
 
         firstPageTypes.forEach(type => {
-            const typeTech = (technicals || []).filter(t => t.type === type);
+            const typeTech = (technicals || []).filter(t => t.tech_type === type);
             if (typeTech.length > 0) {
                 firstPageItems.push({ type: 'header', text: type, id: `header-${type}` });
                 typeTech.forEach(tech => {
@@ -807,7 +797,7 @@ const NewQuotationPage = () => {
             const pageItems = [];
 
             pageTypes.forEach(type => {
-                const typeTech = (technicals || []).filter(t => t.type === type);
+                const typeTech = (technicals || []).filter(t => t.tech_type === type);
                 if (typeTech.length > 0) {
                     pageItems.push({ type: 'header', text: type, id: `header-${type}` });
                     typeTech.forEach(tech => {
@@ -852,11 +842,11 @@ const NewQuotationPage = () => {
             <div className="flex-1 flex flex-col min-h-0 container mx-auto px-4 py-4">
                 <div className="flex justify-between items-center mb-4 shrink-0">
                     <div className="flex items-center gap-4">
-                        {!isStandard() && (
-                            <button onClick={handleBack} className="text-gray-500 hover:text-gray-900 transition-colors">
-                                <ArrowLeft className="w-6 h-6" />
-                            </button>
-                        )}
+                        {/* {!isStandard() && ( */}
+                        <button onClick={handleBack} className="text-gray-500 hover:text-gray-900 transition-colors">
+                            <ArrowLeft className="w-6 h-6" />
+                        </button>
+                        {/* )} */}
                         <h1 className="text-1xl font-bold text-gray-900">Create new {documentType}</h1>
                     </div>
                     <div className="flex items-center gap-2">

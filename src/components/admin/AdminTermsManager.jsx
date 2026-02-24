@@ -29,7 +29,7 @@ const AdminTermsManager = () => {
 
     const filteredTerms = terms.filter(t =>
         t.text.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        (t.type && t.type.toLowerCase().includes(searchTerm.toLowerCase()))
+        (t.term_type && t.term_type.toLowerCase().includes(searchTerm.toLowerCase()))
     );
 
     const handleEdit = (term) => {
@@ -38,7 +38,7 @@ const AdminTermsManager = () => {
     };
 
     const handleAddNew = () => {
-        setEditingTerm({ text: '', type: 'general' });
+        setEditingTerm({ text: '', term_type: 'general' });
         setIsAddingNew(true);
     };
 
@@ -47,7 +47,7 @@ const AdminTermsManager = () => {
             toast({ title: "Validation Error", description: "Terms and Conditions text cannot be empty.", variant: "destructive" });
             return;
         }
-        if (!editingTerm.type || !editingTerm.type.trim()) {
+        if (!editingTerm.term_type || !editingTerm.term_type.trim()) {
             toast({ title: "Validation Error", description: "Type cannot be empty.", variant: "destructive" });
             return;
         }
@@ -55,10 +55,10 @@ const AdminTermsManager = () => {
         setIsSaving(true);
         try {
             if (isAddingNew) {
-                await addTerm(editingTerm.text, editingTerm.type);
+                await addTerm(editingTerm.text, editingTerm.term_type);
                 toast({ title: "Terms and Conditions Added", description: "New Terms and Conditions has been successfully added." });
             } else {
-                await updateTerm(editingTerm.id, editingTerm.text, editingTerm.type);
+                await updateTerm(editingTerm.id, editingTerm.text, editingTerm.term_type);
                 toast({ title: "Terms and Conditions Updated", description: "Terms and Conditions has been updated." });
             }
             setEditingTerm(null);
@@ -120,8 +120,8 @@ const AdminTermsManager = () => {
                     <div className="space-y-2">
                         <Label>Type</Label>
                         <Input
-                            value={editingTerm.type || ''}
-                            onChange={(e) => setEditingTerm({ ...editingTerm, type: e.target.value })}
+                            value={editingTerm.term_type || ''}
+                            onChange={(e) => setEditingTerm({ ...editingTerm, term_type: e.target.value })}
                             placeholder="e.g. General, Bricks, Cement"
                         />
                     </div>
@@ -168,9 +168,9 @@ const AdminTermsManager = () => {
                                     <FileText className="w-4 h-4 text-gray-600" />
                                 </div>
                                 <div className="space-y-1 w-full">
-                                    {term.type && (
+                                    {term.term_type && (
                                         <span className="inline-block px-1 py-0.5 rounded text-sm font-bold bg-blue-100 text-blue-800">
-                                            {term.type}
+                                            {term.term_type}
                                         </span>
                                     )}
                                     <p className="text-gray-800 whitespace-pre-wrap text-sm leading-relaxed pl-1">{term.text}</p>

@@ -1,6 +1,5 @@
 
 import React, { useState, useEffect } from 'react';
-import { supabase } from '@/lib/customSupabaseClient';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -33,16 +32,17 @@ import { Plus, Pencil, UserMinus, UserCheck, Shield, User as UserIcon, Loader2 }
 import { useToast } from '@/components/ui/use-toast';
 import { useAuth } from '@/contexts/AuthContext';
 import { sendTelegramNotification } from '@/lib/notifier';
+import { dynamoGenericApi } from '@/lib/dynamoGenericApi';
+import { DEPARTMENTS } from '@/config';
 
 const AdminUsersManager = () => {
-    const { user: currentUser, isSuperAdmin } = useAuth();
+    const { user: currentUser, isSuperAdmin, idToken } = useAuth();
     const [users, setUsers] = useState([]);
     const [loading, setLoading] = useState(true);
     const [isDialogOpen, setIsDialogOpen] = useState(false);
     const [editingUser, setEditingUser] = useState(null);
     const [isStatusDialogOpen, setIsStatusDialogOpen] = useState(false);
     const [userToToggle, setUserToToggle] = useState(null);
-    const [departments, setDepartments] = useState([]);
     const [formData, setFormData] = useState({
         username: '',
         password: '',
@@ -53,32 +53,16 @@ const AdminUsersManager = () => {
     const { toast } = useToast();
 
     useEffect(() => {
-        fetchUsers();
-        fetchDepartments();
-    }, []);
-
-    const fetchDepartments = async () => {
-        try {
-            const { data, error } = await supabase
-                .from('departments')
-                .select('name')
-                .order('name');
-            if (error) throw error;
-            setDepartments(data || []);
-        } catch (error) {
-            console.error('Error fetching departments:', error);
+        if (idToken) {
+            fetchUsers();
         }
-    };
+    }, [idToken]);
+
 
     const fetchUsers = async () => {
         try {
             setLoading(true);
-            const { data, error } = await supabase
-                .from('users')
-                .select('*')
-                .order('username');
-
-            if (error) throw error;
+            const data = await dynamoGenericApi.listByType('user', idToken);
 
             let filteredData = data || [];
             if (!isSuperAdmin()) {
@@ -117,7 +101,7 @@ const AdminUsersManager = () => {
     };
 
     const handleToggleStatusClick = (user) => {
-        if (user.id === currentUser?.id) {
+        if (user.id === currentUser?.id || user.username === currentUser?.username) {
             toast({
                 title: 'Action Prohibited',
                 description: 'You cannot deactivate your own account.',
@@ -138,18 +122,19 @@ const AdminUsersManager = () => {
     };
 
     const confirmToggleStatus = async () => {
-        if (!userToToggle) return;
+        if (!userToToggle || !idToken) return;
 
         try {
             const newStatus = !userToToggle.is_active;
-            const { error } = await supabase
-                .from('users')
-                .update({ is_active: newStatus, updated_at: new Date().toISOString() })
-                .eq('id', userToToggle.id);
+            const updatedUser = {
+                ...userToToggle,
+                is_active: newStatus,
+                updated_at: new Date().toISOString()
+            };
 
-            if (error) throw error;
+            await dynamoGenericApi.save('user', updatedUser, idToken);
 
-            setUsers(users.map(u => u.id === userToToggle.id ? { ...u, is_active: newStatus } : u));
+            setUsers(users.map(u => u.id === userToToggle.id ? updatedUser : u));
             toast({
                 title: `User ${newStatus ? 'Activated' : 'Deactivated'}`,
                 description: `The user has been successfully ${newStatus ? 'activated' : 'deactivated'}.`
@@ -161,7 +146,7 @@ const AdminUsersManager = () => {
                 const emoji = newStatus ? "🔓" : "🔒";
                 const message = `${emoji} *User ${action}*\n\n` +
                     `Username: \`${userToToggle.username}\`\n` +
-                    `By: \`${currentUser.fullName}\``;
+                    `By: \`${currentUser.fullName || currentUser.username}\``;
                 await sendTelegramNotification(message);
             } catch (notifyErr) {
                 console.error('Error sending Telegram notification:', notifyErr);
@@ -182,28 +167,21 @@ const AdminUsersManager = () => {
         e.preventDefault();
         try {
             const userData = {
+                ...(editingUser || {}),
                 username: formData.username,
                 password: formData.password,
                 full_name: formData.full_name,
                 department: formData.department,
                 role: formData.role,
+                is_active: editingUser ? editingUser.is_active : true,
                 updated_at: new Date().toISOString()
             };
 
-            if (editingUser) {
-                const { error } = await supabase
-                    .from('users')
-                    .update(userData)
-                    .eq('id', editingUser.id);
+            await dynamoGenericApi.save('user', userData, idToken);
 
-                if (error) throw error;
+            if (editingUser) {
                 toast({ title: 'User Updated', description: 'User details updated successfully.' });
             } else {
-                const { error } = await supabase
-                    .from('users')
-                    .insert([userData]);
-
-                if (error) throw error;
                 toast({ title: 'User Created', description: 'New user added successfully.' });
             }
 
@@ -216,7 +194,7 @@ const AdminUsersManager = () => {
                     `Full Name: \`${formData.full_name}\`\n` +
                     `Department: \`${formData.department}\`\n` +
                     `Role: \`${formData.role}\`\n` +
-                    `${action} By: \`${currentUser.fullName}\``;
+                    `${action} By: \`${currentUser.fullName || currentUser.username}\``;
                 await sendTelegramNotification(message);
             } catch (notifyErr) {
                 console.error('Error sending Telegram notification:', notifyErr);
@@ -364,14 +342,11 @@ const AdminUsersManager = () => {
                                     <SelectValue placeholder="Select department" />
                                 </SelectTrigger>
                                 <SelectContent>
-                                    {departments.map((dept) => (
-                                        <SelectItem key={dept.name} value={dept.name}>
-                                            {dept.name}
+                                    {Object.values(DEPARTMENTS).map((deptName) => (
+                                        <SelectItem key={deptName} value={deptName}>
+                                            {deptName}
                                         </SelectItem>
                                     ))}
-                                    {departments.length === 0 && (
-                                        <SelectItem value="" disabled>No departments found</SelectItem>
-                                    )}
                                 </SelectContent>
                             </Select>
                         </div>

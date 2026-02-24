@@ -369,7 +369,7 @@ const AdminServicesManager = () => {
                         <ReactSelect
                             isMulti
                             name="tcList"
-                            options={[...new Set(terms.map(t => t.type))].map(type => ({ value: type, label: type }))}
+                            options={[...new Set(terms.map(t => t.term_type))].map(type => ({ value: type, label: type }))}
                             className="basic-multi-select"
                             classNamePrefix="select"
                             placeholder="Select Terms and Conditions..."
@@ -401,7 +401,7 @@ const AdminServicesManager = () => {
                         <ReactSelect
                             isMulti
                             name="techList"
-                            options={[...new Set(technicals.map(t => t.type))].map(type => ({ value: type, label: type }))}
+                            options={[...new Set(technicals.map(t => t.tech_type))].map(type => ({ value: type, label: type }))}
                             className="basic-multi-select"
                             classNamePrefix="select"
                             placeholder="Select Technical Lists..."

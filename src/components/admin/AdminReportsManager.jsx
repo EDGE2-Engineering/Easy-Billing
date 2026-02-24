@@ -5,7 +5,6 @@ import {
     Search, Trash2, ExternalLink, FileText, Loader2, Plus, Save, ChevronLeft,
     MapPin, ClipboardList, TestTube, FileCheck, Mountain, HardHat, MessageSquare, Info
 } from 'lucide-react';
-import { supabase } from '@/lib/customSupabaseClient';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -24,6 +23,7 @@ import {
     AlertDialogHeader,
     AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
+import { dynamoGenericApi } from '@/lib/dynamoGenericApi';
 import NewReportForm from './NewReportForm';
 
 const AdminReportsManager = () => {
@@ -33,18 +33,25 @@ const AdminReportsManager = () => {
     const [isEditing, setIsEditing] = useState(false);
     const [editingReport, setEditingReport] = useState(null);
     const [deleteConfirmation, setDeleteConfirmation] = useState({ isOpen: false, reportId: null, reportNumber: '' });
+    const [appUsers, setAppUsers] = useState([]);
     const { toast } = useToast();
-    const { user } = useAuth();
+    const { user, idToken } = useAuth();
+
+    const fetchUsers = async () => {
+        if (!idToken) return;
+        try {
+            const data = await dynamoGenericApi.listByType('user', idToken);
+            setAppUsers(data || []);
+        } catch (error) {
+            console.error('Error fetching users:', error);
+        }
+    };
 
     const fetchReports = async () => {
+        if (!idToken) return;
         setLoading(true);
         try {
-            const { data, error } = await supabase
-                .from('reports')
-                .select('*, users(full_name)')
-                .order('created_at', { ascending: false });
-
-            if (error) throw error;
+            const data = await dynamoGenericApi.listByType('report', idToken);
             setReports(data || []);
         } catch (error) {
             console.error('Error fetching reports:', error);
@@ -55,8 +62,13 @@ const AdminReportsManager = () => {
     };
 
     useEffect(() => {
-        fetchReports();
-    }, []);
+        if (idToken) {
+            fetchReports();
+            fetchUsers();
+        }
+    }, [idToken]);
+
+    // ... handle functions ...
 
     const handleCreateNew = () => {
         setEditingReport(null);
@@ -77,13 +89,9 @@ const AdminReportsManager = () => {
     };
 
     const confirmDelete = async () => {
+        if (!idToken) return;
         try {
-            const { error } = await supabase
-                .from('reports')
-                .delete()
-                .eq('id', deleteConfirmation.reportId);
-
-            if (error) throw error;
+            await dynamoGenericApi.delete(deleteConfirmation.reportId, idToken);
             toast({ title: "Record Deleted", variant: "destructive" });
 
             // Telegram Notification
@@ -170,12 +178,14 @@ const AdminReportsManager = () => {
                             filteredReports.map((report) => (
                                 <tr key={report.id} className="hover:bg-gray-50/80 transition-colors">
                                     <td className="py-4 px-6">
-                                        <span className="font-mono font-semibold text-gray-900">{report.report_number}</span>
+                                        <span className="font-mono font-semibold text-gray-900">{report.report_number || report.reportId}</span>
                                     </td>
-                                    <td className="py-4 px-6 text-sm text-gray-700">{report.client_name || '-'}</td>
-                                    <td className="py-4 px-6 text-sm text-gray-700">{report.users?.full_name || '-'}</td>
+                                    <td className="py-4 px-6 text-sm text-gray-700">{report.client_name || report.client || '-'}</td>
+                                    <td className="py-4 px-6 text-sm text-gray-700">
+                                        {appUsers.find(u => u.username === report.created_by)?.full_name || report.created_by || '-'}
+                                    </td>
                                     <td className="py-4 px-6 text-sm text-gray-500">
-                                        {format(new Date(report.created_at), 'dd MMM yyyy')}
+                                        {format(new Date(report.created_at || report.updated_at), 'dd MMM yyyy')}
                                     </td>
                                     <td className="py-3 px-2 text-right space-x-0">
                                         <Button variant="ghost" className="px-2" size="icon" title="Edit Report" onClick={() => handleEdit(report)}>

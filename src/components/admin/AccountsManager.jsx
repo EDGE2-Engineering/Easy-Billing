@@ -1,7 +1,5 @@
-
 import React, { useState, useEffect } from 'react';
 import { Search, Trash2, ExternalLink, FileText, Loader2, AlertCircle, ArrowUpDown, SortAsc, SortDesc, Calendar, Plus } from 'lucide-react';
-import { supabase } from '@/lib/customSupabaseClient';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { useToast } from '@/components/ui/use-toast';
@@ -20,6 +18,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
+import { dynamoGenericApi } from '@/lib/dynamoGenericApi';
 import {
   Select,
   SelectContent,
@@ -45,7 +44,7 @@ const AccountsManager = () => {
   const { toast } = useToast();
   const navigate = useNavigate();
   const { settings } = useSettings();
-  const { user, isStandard } = useAuth();
+  const { user, isStandard, idToken } = useAuth();
 
   const taxCGST = settings?.tax_cgst ? Number(settings.tax_cgst) : 9;
   const taxSGST = settings?.tax_sgst ? Number(settings.tax_sgst) : 9;
@@ -69,25 +68,23 @@ const AccountsManager = () => {
   };
 
   const fetchAccounts = async () => {
+    if (!idToken) return;
     setLoading(true);
     try {
-      let query = supabase
-        .from('accounts')
-        .select('*, users(full_name)');
+      const data = await dynamoGenericApi.listByType('account', idToken);
 
+      // Filter by standard user if applicable
+      let filteredData = data || [];
       if (isStandard()) {
-        query = query.eq('created_by', user.id);
+        filteredData = filteredData.filter(item => item.created_by === user.username);
       }
 
       // Hide 'Report' type documents as they are now managed in their own tab
-      query = query.neq('document_type', 'Report');
+      filteredData = filteredData.filter(item => item.document_type !== 'Report');
 
-      const { data, error } = await query.order('created_at', { ascending: false });
-
-      if (error) throw error;
-      setAccounts(data || []);
+      setAccounts(filteredData);
     } catch (error) {
-      console.error('Error fetching accounts:', error);
+      console.error('Error fetching accounts from DynamoDB:', error);
       toast({
         title: "Error",
         description: "Failed to load accounts. " + error.message,
@@ -99,8 +96,10 @@ const AccountsManager = () => {
   };
 
   useEffect(() => {
-    fetchAccounts();
-  }, []);
+    if (idToken) {
+      fetchAccounts();
+    }
+  }, [idToken]);
 
   const handleDeleteClick = (record) => {
     setDeleteConfirmation({
@@ -111,20 +110,14 @@ const AccountsManager = () => {
   };
 
   const confirmDelete = async () => {
-    if (!deleteConfirmation.recordId) return;
+    if (!deleteConfirmation.recordId || !idToken) return;
 
     try {
-      const { error } = await supabase
-        .from('accounts')
-        .delete()
-        .eq('id', deleteConfirmation.recordId);
-
-      if (error) throw error;
-
+      await dynamoGenericApi.delete(deleteConfirmation.recordId, idToken);
       toast({ title: "Account Deleted", description: "The account record has been removed.", variant: "destructive" });
       fetchAccounts();
     } catch (error) {
-      console.error('Error deleting account:', error);
+      console.error('Error deleting account from DynamoDB:', error);
       toast({ title: "Error", description: "Failed to delete account.", variant: "destructive" });
     } finally {
       setDeleteConfirmation({ isOpen: false, recordId: null, quoteNumber: '' });
@@ -132,7 +125,7 @@ const AccountsManager = () => {
   };
 
   const handleOpen = (recordId, docNumber) => {
-    navigate(`/doc/${recordId}`);
+    navigate(`/ doc / ${recordId} `);
   };
 
   const uniqueUsers = Array.from(new Set(accounts
@@ -377,7 +370,7 @@ const AccountsManager = () => {
                   onClick={() =>
                     setSortOrder(prev => (prev === "asc" ? "desc" : "asc"))
                   }
-                  title={`Order: ${sortOrder === "asc" ? "Ascending" : "Descending"}`}
+                  title={`Order: ${sortOrder === "asc" ? "Ascending" : "Descending"} `}
                 >
                   {sortOrder === "asc" ? (
                     <SortAsc className="w-4 h-4" />
@@ -472,12 +465,13 @@ const AccountsManager = () => {
                     <td className="py-2 px-4 text-sm text-gray-600">
                       <div className="font-semibold text-gray-900 flex items-center gap-2">
                         <span className="font-semibold font-mono text-black text-md bg-gray-200 p-1 rounded">{record.quote_number}</span>
-                        {/* <span className={`inline-flex items-center px-2 py-0.5 rounded text-xs font-medium ${record.document_type === 'Tax Invoice'
-                          ? 'bg-blue-100 text-blue-800'
-                          : record.document_type === 'Proforma Invoice'
-                            ? 'bg-purple-100 text-purple-800'
-                            : 'bg-green-100 text-green-800'
-                          }`}>
+                        {/* <span className={`inline - flex items - center px - 2 py - 0.5 rounded text - xs font - medium ${
+  record.document_type === 'Tax Invoice'
+  ? 'bg-blue-100 text-blue-800'
+  : record.document_type === 'Proforma Invoice'
+    ? 'bg-purple-100 text-purple-800'
+    : 'bg-green-100 text-green-800'
+} `}>
                           {record.document_type}
                         </span> */}
                       </div>
@@ -518,7 +512,7 @@ const AccountsManager = () => {
                     </td>
 
                     <td className="justify-left items-center">
-                      <span className={`inline-flex items-center px-2 py-0.5 rounded text-xs font-medium ${record.document_type === 'Tax Invoice'
+                      <span className={`inline - flex items - center px - 2 py - 0.5 rounded text - xs font - medium ${record.document_type === 'Tax Invoice'
                         ? 'bg-blue-100 text-blue-800'
                         : record.document_type === 'Proforma Invoice'
                           ? 'bg-purple-100 text-purple-800'
@@ -527,7 +521,7 @@ const AccountsManager = () => {
                             : record.document_type === 'Delivery Challan'
                               ? 'bg-teal-100 text-teal-800'
                               : 'bg-green-100 text-green-800'
-                        }`}>
+                        } `}>
                         {record.document_type}
                       </span>
                     </td>

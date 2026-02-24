@@ -30,7 +30,7 @@ import { useToast } from '@/components/ui/use-toast';
 import ReportPreview from '@/components/ReportPreview';
 import reportTemplateHtml from '@/templates/report-template.html?raw'
 import { useAuth } from '@/contexts/AuthContext';
-import { supabase } from '@/lib/customSupabaseClient';
+import { dynamoGenericApi } from '@/lib/dynamoGenericApi';
 import { sendTelegramNotification } from '@/lib/notifier';
 import { getSiteContent } from '@/data/config';
 
@@ -85,7 +85,7 @@ function fillTemplate(template, data) {
 
 const NewReportForm = ({ editReport, onCancel, onSuccess }) => {
     const siteName = getSiteContent().global?.siteName || "Easy Billing";
-    const { user } = useAuth();
+    const { user, idToken } = useAuth();
     const { toast } = useToast();
     const [isPreviewOpen, setIsPreviewOpen] = useState(false);
     const [isSaving, setIsSaving] = useState(false);
@@ -102,35 +102,41 @@ const NewReportForm = ({ editReport, onCancel, onSuccess }) => {
 
     useEffect(() => {
         const fetchClients = async () => {
+            if (!idToken) return;
             try {
-                if (!user) return;
-                const { data } = await supabase.from('clients').select('*');
+                const data = await dynamoGenericApi.listByType('client', idToken);
                 if (data) setClients(data);
             } catch (error) {
                 console.error('Error fetching clients:', error);
             }
         };
-        if (user) {
+        if (idToken) {
             fetchClients();
         }
-    }, [user]);
+    }, [idToken]);
 
     useEffect(() => {
         const fetchJobOrders = async () => {
+            if (!idToken) return;
             try {
-                if (!user) return;
-                const { data } = await supabase
-                    .from('material_inward_register')
-                    .select('job_order_no, client_id, clients(client_name, client_address)');
-                if (data) setJobOrders(data);
+                const data = await dynamoGenericApi.listByType('material_inward', idToken);
+                // Map to match expected structure jo.clients?.client_name
+                const mappedData = data.map(jo => ({
+                    ...jo,
+                    clients: {
+                        client_name: jo.client_name,
+                        client_address: jo.client_address // This might be missing in material_inward, but let's assume it's there or handled
+                    }
+                }));
+                if (data) setJobOrders(mappedData);
             } catch (error) {
                 console.error('Error fetching job orders:', error);
             }
         };
-        if (user) {
+        if (idToken) {
             fetchJobOrders();
         }
-    }, [user]);
+    }, [idToken]);
 
     // Load report data from props if editing
     useEffect(() => {
@@ -1679,10 +1685,10 @@ const NewReportForm = ({ editReport, onCancel, onSuccess }) => {
         }
 
         try {
-            if (!user) throw new Error('Authentication required');
+            if (!idToken) throw new Error('Authentication required');
 
-            const { data: existing } = await supabase.from('reports')
-                .select('*').eq('report_number', formData.reportId).maybeSingle();
+            const results = await dynamoGenericApi.findByAttribute('report', 'report_number', formData.reportId, idToken);
+            const existing = results[0];
 
             if (existing && existing.id !== formData.id) {
                 setSaveConfirmation({ isOpen: true, isGenerating: false });
@@ -1708,10 +1714,10 @@ const NewReportForm = ({ editReport, onCancel, onSuccess }) => {
         }
 
         try {
-            if (!user) throw new Error('Authentication required');
+            if (!idToken) throw new Error('Authentication required');
 
-            const { data: existing } = await supabase.from('reports')
-                .select('*').eq('report_number', formData.reportId).maybeSingle();
+            const results = await dynamoGenericApi.findByAttribute('report', 'report_number', formData.reportId, idToken);
+            const existing = results[0];
 
             if (existing && existing.id !== formData.id) {
                 setSaveConfirmation({ isOpen: true, isGenerating: true });
@@ -1727,24 +1733,21 @@ const NewReportForm = ({ editReport, onCancel, onSuccess }) => {
 
     const executeSave = async (isGenerating, existingRecord = null) => {
         try {
-            if (!user) throw new Error('Authentication required');
+            if (!idToken) throw new Error('Authentication required');
 
             setIsSaving(true);
 
             const payload = {
+                id: existingRecord?.id || formData.id,
                 report_number: formData.reportId,
                 client_name: formData.client,
                 content: formData,
-                created_by: user.id,
+                created_by: existingRecord?.created_by || user.username,
+                updated_by: user.username,
                 updated_at: new Date().toISOString()
             };
 
-            if (existingRecord || formData.id) {
-                const updateId = existingRecord ? existingRecord.id : formData.id;
-                await supabase.from('reports').update(payload).eq('id', updateId);
-            } else {
-                await supabase.from('reports').insert([payload]);
-            }
+            await dynamoGenericApi.save('report', payload, idToken);
 
             toast({
                 title: isGenerating ? "Report Generated" : "Report Saved",

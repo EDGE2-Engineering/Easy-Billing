@@ -4,7 +4,7 @@ import { Helmet } from 'react-helmet-async';
 import Navbar from '@/components/Navbar';
 
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Settings, LayoutDashboard, Home, FileText, User, Save, Loader2, UserCog, Plus, Database, HandHeart, IndianRupee, Ruler, BriefcaseBusiness, Hash, CreditCard, TestTube, Axe, Package, Cpu } from 'lucide-react';
+import { Settings, LayoutDashboard, Home, FileText, User, Save, Loader2, UserCog, Plus, Database, HandHeart, IndianRupee, Ruler, BriefcaseBusiness, Hash, CreditCard, TestTube, Axe, Package, Cpu, Info } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 
 import AdminClientsManager from '@/components/admin/AdminClientsManager.jsx';
@@ -14,12 +14,13 @@ import AccountsManager from '@/components/admin/AccountsManager.jsx';
 import AdminSystemSettings from '@/components/admin/AdminSystemSettings.jsx';
 import AdminReportsManager from '@/components/admin/AdminReportsManager.jsx';
 import MaterialInwardManager from '@/components/admin/MaterialInwardManager';
+import AdminServicesManager from '@/components/admin/AdminServicesManager';
+import AdminTestsManager from '@/components/admin/AdminTestsManager';
+import SystemInfo from '@/components/admin/SystemInfo';
 
 import AdminLogin from '@/components/admin/AdminLogin';
 import UpdatePassword from '@/components/admin/UpdatePassword';
 import { useToast } from '@/components/ui/use-toast';
-
-import { supabase } from '@/lib/customSupabaseClient';
 
 import { useNavigate, useParams } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
@@ -35,12 +36,13 @@ const AdminPage = () => {
 
   const { toast } = useToast();
 
-  useEffect(() => {
-    const allowedTabs = ['accounts', 'inward_register', 'reports'];
-    if (isStandard() && !allowedTabs.includes(mainTab)) {
-      navigate('/settings/accounts');
-    }
-  }, [user, navigate, mainTab, isStandard]);
+  // No longer redirect standard users away from settings
+  // useEffect(() => {
+  //   const allowedTabs = ['accounts', 'inward_register', 'reports'];
+  //   if (isStandard() && !allowedTabs.includes(mainTab)) {
+  //     navigate('/settings/accounts');
+  //   }
+  // }, [user, navigate, mainTab, isStandard]);
 
   useEffect(() => {
     if (tab) {
@@ -48,12 +50,15 @@ const AdminPage = () => {
     }
   }, [tab]);
 
-  // Redirect legacy tabs to new system sub-tabs
-  useEffect(() => {
-    if (mainTab === 'services' || mainTab === 'tests') {
-      navigate('/settings/system');
-    }
-  }, [mainTab, navigate]);
+  // No longer redirect - everything is top level
+  // useEffect(() => {
+  //   if (mainTab === 'services' || mainTab === 'tests') {
+  //     navigate('/settings/system');
+  //   }
+  // }, [mainTab, navigate]);
+
+  const settingsTabs = ['clients', 'pricing', 'services', 'tests', 'users', 'system', 'info'];
+  const isSettingsTab = settingsTabs.includes(mainTab);
 
   const handleTabChange = (value) => {
     setMainTab(value);
@@ -105,11 +110,11 @@ const AdminPage = () => {
 
       <main className="flex-grow container mx-auto px-4 py-0 relative">
         <Tabs value={mainTab} onValueChange={handleTabChange} className="w-full space-y-4">
-          {/* Show sub-navigation ONLY if we are in a settings-related tab */}
-          {(!['inward_register', 'reports', 'accounts'].includes(mainTab)) && (
+          {/* Sub-Navigation: Only show if we are in a settings-related tab */}
+          {isSettingsTab && (
             <>
               {/* Mobile View: Select Dropdown */}
-              <div className="block md:hidden relative">
+              <div className="block md:hidden relative mb-4">
                 <label htmlFor="admin-tabs" className="sr-only">Select a section</label>
                 <select
                   id="admin-tabs"
@@ -117,11 +122,13 @@ const AdminPage = () => {
                   onChange={(e) => handleTabChange(e.target.value)}
                   className="w-full bg-white border border-gray-200 rounded-xl px-4 py-3 text-gray-900 font-medium focus:ring-2 focus:ring-primary focus:border-primary transition-all shadow-sm outline-none appearance-none"
                 >
-                  <option value="accounts">Accounts</option>
-                  {!isStandard() && <option value="clients">Clients</option>}
-                  {!isStandard() && <option value="pricing">Client Pricing</option>}
-                  {!isStandard() && <option value="system">System Settings</option>}
-                  {!isStandard() && <option value="users">User Management</option>}
+                  <option value="clients">Clients</option>
+                  <option value="pricing">Pricing</option>
+                  <option value="services">Services</option>
+                  <option value="tests">Tests</option>
+                  <option value="users">Users</option>
+                  <option value="system">Others</option>
+                  <option value="info">Info</option>
                 </select>
                 <div className="absolute inset-y-0 right-0 flex items-center pr-4 pointer-events-none">
                   <svg className="h-5 w-5 text-gray-400" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
@@ -130,41 +137,16 @@ const AdminPage = () => {
                 </div>
               </div>
 
-              {/* Desktop View: Tabs List */}
+              {/* Desktop View: Sub-Tabs List */}
               <div className="hidden md:flex justify-center">
-                <TabsList className="bg-white p-1 border border-gray-200 rounded-xl shadow-sm h-auto inline-flex">
-                  {!isStandard() && (
-                    <>
-                      <TabsTrigger
-                        value="clients"
-                        title="Clients"
-                        className="px-2 py-3 rounded-xl data-[state=active]:bg-primary data-[state=active]:text-white transition-all flex items-center gap-2 data-[state=active]:p-2"
-                      >
-                        <BriefcaseBusiness className="w-4 h-4" /> Clients
-                      </TabsTrigger>
-                      <TabsTrigger
-                        value="pricing"
-                        title="Client Pricing"
-                        className="px-2 py-3 rounded-xl data-[state=active]:bg-primary data-[state=active]:text-white transition-all flex items-center gap-2 data-[state=active]:p-2"
-                      >
-                        <IndianRupee className="w-4 h-4" /> Pricing
-                      </TabsTrigger>
-                      <TabsTrigger
-                        value="system"
-                        title="System Settings"
-                        className="px-2 py-3 rounded-xl data-[state=active]:bg-primary data-[state=active]:text-white transition-all flex items-center gap-2 data-[state=active]:p-2"
-                      >
-                        <Cpu className="w-4 h-4" /> System
-                      </TabsTrigger>
-                      <TabsTrigger
-                        value="users"
-                        title="User Management"
-                        className="px-2 py-3 rounded-xl data-[state=active]:bg-primary data-[state=active]:text-white transition-all flex items-center gap-2 data-[state=active]:p-2"
-                      >
-                        <UserCog className="w-4 h-4" /> Users
-                      </TabsTrigger>
-                    </>
-                  )}
+                <TabsList className="bg-white p-1 border border-gray-200 rounded-xl shadow-sm h-auto inline-flex flex-wrap justify-center overflow-x-auto max-w-full">
+                  <TabsTrigger value="clients" className="px-3 py-3 rounded-xl data-[state=active]:bg-primary data-[state=active]:text-white transition-all flex items-center gap-1.5"><BriefcaseBusiness className="w-4 h-4" /> Clients</TabsTrigger>
+                  <TabsTrigger value="pricing" className="px-3 py-3 rounded-xl data-[state=active]:bg-primary data-[state=active]:text-white transition-all flex items-center gap-1.5"><IndianRupee className="w-4 h-4" /> Pricing</TabsTrigger>
+                  <TabsTrigger value="services" className="px-3 py-3 rounded-xl data-[state=active]:bg-primary data-[state=active]:text-white transition-all flex items-center gap-1.5"><HandHeart className="w-4 h-4" /> Services</TabsTrigger>
+                  <TabsTrigger value="tests" className="px-3 py-3 rounded-xl data-[state=active]:bg-primary data-[state=active]:text-white transition-all flex items-center gap-1.5"><TestTube className="w-4 h-4" /> Tests</TabsTrigger>
+                  <TabsTrigger value="users" className="px-3 py-3 rounded-xl data-[state=active]:bg-primary data-[state=active]:text-white transition-all flex items-center gap-1.5"><UserCog className="w-4 h-4" /> Users</TabsTrigger>
+                  <TabsTrigger value="system" className="px-3 py-3 rounded-xl data-[state=active]:bg-primary data-[state=active]:text-white transition-all flex items-center gap-1.5"><Cpu className="w-4 h-4" /> Others</TabsTrigger>
+                  <TabsTrigger value="info" className="px-3 py-3 rounded-xl data-[state=active]:bg-primary data-[state=active]:text-white transition-all flex items-center gap-1.5"><Info className="w-4 h-4" /> Info</TabsTrigger>
                 </TabsList>
               </div>
             </>
@@ -192,6 +174,18 @@ const AdminPage = () => {
 
           <TabsContent value="users" className="focus-visible:outline-none animate-in fade-in slide-in-from-bottom-2 duration-500">
             <AdminUsersManager />
+          </TabsContent>
+
+          <TabsContent value="services" className="focus-visible:outline-none animate-in fade-in slide-in-from-bottom-2 duration-500">
+            <AdminServicesManager />
+          </TabsContent>
+
+          <TabsContent value="tests" className="focus-visible:outline-none animate-in fade-in slide-in-from-bottom-2 duration-500">
+            <AdminTestsManager />
+          </TabsContent>
+
+          <TabsContent value="info" className="focus-visible:outline-none animate-in fade-in slide-in-from-bottom-2 duration-500">
+            <SystemInfo />
           </TabsContent>
 
           <TabsContent value="system" className="focus-visible:outline-none animate-in fade-in slide-in-from-bottom-2 duration-500">

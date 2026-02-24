@@ -29,7 +29,7 @@ const AdminTechnicalsManager = () => {
 
     const filteredTechnicals = technicals.filter(t =>
         t.text.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        (t.type && t.type.toLowerCase().includes(searchTerm.toLowerCase()))
+        (t.tech_type && t.tech_type.toLowerCase().includes(searchTerm.toLowerCase()))
     );
 
     const handleEdit = (tech) => {
@@ -38,7 +38,7 @@ const AdminTechnicalsManager = () => {
     };
 
     const handleAddNew = () => {
-        setEditingTech({ text: '', type: 'General' });
+        setEditingTech({ text: '', tech_type: 'General' });
         setIsAddingNew(true);
     };
 
@@ -47,7 +47,7 @@ const AdminTechnicalsManager = () => {
             toast({ title: "Validation Error", description: "Technical text cannot be empty.", variant: "destructive" });
             return;
         }
-        if (!editingTech.type || !editingTech.type.trim()) {
+        if (!editingTech.tech_type || !editingTech.tech_type.trim()) {
             toast({ title: "Validation Error", description: "Type cannot be empty.", variant: "destructive" });
             return;
         }
@@ -55,10 +55,10 @@ const AdminTechnicalsManager = () => {
         setIsSaving(true);
         try {
             if (isAddingNew) {
-                await addTechnical(editingTech.text, editingTech.type);
+                await addTechnical(editingTech.text, editingTech.tech_type);
                 toast({ title: "Technical Added", description: "New technical entry has been successfully added." });
             } else {
-                await updateTechnical(editingTech.id, editingTech.text, editingTech.type);
+                await updateTechnical(editingTech.id, editingTech.text, editingTech.tech_type);
                 toast({ title: "Technical Updated", description: "Technical entry has been updated." });
             }
             setEditingTech(null);
@@ -120,8 +120,8 @@ const AdminTechnicalsManager = () => {
                     <div className="space-y-2">
                         <Label>Type</Label>
                         <Input
-                            value={editingTech.type || ''}
-                            onChange={(e) => setEditingTech({ ...editingTech, type: e.target.value })}
+                            value={editingTech.tech_type || ''}
+                            onChange={(e) => setEditingTech({ ...editingTech, tech_type: e.target.value })}
                             placeholder="e.g. Investigation, Lab Tests, Foundation"
                         />
                     </div>
@@ -168,9 +168,9 @@ const AdminTechnicalsManager = () => {
                                     <Axe className="w-4 h-4 text-gray-600" />
                                 </div>
                                 <div className="space-y-1 w-full">
-                                    {tech.type && (
+                                    {tech.tech_type && (
                                         <span className="inline-block px-1 py-0.5 rounded text-sm font-bold bg-green-100 text-green-800">
-                                            {tech.type}
+                                            {tech.tech_type}
                                         </span>
                                     )}
                                     <p className="text-gray-800 whitespace-pre-wrap text-sm leading-relaxed pl-1">{tech.text}</p>

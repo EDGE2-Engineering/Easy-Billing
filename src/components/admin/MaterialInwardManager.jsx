@@ -1,7 +1,6 @@
 
 import React, { useState, useEffect } from 'react';
 import { Search, Trash2, Edit, ExternalLink, FileText, Loader2, AlertCircle, ArrowUpDown, SortAsc, SortDesc, Calendar, Package, Plus, X, Save, ArrowLeft } from 'lucide-react';
-import { supabase } from '@/lib/customSupabaseClient';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -27,11 +26,12 @@ import {
     SelectTrigger,
     SelectValue,
 } from "@/components/ui/select";
+import { dynamoGenericApi } from '@/lib/dynamoGenericApi';
 import { Textarea } from '@/components/ui/textarea';
 
 const MaterialInwardManager = () => {
     const [records, setRecords] = useState([]);
-    const [clients, setClients] = useState([]);
+    const [clientsList, setClientsList] = useState([]);
     const [loading, setLoading] = useState(true);
     const [searchTerm, setSearchTerm] = useState('');
     const [fromDate, setFromDate] = useState('');
@@ -46,7 +46,7 @@ const MaterialInwardManager = () => {
     const [appUsers, setAppUsers] = useState([]);
     const { toast } = useToast();
     const navigate = useNavigate();
-    const { user, isStandard } = useAuth();
+    const { user, isStandard, idToken } = useAuth();
 
     // Management State (Consistent with AdminServicesManager)
     const [editingRecord, setEditingRecord] = useState(null);
@@ -60,52 +60,37 @@ const MaterialInwardManager = () => {
     ];
 
     const fetchClients = async () => {
+        if (!idToken) return;
         try {
-            const { data, error } = await supabase
-                .from('clients')
-                .select('id, client_name')
-                .order('client_name');
-            if (error) throw error;
-            setClients(data || []);
+            const data = await dynamoGenericApi.listByType('client', idToken);
+            setClientsList(data || []);
         } catch (error) {
             console.error('Error fetching clients:', error);
         }
     };
 
     const fetchUsers = async () => {
+        if (!idToken) return;
         try {
-            const { data, error } = await supabase
-                .from('users')
-                .select('id, full_name')
-                .eq('is_active', true)
-                .order('full_name');
-            if (error) throw error;
-            setAppUsers(data || []);
+            const data = await dynamoGenericApi.listByType('user', idToken);
+            setAppUsers(data.filter(u => u.is_active !== false) || []);
         } catch (error) {
             console.error('Error fetching users:', error);
         }
     };
 
     const fetchRecords = async () => {
+        if (!idToken) return;
         setLoading(true);
         try {
-            let query = supabase
-                .from('material_inward_register')
-                .select(`
-          *,
-          clients(client_name),
-          users!material_inward_register_created_by_fkey(full_name),
-          material_samples(received_date)
-        `);
+            const data = await dynamoGenericApi.listByType('material_inward', idToken);
 
+            let filteredData = data || [];
             if (isStandard()) {
-                query = query.eq('created_by', user.id);
+                filteredData = filteredData.filter(r => r.created_by === user.username);
             }
 
-            const { data, error } = await query.order('created_at', { ascending: false });
-
-            if (error) throw error;
-            setRecords(data || []);
+            setRecords(filteredData);
         } catch (error) {
             console.error('Error fetching material inward records:', error);
             toast({
@@ -119,10 +104,12 @@ const MaterialInwardManager = () => {
     };
 
     useEffect(() => {
-        fetchRecords();
-        fetchClients();
-        fetchUsers();
-    }, []);
+        if (idToken) {
+            fetchRecords();
+            fetchClients();
+            fetchUsers();
+        }
+    }, [idToken]);
 
     const handleAddNew = () => {
         setEditingRecord({
@@ -136,7 +123,7 @@ const MaterialInwardManager = () => {
                     quantity: '',
                     received_date: format(new Date(), 'yyyy-MM-dd'),
                     received_time: format(new Date(), 'HH:mm'),
-                    received_by: user.id,
+                    received_by: user.username,
                     expected_test_days: 7
                 }
             ]
@@ -145,30 +132,15 @@ const MaterialInwardManager = () => {
     };
 
     const handleEdit = async (record) => {
-        setLoading(true);
-        try {
-            const { data: samples, error } = await supabase
-                .from('material_samples')
-                .select('*')
-                .eq('inward_id', record.id);
-
-            if (error) throw error;
-
-            setEditingRecord({
-                ...record,
-                samples: samples.map(s => ({
-                    ...s,
-                    received_date: format(new Date(s.received_date), 'yyyy-MM-dd'),
-                    received_by: s.received_by || user.id
-                })) || []
-            });
-            setIsAddingNew(false);
-        } catch (error) {
-            console.error('Error fetching samples:', error);
-            toast({ title: "Error", description: "Failed to load samples for editing.", variant: "destructive" });
-        } finally {
-            setLoading(false);
-        }
+        setEditingRecord({
+            ...record,
+            samples: record.content?.samples?.map(s => ({
+                ...s,
+                received_date: s.received_date ? format(new Date(s.received_date), 'yyyy-MM-dd') : format(new Date(), 'yyyy-MM-dd'),
+                received_by: s.received_by || user.username
+            })) || []
+        });
+        setIsAddingNew(false);
     };
 
     const handleAddSample = () => {
@@ -182,7 +154,7 @@ const MaterialInwardManager = () => {
                     quantity: '',
                     received_date: format(new Date(), 'yyyy-MM-dd'),
                     received_time: format(new Date(), 'HH:mm'),
-                    received_by: user.id,
+                    received_by: user.username,
                     expected_test_days: 7
                 }
             ]
@@ -212,66 +184,30 @@ const MaterialInwardManager = () => {
 
         setIsSaving(true);
         try {
-            let inwardId = editingRecord.id;
+            const client = clientsList.find(c => c.id === editingRecord.client_id);
+            const clientName = client?.client_name || client?.clientName || 'Unknown Client';
 
-            if (isAddingNew) {
-                // Create Register Entry
-                const { data: inwardData, error: inwardError } = await supabase
-                    .from('material_inward_register')
-                    .insert({
-                        job_order_no: editingRecord.job_order_no || `JO-${Date.now()}`,
-                        po_wo_number: editingRecord.po_wo_number,
-                        client_id: editingRecord.client_id,
-                        created_by: user.id,
-                        status: 'RECEIVED'
-                    })
-                    .select()
-                    .single();
+            const recordData = {
+                ...editingRecord,
+                job_order_no: editingRecord.job_order_no || `JO-${Date.now()}`,
+                client_name: clientName,
+                status: isAddingNew ? 'RECEIVED' : editingRecord.status,
+                content: {
+                    samples: editingRecord.samples.map(sample => ({
+                        ...sample,
+                        quantity: parseFloat(sample.quantity) || 0,
+                        expected_test_days: parseInt(sample.expected_test_days) || 7
+                    }))
+                },
+                created_by: isAddingNew ? user.username : editingRecord.created_by,
+                updated_by: user.username,
+                updated_at: new Date().toISOString()
+            };
 
-                if (inwardError) throw inwardError;
-                inwardId = inwardData.id;
-            } else {
-                // Update Register Entry
-                const { error: inwardError } = await supabase
-                    .from('material_inward_register')
-                    .update({
-                        job_order_no: editingRecord.job_order_no,
-                        po_wo_number: editingRecord.po_wo_number,
-                        client_id: editingRecord.client_id,
-                        status: editingRecord.status,
-                        updated_by: user.id,
-                        updated_at: new Date().toISOString()
-                    })
-                    .eq('id', editingRecord.id);
+            // Remove samples from top level before saving as they are nested in content
+            delete recordData.samples;
 
-                if (inwardError) throw inwardError;
-
-                // Delete existing samples to rebuild them (simplest approach for batch sync)
-                const { error: deleteError } = await supabase
-                    .from('material_samples')
-                    .delete()
-                    .eq('inward_id', inwardId);
-
-                if (deleteError) throw deleteError;
-            }
-
-            // Create/Recreate Samples
-            const samplesToInsert = editingRecord.samples.map(sample => ({
-                inward_id: inwardId,
-                sample_code: sample.sample_code,
-                sample_description: sample.sample_description,
-                quantity: parseFloat(sample.quantity) || 0,
-                received_date: sample.received_date,
-                received_time: sample.received_time,
-                received_by: sample.received_by,
-                expected_test_days: parseInt(sample.expected_test_days) || 7
-            }));
-
-            const { error: samplesError } = await supabase
-                .from('material_samples')
-                .insert(samplesToInsert);
-
-            if (samplesError) throw samplesError;
+            await dynamoGenericApi.save('material_inward', recordData, idToken);
 
             toast({
                 title: "Success",
@@ -279,10 +215,9 @@ const MaterialInwardManager = () => {
             });
 
             // Telegram Notification
-            const clientName = clients.find(c => c.id === editingRecord.client_id)?.client_name || 'Unknown Client';
             const action = isAddingNew ? 'New Entry' : 'Entry Updated';
             const emoji = isAddingNew ? '📥' : '✏️';
-            const message = `${emoji} *Material Inward ${action}*\n\nJob OrderNo: \`${editingRecord.job_order_no || inwardId}\`\nClient: \`${clientName}\`\nSamples: \`${editingRecord.samples.length}\`\nBy: \`${user?.fullName || 'Unknown'}\``;
+            const message = `${emoji} *Material Inward ${action}*\n\nJob Order No: \`${recordData.job_order_no}\`\nClient: \`${clientName}\`\nSamples: \`${recordData.content.samples.length}\`\nBy: \`${user?.fullName || 'Unknown'}\``;
             sendTelegramNotification(message);
 
             setEditingRecord(null);
@@ -308,12 +243,7 @@ const MaterialInwardManager = () => {
         if (!deleteConfirmation.recordId) return;
 
         try {
-            const { error } = await supabase
-                .from('material_inward_register')
-                .delete()
-                .eq('id', deleteConfirmation.recordId);
-
-            if (error) throw error;
+            await dynamoGenericApi.delete(deleteConfirmation.recordId, idToken);
 
             toast({ title: "Record Deleted", description: "The inward record has been removed.", variant: "destructive" });
 
@@ -331,19 +261,19 @@ const MaterialInwardManager = () => {
     };
 
     const uniqueClientsInList = Array.from(new Set(records
-        .map(r => r.clients?.client_name)
+        .map(r => r.client_name)
         .filter(Boolean)))
         .sort();
 
     const filteredRecords = records.filter(r => {
         const matchesSearch = (r.job_order_no?.toLowerCase() || '').includes(searchTerm.toLowerCase()) ||
             (r.po_wo_number?.toLowerCase() || '').includes(searchTerm.toLowerCase()) ||
-            (r.clients?.client_name?.toLowerCase() || '').includes(searchTerm.toLowerCase());
+            (r.client_name?.toLowerCase() || '').includes(searchTerm.toLowerCase());
 
         if (!matchesSearch) return false;
 
         if (filterStatus !== 'all' && r.status !== filterStatus) return false;
-        if (filterClient !== 'all' && r.clients?.client_name !== filterClient) return false;
+        if (filterClient !== 'all' && r.client_name !== filterClient) return false;
 
         if (fromDate || toDate) {
             const recordDate = new Date(r.created_at);
@@ -369,16 +299,16 @@ const MaterialInwardManager = () => {
         let valA, valB;
         switch (sortField) {
             case 'client':
-                valA = (a.clients?.client_name || '').toLowerCase();
-                valB = (b.clients?.client_name || '').toLowerCase();
+                valA = (a.client_name || '').toLowerCase();
+                valB = (b.client_name || '').toLowerCase();
                 break;
             case 'status':
                 valA = (a.status || '').toLowerCase();
                 valB = (b.status || '').toLowerCase();
                 break;
             case 'date':
-                valA = new Date(a.created_at).getTime();
-                valB = new Date(b.created_at).getTime();
+                valA = new Date(a.created_at || a.updated_at).getTime();
+                valB = new Date(b.created_at || b.updated_at).getTime();
                 break;
             default:
                 return 0;
@@ -764,13 +694,13 @@ const MaterialInwardManager = () => {
                                             {record.po_wo_number || '-'}
                                         </td>
                                         <td className="py-3 px-4 text-sm text-gray-600">
-                                            {format(new Date(record.created_at), 'dd MMM yyyy')}
+                                            {format(new Date(record.created_at || record.updated_at), 'dd MMM yyyy')}
                                         </td>
                                         <td className="py-3 px-4 text-sm text-gray-600">
-                                            {record.material_samples?.[0]?.received_date ? format(new Date(record.material_samples[0].received_date), 'dd MMM yyyy') : '-'}
+                                            {record.content?.samples?.[0]?.received_date ? format(new Date(record.content.samples[0].received_date), 'dd MMM yyyy') : '-'}
                                         </td>
                                         <td className="py-3 px-4 text-sm text-gray-600">
-                                            {record.clients?.client_name || '-'}
+                                            {record.client_name || '-'}
                                         </td>
                                         <td className="py-3 px-4">
                                             <span className={`inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-blue-100 text-blue-800`}>
@@ -778,7 +708,7 @@ const MaterialInwardManager = () => {
                                             </span>
                                         </td>
                                         <td className="py-3 px-4 text-sm text-gray-600">
-                                            {record.users?.full_name || '-'}
+                                            {appUsers.find(u => u.username === record.created_by)?.full_name || record.created_by || '-'}
                                         </td>
                                         <td className="py-3 px-4 text-right">
                                             <div className="flex justify-end space-x-4">
