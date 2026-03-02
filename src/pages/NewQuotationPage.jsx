@@ -300,6 +300,11 @@ const NewQuotationPage = () => {
             return;
         }
 
+        if (!quoteDetails.clientName) {
+            toast({ title: "Client Required", description: "Please select a client before saving.", variant: "destructive" });
+            return;
+        }
+
         setIsSavingRecord(true);
         try {
             const isTypeChanged = savedRecordId && loadedDocumentType && documentType !== loadedDocumentType;
@@ -603,7 +608,7 @@ const NewQuotationPage = () => {
 
                             <div className="space-y-4 border-t pt-4">
                                 <div>
-                                    <Label>Client Name</Label>
+                                    <Label>Client Name <span className="text-red-500">*</span></Label>
                                     <Select value={clientNameSelection} onValueChange={(v) => {
                                         setClientNameSelection(v);
                                         if (v !== 'Other') {

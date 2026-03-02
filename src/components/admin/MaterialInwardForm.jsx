@@ -14,6 +14,7 @@ import {
 } from "@/components/ui/select";
 import { format } from 'date-fns';
 import { WORKFLOW_STATUS_OPTIONS } from '@/config';
+import { useAuth } from '@/contexts/AuthContext';
 
 const MaterialInwardForm = ({
     initialData,
@@ -24,6 +25,7 @@ const MaterialInwardForm = ({
     isSaving = false,
     isAddingNew = true
 }) => {
+    const { user } = useAuth();
     const [editingRecord, setEditingRecord] = useState(initialData);
 
     const handleAddSample = () => {
@@ -37,7 +39,7 @@ const MaterialInwardForm = ({
                     quantity: '',
                     received_date: format(new Date(), 'yyyy-MM-dd'),
                     received_time: format(new Date(), 'HH:mm'),
-                    received_by: '',
+                    received_by: user?.id || user?.username || '',
                     expected_test_days: 7
                 }
             ]
@@ -89,6 +91,7 @@ const MaterialInwardForm = ({
                     <Select
                         value={editingRecord.client_id || ''}
                         onValueChange={(value) => setEditingRecord(prev => ({ ...prev, client_id: value }))}
+                        disabled={true}
                     >
                         <SelectTrigger id="client">
                             <SelectValue placeholder="Select a client" />
@@ -100,7 +103,7 @@ const MaterialInwardForm = ({
                         </SelectContent>
                     </Select>
                 </div>
-                {!isAddingNew && (
+                {/* {!isAddingNew && (
                     <div className="space-y-2">
                         <Label>Status</Label>
                         <Select
@@ -115,7 +118,7 @@ const MaterialInwardForm = ({
                             </SelectContent>
                         </Select>
                     </div>
-                )}
+                )} */}
             </div>
 
             <div className="mt-8 space-y-4">

@@ -59,7 +59,7 @@ const AuthProvider = ({ children }) => {
                     // Only notify/sync if we haven't synced for THIS specific user ID yet
                     if (!hasSynced.current || hasSynced.current !== session.user.id) {
                         notifyLogin(session.user.username, session.user.full_name);
-                        syncUserToDb(session.user, session.idToken);
+                        // syncUserToDb(session.user, session.idToken); // Disabled as per user request
                         hasSynced.current = session.user.id;
                     }
 

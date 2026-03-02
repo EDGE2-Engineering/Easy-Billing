@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import {
     BriefcaseBusiness, Search, Calendar, User, Eye, ArrowLeft, ArrowRight,
-    CheckCircle2, Clock, MoreVertical, LayoutDashboard, Plus
+    CheckCircle2, Clock, MoreVertical, LayoutDashboard, Plus, Edit
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -127,7 +127,7 @@ const AdminJobsManager = () => {
 
             const updatedJob = {
                 ...selectedJob,
-                status: 'RECEIVED',
+                status: selectedJob.status === 'QUOTATION_CREATED' ? 'RECEIVED' : selectedJob.status,
                 material_inward: {
                     po_wo_number: inwardData.po_wo_number,
                     samples: inwardData.samples.map(sample => ({
@@ -201,8 +201,8 @@ const AdminJobsManager = () => {
             const initialInwardData = {
                 job_order_no: selectedJob.job_order_no,
                 client_id: selectedJob.client_id,
-                po_wo_number: selectedJob.po_wo_number || '',
-                samples: selectedJob.content?.samples || [
+                po_wo_number: selectedJob.material_inward?.po_wo_number || selectedJob.po_wo_number || '',
+                samples: selectedJob.material_inward?.samples || selectedJob.content?.samples || [
                     {
                         sample_code: '',
                         sample_description: '',
@@ -221,7 +221,7 @@ const AdminJobsManager = () => {
                         <Button variant="ghost" size="icon" onClick={() => setShowInwardForm(false)} className="rounded-full">
                             <ArrowLeft className="w-5 h-5" />
                         </Button>
-                        <h2 className="text-xl font-bold">Add Material Inward for {selectedJob.job_order_no}</h2>
+                        <h2 className="text-xl font-bold">{selectedJob.material_inward ? 'Edit' : 'Add'} Material Inward for {selectedJob.job_order_no}</h2>
                     </div>
                     <MaterialInwardForm
                         initialData={initialInwardData}
@@ -230,7 +230,7 @@ const AdminJobsManager = () => {
                         onSave={handleSaveInward}
                         onCancel={() => setShowInwardForm(false)}
                         isSaving={isSaving}
-                        isAddingNew={true}
+                        isAddingNew={!selectedJob.material_inward}
                     />
                 </div>
             );
@@ -276,18 +276,30 @@ const AdminJobsManager = () => {
                         );
 
                         return (
-                            <Button
-                                onClick={handleStatusTransition}
-                                disabled={loading}
-                                className="bg-primary hover:bg-primary/90 text-white rounded-xl px-6 flex items-center gap-2 h-11 shadow-sm transition-all active:scale-95"
-                            >
-                                {loading ? (
-                                    <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                                ) : (
-                                    <ArrowRight className="w-4 h-4" />
+                            <div className="flex items-center gap-2">
+                                {selectedJob.status === 'RECEIVED' && canPerformAction && (
+                                    <Button
+                                        variant="outline"
+                                        onClick={() => setShowInwardForm(true)}
+                                        className="border-primary text-primary hover:bg-primary/5 rounded-xl px-4 flex items-center gap-2 h-11 transition-all"
+                                    >
+                                        <Edit className="w-4 h-4" />
+                                        Edit Material Inward
+                                    </Button>
                                 )}
-                                {currentStep.action}
-                            </Button>
+                                <Button
+                                    onClick={handleStatusTransition}
+                                    disabled={loading}
+                                    className="bg-primary hover:bg-primary/90 text-white rounded-xl px-6 flex items-center gap-2 h-11 shadow-sm transition-all active:scale-95"
+                                >
+                                    {loading ? (
+                                        <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                                    ) : (
+                                        <ArrowRight className="w-4 h-4" />
+                                    )}
+                                    {currentStep.action}
+                                </Button>
+                            </div>
                         );
                     })()}
                 </div>
@@ -340,9 +352,9 @@ const AdminJobsManager = () => {
                                 </div>
 
                                 <div className="pt-4 border-t">
-                                    <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2">Samples ({selectedJob.content?.samples?.length || 0})</p>
+                                    <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2">Samples ({(selectedJob.material_inward?.samples || selectedJob.content?.samples)?.length || 0})</p>
                                     <div className="space-y-2">
-                                        {selectedJob.content?.samples?.map((sample, idx) => (
+                                        {(selectedJob.material_inward?.samples || selectedJob.content?.samples)?.map((sample, idx) => (
                                             <div key={idx} className="p-2 bg-gray-50 rounded-lg text-xs">
                                                 <p className="font-bold text-gray-700">{sample.sample_code}</p>
                                                 <p className="text-gray-500 truncate">{sample.sample_description}</p>
@@ -370,12 +382,6 @@ const AdminJobsManager = () => {
                 </div>
 
                 <div className="flex w-full md:w-auto gap-3">
-                    <Button
-                        onClick={() => navigate('/doc/new')}
-                        className="bg-primary hover:bg-primary/90 text-white rounded-xl px-4 flex items-center gap-2 h-11"
-                    >
-                        <Plus className="w-4 h-4" /> New Job
-                    </Button>
                     <div className="relative flex-grow md:w-64">
                         <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
                         <Input
@@ -385,6 +391,12 @@ const AdminJobsManager = () => {
                             className="pl-10 h-11 border-gray-100 bg-gray-50/50 focus:bg-white transition-all rounded-xl"
                         />
                     </div>
+                    <Button
+                        onClick={() => navigate('/doc/new')}
+                        className="bg-primary hover:bg-primary/90 text-white rounded-xl px-4 flex items-center gap-2 h-11"
+                    >
+                        <Plus className="w-4 h-4" /> New Job
+                    </Button>
                 </div>
             </div>
 
