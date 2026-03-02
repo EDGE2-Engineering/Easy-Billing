@@ -17,19 +17,28 @@ import { getFrontendCredentials } from "@/lib/dynamoAuth";
 // Using the table name from infrastructure/main.tf
 const TABLE_NAME = "EDGE2-LIMS-Data";
 
+let cachedDocClient = null;
+let cachedIdToken = null;
+
 /**
- * Creates a DynamoDB Document Client with fresh temporary credentials
+ * Gets a DynamoDB Document Client, reusing it if the idToken is the same
  * @param {string} idToken - The Cognito ID Token
  */
 const getDocClient = (idToken) => {
-    const credentials = getFrontendCredentials(idToken);
+    if (cachedDocClient && cachedIdToken === idToken) {
+        return cachedDocClient;
+    }
 
+    // console.log("Creating new DynamoDB client...");
+    const credentials = getFrontendCredentials(idToken);
     const client = new DynamoDBClient({
         region: cognitoConfig.region,
         credentials
     });
 
-    return DynamoDBDocumentClient.from(client);
+    cachedDocClient = DynamoDBDocumentClient.from(client);
+    cachedIdToken = idToken;
+    return cachedDocClient;
 };
 
 export const dynamoGenericApi = {
@@ -103,10 +112,18 @@ export const dynamoGenericApi = {
             };
 
             // Check if it already exists to preserve created_at
-            if (!data.created_at) {
-                const existing = await this.getById(id, idToken);
-                item.created_at = existing?.created_at || new Date().toISOString();
+            // skipCheck can be passed in data to avoid redundant getById
+            if (!data.created_at && !data.skipCheck) {
+                try {
+                    const existing = await this.getById(id, idToken);
+                    item.created_at = existing?.created_at || new Date().toISOString();
+                } catch (e) {
+                    item.created_at = new Date().toISOString();
+                }
+            } else {
+                item.created_at = data.created_at || new Date().toISOString();
             }
+            delete item.skipCheck;
 
             const command = new PutCommand({
                 TableName: TABLE_NAME,
@@ -207,6 +224,13 @@ export const dynamoGenericApi = {
             console.error(`DynamoDB delete error for ${id}:`, error);
             throw error;
         }
+    },
+
+    /**
+     * Alias for getById
+     */
+    async get(id, idToken) {
+        return this.getById(id, idToken);
     }
 };
 

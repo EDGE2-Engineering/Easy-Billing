@@ -13,7 +13,7 @@ import AdminTechnicalsManager from './AdminTechnicalsManager';
 import AdminServicesManager from './AdminServicesManager';
 import AdminTestsManager from './AdminTestsManager';
 import SystemInfo from './SystemInfo';
-import { enableInfoDiagramZoom, getSiteContent } from '../../data/config';
+import { enableInfoDiagramZoom, getSiteContent } from '../../config';
 
 const AdminSystemSettings = () => {
     const siteName = getSiteContent().global?.siteName || "Easy Billing";

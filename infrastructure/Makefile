@@ -16,17 +16,17 @@ init:
 	terraform init
 
 # Show execution plan
-plan:
+plan: init
 	terraform plan
 
 # Apply changes
-deploy:
+deploy: init
 	terraform apply -auto-approve
 
 # Destroy resources
-destroy:
+destroy: init
 	terraform destroy -auto-approve
 
 # Validate syntax
-validate:
+validate: init
 	terraform validate

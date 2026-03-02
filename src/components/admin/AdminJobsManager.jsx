@@ -1,11 +1,11 @@
-
 import React, { useState, useEffect, useMemo } from 'react';
 import {
     BriefcaseBusiness, Search, Calendar, User, Eye, ArrowLeft, ArrowRight,
-    CheckCircle2, Clock, MoreVertical, LayoutDashboard
+    CheckCircle2, Clock, MoreVertical, LayoutDashboard, Plus
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { useNavigate } from 'react-router-dom';
 import {
     Table, TableBody, TableCell, TableHead,
     TableHeader, TableRow
@@ -19,15 +19,23 @@ import { dynamoGenericApi } from '@/lib/dynamoGenericApi';
 import { format } from 'date-fns';
 import { MermaidDiagram } from '@lightenna/react-mermaid-diagram';
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { DB_TYPES, WORKFLOW_STEPS } from '@/data/config';
+import { DB_TYPES, WORKFLOW_STEPS } from '@/config';
+import MaterialInwardForm from './MaterialInwardForm';
+import { useToast } from '@/components/ui/use-toast';
+import { sendTelegramNotification } from '@/lib/notifier';
 
 const AdminJobsManager = () => {
     const { idToken, user, isAdmin } = useAuth();
+    const navigate = useNavigate();
     const [jobs, setJobs] = useState([]);
     const [appUsers, setAppUsers] = useState([]);
     const [loading, setLoading] = useState(true);
     const [searchQuery, setSearchQuery] = useState('');
     const [selectedJob, setSelectedJob] = useState(null);
+    const [clientsList, setClientsList] = useState([]);
+    const [isSaving, setIsSaving] = useState(false);
+    const [showInwardForm, setShowInwardForm] = useState(false);
+    const { toast } = useToast();
 
     const workflowStates = WORKFLOW_STEPS.map(s => s.id);
 
@@ -35,12 +43,14 @@ const AdminJobsManager = () => {
         if (!idToken) return;
         setLoading(true);
         try {
-            const [jobsData, usersData] = await Promise.all([
+            const [jobsData, usersData, clientsData] = await Promise.all([
                 dynamoGenericApi.listByType(DB_TYPES.JOB, idToken),
-                dynamoGenericApi.listByType(DB_TYPES.USER, idToken)
+                dynamoGenericApi.listByType(DB_TYPES.USER, idToken),
+                dynamoGenericApi.listByType(DB_TYPES.CLIENT, idToken)
             ]);
             setJobs(jobsData || []);
             setAppUsers(usersData || []);
+            setClientsList(clientsData || []);
         } catch (error) {
             console.error('Error fetching jobs data:', error);
         } finally {
@@ -80,7 +90,10 @@ const AdminJobsManager = () => {
         if (!selectedJob || !idToken) return;
 
         const currentIndex = workflowStates.indexOf(selectedJob.status);
-        if (currentIndex === -1 || currentIndex === workflowStates.length - 1) return;
+        if (selectedJob.status === 'QUOTATION_CREATED') {
+            setShowInwardForm(true);
+            return;
+        }
 
         const nextStatus = workflowStates[currentIndex + 1];
         setLoading(true);
@@ -95,16 +108,55 @@ const AdminJobsManager = () => {
 
             await dynamoGenericApi.save(DB_TYPES.JOB, updatedJob, idToken);
 
-            // Update local state
             setJobs(prev => prev.map(j => j.id === updatedJob.id ? updatedJob : j));
             setSelectedJob(updatedJob);
 
-            // Notification (optional but good)
             console.log(`Job ${selectedJob.job_order_no} transitioned to ${nextStatus}`);
         } catch (error) {
             console.error('Error transitioning job status:', error);
         } finally {
             setLoading(false);
+        }
+    };
+
+    const handleSaveInward = async (inwardData) => {
+        setIsSaving(true);
+        try {
+            const client = clientsList.find(c => c.id === inwardData.client_id);
+            const clientName = client?.client_name || client?.clientName || selectedJob.client_name;
+
+            const updatedJob = {
+                ...selectedJob,
+                status: 'RECEIVED',
+                material_inward: {
+                    po_wo_number: inwardData.po_wo_number,
+                    samples: inwardData.samples.map(sample => ({
+                        ...sample,
+                        quantity: parseFloat(sample.quantity) || 0,
+                        expected_test_days: parseInt(sample.expected_test_days) || 7
+                    }))
+                },
+                updated_at: new Date().toISOString(),
+                updated_by: user.id || user.username
+            };
+
+            await dynamoGenericApi.save(DB_TYPES.JOB, updatedJob, idToken);
+
+            setJobs(prev => prev.map(j => j.id === updatedJob.id ? updatedJob : j));
+            setSelectedJob(updatedJob);
+            setShowInwardForm(false);
+
+            toast({ title: "Success", description: "Material Inward details added and job status updated to RECEIVED." });
+
+            // Telegram Notification
+            const message = `📥 *Material Inward Entry Added*\n\nJob Order No: \`${updatedJob.job_order_no}\`\nClient: \`${clientName}\`\nSamples: \`${updatedJob.material_inward.samples.length}\`\nBy: \`${user?.full_name || user?.name || 'Unknown'}\``;
+            sendTelegramNotification(message);
+
+        } catch (error) {
+            console.error('Error saving inward details:', error);
+            toast({ title: "Error", description: "Failed to save inward details: " + error.message, variant: "destructive" });
+        } finally {
+            setIsSaving(false);
         }
     };
 
@@ -145,6 +197,45 @@ const AdminJobsManager = () => {
     };
 
     if (selectedJob) {
+        if (showInwardForm) {
+            const initialInwardData = {
+                job_order_no: selectedJob.job_order_no,
+                client_id: selectedJob.client_id,
+                po_wo_number: selectedJob.po_wo_number || '',
+                samples: selectedJob.content?.samples || [
+                    {
+                        sample_code: '',
+                        sample_description: '',
+                        quantity: '',
+                        received_date: format(new Date(), 'yyyy-MM-dd'),
+                        received_time: format(new Date(), 'HH:mm'),
+                        received_by: user.id || user.username,
+                        expected_test_days: 7
+                    }
+                ]
+            };
+
+            return (
+                <div className="space-y-6">
+                    <div className="flex items-center gap-4 mb-4">
+                        <Button variant="ghost" size="icon" onClick={() => setShowInwardForm(false)} className="rounded-full">
+                            <ArrowLeft className="w-5 h-5" />
+                        </Button>
+                        <h2 className="text-xl font-bold">Add Material Inward for {selectedJob.job_order_no}</h2>
+                    </div>
+                    <MaterialInwardForm
+                        initialData={initialInwardData}
+                        clientsList={clientsList}
+                        appUsers={appUsers}
+                        onSave={handleSaveInward}
+                        onCancel={() => setShowInwardForm(false)}
+                        isSaving={isSaving}
+                        isAddingNew={true}
+                    />
+                </div>
+            );
+        }
+
         return (
             <div className="space-y-6 animate-in fade-in duration-500">
                 <div className="flex items-center justify-between pb-4 border-b">
@@ -202,8 +293,6 @@ const AdminJobsManager = () => {
                 </div>
 
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-
-
 
                     <Card className="lg:col-span-2 rounded-2xl border-gray-100 shadow-sm overflow-hidden ">
                         <CardHeader className="bg-gray-50/50 border-b p-2 px-4">
@@ -274,13 +363,19 @@ const AdminJobsManager = () => {
         <div className="space-y-6">
             <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
                 <div>
-                    <h1 className="text-2xl font-bold text-gray-900 flex items-center gap-3">
-                        <BriefcaseBusiness className="w-8 h-8 text-primary" /> Jobs Tracker
+                    <h1 className="text-md font-bold text-gray-900 flex items-center gap-3">
+                        <BriefcaseBusiness className="w-8 h-8 text-primary" /> Jobs
                     </h1>
-                    <p className="text-gray-500 text-sm mt-1">Monitor job lifecycle and workflow status in real-time.</p>
+                    {/* <p className="text-gray-500 text-sm mt-1">Monitor job lifecycle and workflow status in real-time.</p> */}
                 </div>
 
                 <div className="flex w-full md:w-auto gap-3">
+                    <Button
+                        onClick={() => navigate('/doc/new')}
+                        className="bg-primary hover:bg-primary/90 text-white rounded-xl px-4 flex items-center gap-2 h-11"
+                    >
+                        <Plus className="w-4 h-4" /> New Job
+                    </Button>
                     <div className="relative flex-grow md:w-64">
                         <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
                         <Input

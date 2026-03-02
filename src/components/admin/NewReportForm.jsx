@@ -32,7 +32,7 @@ import reportTemplateHtml from '@/templates/report-template.html?raw'
 import { useAuth } from '@/contexts/AuthContext';
 import { dynamoGenericApi } from '@/lib/dynamoGenericApi';
 import { sendTelegramNotification } from '@/lib/notifier';
-import { getSiteContent, DB_TYPES } from '@/data/config';
+import { getSiteContent, DB_TYPES } from '@/config';
 
 
 const soilTypes = [

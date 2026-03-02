@@ -3,7 +3,7 @@ import React, { createContext, useState, useContext, useEffect, useCallback, use
 import { dynamoGenericApi } from '@/lib/dynamoGenericApi';
 import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/components/ui/use-toast';
-import { DB_TYPES } from '@/data/config';
+import { DB_TYPES } from '@/config';
 
 const TechnicalsContext = createContext();
 

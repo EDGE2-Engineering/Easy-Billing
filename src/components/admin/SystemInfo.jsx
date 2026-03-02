@@ -4,7 +4,7 @@ import { Info, CheckCircle2, ZoomIn, ZoomOut, RotateCcw } from 'lucide-react';
 import { TransformWrapper, TransformComponent } from "react-zoom-pan-pinch";
 import { MermaidDiagram } from '@lightenna/react-mermaid-diagram';
 import { Button } from '@/components/ui/button';
-import { enableInfoDiagramZoom, getSiteContent } from '@/data/config';
+import { enableInfoDiagramZoom, getSiteContent } from '@/config';
 
 const SystemInfo = () => {
     const siteName = getSiteContent().global?.siteName || "Easy Billing";

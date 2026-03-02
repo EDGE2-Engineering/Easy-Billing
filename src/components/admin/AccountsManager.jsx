@@ -26,7 +26,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { DB_TYPES } from '@/data/config';
+import { DB_TYPES } from '@/config';
 
 const AccountsManager = () => {
   const [accounts, setAccounts] = useState([]);

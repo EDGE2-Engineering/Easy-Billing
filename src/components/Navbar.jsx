@@ -3,7 +3,7 @@ import React, { useState } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Menu, X, Lock, FileText, Settings, LogOut, User, Package, Database, LayoutDashboard } from 'lucide-react';
-import { getSiteContent } from '@/data/config';
+import { getSiteContent } from '@/config';
 import { useToast } from '@/components/ui/use-toast';
 import { Button } from '@/components/ui/button';
 

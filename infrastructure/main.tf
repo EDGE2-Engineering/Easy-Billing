@@ -1,3 +1,20 @@
+terraform {
+    required_providers {
+    aws = {
+      source  = "hashicorp/aws"
+      version = ">= 5.30"
+    }
+  }
+
+  backend "s3" {
+    bucket         = "edge2-lims-tfstate-bucket"
+    key            = "terraform.tfstate"
+    region         = "us-east-1"
+    encrypt        = true
+  }
+}
+
+
 locals {
   tags = {
     Project = var.project_name
@@ -93,6 +110,13 @@ resource "aws_cognito_user_pool_domain" "main" {
   managed_login_version = 2 
 }
 
+resource "aws_cognito_managed_login_branding" "branding" {
+  user_pool_id = aws_cognito_user_pool.main.id
+  client_id    = aws_cognito_user_pool_client.client.id
+
+  use_cognito_provided_values = true
+}
+
 resource "aws_cognito_user_pool_ui_customization" "main" {
   client_id    = aws_cognito_user_pool_client.client.id
   user_pool_id = aws_cognito_user_pool.main.id
@@ -111,6 +135,10 @@ resource "aws_cognito_user" "admin_user" {
   }
 
   password = var.admin_password
+
+   depends_on = [
+    aws_cognito_user_pool.main
+  ]
 }
 
 resource "aws_cognito_user" "superadmin_user" {
@@ -125,6 +153,10 @@ resource "aws_cognito_user" "superadmin_user" {
   }
 
   password = var.superadmin_password
+  
+   depends_on = [
+    aws_cognito_user_pool.main
+  ]
 }
 
 # --- Cognito Identity Pool ---
@@ -138,6 +170,7 @@ resource "aws_cognito_identity_pool" "main" {
     provider_name           = aws_cognito_user_pool.main.endpoint
     server_side_token_check = false
   }
+  
 }
 
 # --- IAM Roles for Identity Pool ---
@@ -149,30 +182,17 @@ resource "aws_iam_role" "authenticated" {
     Version = "2012-10-17"
     Statement = [
       {
-        Action = "sts:AssumeRoleWithWebIdentity"
         Effect = "Allow"
-        Sid    = ""
         Principal = {
           Federated = "cognito-identity.amazonaws.com"
         }
+        Action = [
+          "sts:AssumeRoleWithWebIdentity",
+          "sts:TagSession"
+        ]
         Condition = {
-          "StringEquals" = {
+          StringEquals = {
             "cognito-identity.amazonaws.com:aud" = aws_cognito_identity_pool.main.id
-          }
-          "ForAnyValue:StringLike" = {
-            "cognito-identity.amazonaws.com:amr" = "authenticated"
-          }
-        }
-      },
-      {
-        Action = "sts:AssumeRoleWithWebIdentity"
-        Effect = "Allow"
-        Principal = {
-          Federated = "cognito-identity.amazonaws.com"
-        }
-        Condition = {
-          "StringEquals" = {
-            "cognito-identity.amazonaws.com:aud" = "us-east-1:6b4965b8-d36b-4893-b81a-f24a7c99750b"
           }
           "ForAnyValue:StringLike" = {
             "cognito-identity.amazonaws.com:amr" = "authenticated"
@@ -207,7 +227,23 @@ resource "aws_cognito_identity_pool_roles_attachment" "main" {
   identity_pool_id = aws_cognito_identity_pool.main.id
 
   roles = {
-    "authenticated" = aws_iam_role.authenticated.arn
+    authenticated = aws_iam_role.authenticated.arn
+  }
+
+  role_mapping {
+    identity_provider = "cognito-idp.${var.aws_region}.amazonaws.com/${aws_cognito_user_pool.main.id}:${aws_cognito_user_pool_client.client.id}"
+    type               = "Token"
+    ambiguous_role_resolution = "AuthenticatedRole"
+
+  }
+}
+
+resource "aws_cognito_identity_pool_provider_principal_tag" "main" {
+  identity_pool_id       = aws_cognito_identity_pool.main.id
+  identity_provider_name = aws_cognito_user_pool.main.endpoint
+  use_defaults           = false
+  principal_tags = {
+    role = "custom:role"
   }
 }
 

@@ -2,7 +2,7 @@
 import React, { createContext, useState, useEffect, useCallback, useMemo } from 'react';
 import { dynamoGenericApi } from '@/lib/dynamoGenericApi';
 import { useAuth } from '@/contexts/AuthContext';
-import { DB_TYPES } from '@/data/config';
+import { DB_TYPES } from '@/config';
 
 const ServicesContext = createContext();
 

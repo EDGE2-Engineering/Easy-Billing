@@ -9,7 +9,7 @@ import { UserCog, Lock, Save, Loader2, ShieldCheck, Eye, EyeOff, Database, Downl
 import { CognitoIdentityProviderClient, ChangePasswordCommand } from "@aws-sdk/client-cognito-identity-provider";
 import { cognitoConfig } from '@/config';
 import { useAuth } from '@/contexts/AuthContext';
-import { getSiteContent } from '@/data/config';
+import { getSiteContent } from '@/config';
 
 const PasswordField = ({ id, label, value, onChange, show, setShow, placeholder, icon: Icon, required = false }) => (
     <div className="space-y-2">

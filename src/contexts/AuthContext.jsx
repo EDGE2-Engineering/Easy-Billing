@@ -5,7 +5,7 @@ import { cognitoAuth } from '@/lib/cognitoAuth';
 import { sendTelegramNotification } from '@/lib/notifier';
 import { cognitoConfig } from '@/config';
 import { dynamoGenericApi } from '@/lib/dynamoGenericApi';
-import { DB_TYPES } from '@/data/config';
+import { DB_TYPES } from '@/config';
 
 
 const AuthContext = createContext();
@@ -15,6 +15,7 @@ const AuthProvider = ({ children }) => {
     const auth = useOidcAuth();
     const [user, setUser] = useState(null);
     const [loading, setLoading] = useState(true);
+    const hasSynced = React.useRef(false); // Ref to prevent multiple syncs per login
 
     const notifyLogin = useCallback(async (username, fullName) => {
         const message = `🔔 *Login Alert*\n\nUser: \`${fullName}\` (@${username})`;
@@ -22,7 +23,8 @@ const AuthProvider = ({ children }) => {
     }, []);
 
     const syncUserToDb = useCallback(async (userData, token) => {
-        console.log('AuthContext: Syncing user to database:', { userData, token });
+        // console.log('AuthContext: Syncing user to database:', { userData, token });
+        console.log('AuthContext: User data:', { userData });
         try {
             await dynamoGenericApi.save(DB_TYPES.USER, {
                 id: userData.id,
@@ -32,7 +34,8 @@ const AuthProvider = ({ children }) => {
                 name: userData.full_name,
                 email: userData.email,
                 role: userData.role,
-                is_active: true
+                is_active: true,
+                skipCheck: true // Avoid redundant getById
             }, token);
         } catch (error) {
             console.error('Failed to sync user to database:', error);
@@ -50,14 +53,16 @@ const AuthProvider = ({ children }) => {
         if (auth.isAuthenticated && auth.user) {
             const session = cognitoAuth.getSession(auth);
             if (session) {
-                console.log('AuthContext: Session:', { session });
+                // console.log('AuthContext: Session:', { session });
                 // Use a stable identifier (ID) to check if we actually need to update user
                 if (!user || user.id !== session.user.id) {
-                    // Only notify on first-time user recognition in this session
-                    if (!user) {
+                    // Only notify/sync if we haven't synced for THIS specific user ID yet
+                    if (!hasSynced.current || hasSynced.current !== session.user.id) {
                         notifyLogin(session.user.username, session.user.full_name);
                         syncUserToDb(session.user, session.idToken);
+                        hasSynced.current = session.user.id;
                     }
+
                     setUser({
                         ...session.user,
                         idToken: session.idToken,
@@ -65,8 +70,9 @@ const AuthProvider = ({ children }) => {
                     });
                 }
             }
-        } else if (!auth.isLoading && user) {
-            setUser(null);
+        } else if (!auth.isLoading && !auth.isAuthenticated) {
+            if (user) setUser(null);
+            hasSynced.current = false;
         }
 
         // Only update loading if it has actually changed
@@ -95,7 +101,7 @@ const AuthProvider = ({ children }) => {
         const role = user?.role?.toLowerCase();
         const result = role === 'admin' || role === 'superadmin' || role === 'super_admin' || role === 'administrator';
         // console.log(user)
-        console.log('AuthContext: isAdmin check:', { role, result });
+        // console.log('AuthContext: isAdmin check:', { role, result });
         return result;
     }, [user?.role]);
 

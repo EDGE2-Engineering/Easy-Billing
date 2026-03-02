@@ -1,26 +1,37 @@
 
-import React, { useState, useEffect, useRef } from 'react';
-import { Helmet } from 'react-helmet-async';
-import Navbar from '@/components/Navbar';
+import React, { useState, useRef, useEffect, useMemo, useCallback } from 'react';
+import { useReactToPrint } from 'react-to-print';
 import {
-    FileText, Plus, Search, Trash2, Download, Printer, Save, ArrowLeft,
-    Loader2, AlertCircle, CheckCircle2, ChevronDown, ChevronUp, Package,
-    Settings, User, Calendar, IndianRupee, Hash, BriefcaseBusiness
+    Plus, Trash2, Printer, FileText, ArrowLeft, X, Save, Loader2,
+    CreditCard, ChevronUp, ChevronDown, AlertCircle, BriefcaseBusiness,
+    TestTube, Clock, ArrowRight, LayoutDashboard, Search, Eye
 } from 'lucide-react';
+import { Link, useSearchParams, useLocation, useNavigate, useParams, useBlocker } from 'react-router-dom';
+import { format } from 'date-fns';
+import ReactSelect from 'react-select';
+
+// Local project components & contexts
+import Navbar from '@/components/Navbar';
+import Rupee from '@/components/Rupee';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { useToast } from '@/components/ui/use-toast';
-import { useNavigate, useParams } from 'react-router-dom';
-import { useAuth } from '@/contexts/AuthContext';
-import { dynamoGenericApi } from '@/lib/dynamoGenericApi';
-import { format } from 'date-fns';
-import { DB_TYPES } from '@/data/config';
-import { sendTelegramNotification } from '@/lib/notifier';
-import {
-    Select, SelectContent, SelectItem, SelectTrigger, SelectValue
-} from "@/components/ui/select";
 import { Textarea } from '@/components/ui/textarea';
+import { Label } from '@/components/ui/label';
+import { useServices } from '@/contexts/ServicesContext';
+import { useTests } from '@/contexts/TestsContext';
+import { useClients } from '@/contexts/ClientsContext';
+import { useSettings } from '@/contexts/SettingsContext';
+import { useAuth } from '@/contexts/AuthContext';
+import { useTermsAndConditions } from '@/contexts/TermsAndConditionsContext';
+import { useTechnicals } from '@/contexts/TechnicalsContext';
+import { useToast } from '@/components/ui/use-toast';
+import {
+    Select,
+    SelectContent,
+    SelectItem,
+    SelectTrigger,
+    SelectValue,
+} from "@/components/ui/select";
 import {
     AlertDialog,
     AlertDialogAction,
@@ -31,401 +42,904 @@ import {
     AlertDialogHeader,
     AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import { useReactToPrint } from 'react-to-print';
+import { cn } from '@/lib/utils';
+import { getSiteContent, DB_TYPES } from '@/config';
+import { dynamoGenericApi } from '@/lib/dynamoGenericApi';
+import { sendTelegramNotification } from '@/lib/notifier';
+import { getNextDocNumber } from '@/utils/docUtils';
 
-// Internal Components for PDF/Print
-const QuotationDocument = React.forwardRef(({ data, client, siteInfo, appUsers, isPreview = false }, ref) => {
-    const getSiteName = () => siteInfo?.siteName || "Easy Billing";
+// Helper function to convert number to words (Indian numbering system)
+const numberToWords = (num) => {
+    if (num === 0) return 'Zero';
 
-    return (
-        <div ref={ref} className="bg-white p-0 text-gray-900 font-serif">
-            {/* Multiple Pages Loop for long content */}
-            {[1].map((page) => (
-                <div key={page} className="a4-container relative p-12 min-h-[29.7cm] border-b last:border-0 print:border-0">
-                    {/* Watermark */}
-                    <div className="absolute inset-0 flex items-center justify-center opacity-[0.03] pointer-events-none select-none overflow-hidden">
-                        <span className="text-[120px] font-bold -rotate-45 uppercase tracking-widest whitespace-nowrap">
-                            {getSiteName()}
-                        </span>
-                    </div>
+    const ones = ['', 'One', 'Two', 'Three', 'Four', 'Five', 'Six', 'Seven', 'Eight', 'Nine'];
+    const tens = ['', '', 'Twenty', 'Thirty', 'Forty', 'Fifty', 'Sixty', 'Seventy', 'Eighty', 'Ninety'];
+    const teens = ['Ten', 'Eleven', 'Twelve', 'Thirteen', 'Fourteen', 'Fifteen', 'Sixteen', 'Seventeen', 'Eighteen', 'Nineteen'];
 
-                    {/* Header */}
-                    <div className="flex justify-between items-start border-b-2 border-primary pb-6 mb-8 relative z-10">
-                        <div>
-                            <img src={`${import.meta.env.BASE_URL}edge2-logo.png`} alt="Logo" className="h-16 w-auto mb-2" />
-                            <h1 className="text-xl font-bold text-primary">{getSiteName()}</h1>
-                            <p className="text-xs text-gray-500 max-w-xs">{siteInfo?.address || "Engineering Solutions Provider"}</p>
-                        </div>
-                        <div className="text-right">
-                            <h2 className="text-3xl font-black text-gray-200 uppercase tracking-tighter mb-1">Quotation</h2>
-                            <p className="text-sm font-bold">No: <span className="font-mono">{data.quotation_no}</span></p>
-                            <p className="text-sm">Date: {format(new Date(data.created_at || new Date()), 'dd/MM/yyyy')}</p>
-                        </div>
-                    </div>
+    const convertLessThanThousand = (n) => {
+        if (n === 0) return '';
+        if (n < 10) return ones[n];
+        if (n < 20) return teens[n - 10];
+        if (n < 100) return tens[Math.floor(n / 10)] + (n % 10 !== 0 ? ' ' + ones[n % 10] : '');
+        return ones[Math.floor(n / 100)] + ' Hundred' + (n % 100 !== 0 ? ' and ' + convertLessThanThousand(n % 100) : '');
+    };
 
-                    {/* Client Info */}
-                    <div className="grid grid-cols-2 gap-12 mb-8 relative z-10">
-                        <div>
-                            <h3 className="text-xs font-bold uppercase text-gray-400 mb-2 border-b pb-1">To:</h3>
-                            <p className="font-bold text-lg">{client?.client_name || "Valued Client"}</p>
-                            <p className="text-sm text-gray-600 whitespace-pre-wrap">{client?.address}</p>
-                            {client?.gst_no && <p className="text-sm font-mono mt-1">GSTIN: {client.gst_no}</p>}
-                        </div>
-                        <div className="text-right">
-                            <h3 className="text-xs font-bold uppercase text-gray-400 mb-2 border-b pb-1 text-right">Project Details:</h3>
-                            <p className="font-bold">{data.project_name || "N/A"}</p>
-                            <p className="text-sm text-gray-600">Location: {data.location || "N/A"}</p>
-                            {data.reference_no && <p className="text-sm mt-1italic">Ref: {data.reference_no}</p>}
-                        </div>
-                    </div>
+    const [integerPart, decimalPart] = num.toFixed(2).split('.');
+    const intNum = parseInt(integerPart);
 
-                    {/* Items Table */}
-                    <div className="mb-8 relative z-10">
-                        <table className="w-full border-collapse">
-                            <thead>
-                                <tr className="bg-gray-100 border-y-2 border-gray-200">
-                                    <th className="py-2 px-3 text-left text-xs font-bold uppercase">#</th>
-                                    <th className="py-2 px-3 text-left text-xs font-bold uppercase">Description of Services</th>
-                                    <th className="py-2 px-3 text-right text-xs font-bold uppercase">Qty</th>
-                                    <th className="py-2 px-3 text-right text-xs font-bold uppercase">Unit</th>
-                                    <th className="py-2 px-3 text-right text-xs font-bold uppercase">Rate</th>
-                                    <th className="py-2 px-3 text-right text-xs font-bold uppercase">Amount</th>
-                                </tr>
-                            </thead>
-                            <tbody className="divide-y divide-gray-100">
-                                {data.items?.map((item, idx) => (
-                                    <tr key={idx}>
-                                        <td className="py-3 px-3 text-sm">{idx + 1}</td>
-                                        <td className="py-3 px-3">
-                                            <p className="font-bold text-sm">{item.description}</p>
-                                            {item.details && <p className="text-xs text-gray-500 mt-1">{item.details}</p>}
-                                        </td>
-                                        <td className="py-3 px-3 text-right text-sm">{item.quantity}</td>
-                                        <td className="py-3 px-3 text-right text-sm">{item.unit}</td>
-                                        <td className="py-3 px-3 text-right text-sm font-mono">{parseFloat(item.rate).toLocaleString('en-IN', { minimumFractionDigits: 2 })}</td>
-                                        <td className="py-3 px-3 text-right text-sm font-bold font-mono">{parseFloat(item.amount).toLocaleString('en-IN', { minimumFractionDigits: 2 })}</td>
-                                    </tr>
-                                ))}
-                            </tbody>
-                            <tfoot className="border-t-2 border-gray-200">
-                                <tr>
-                                    <td colSpan="5" className="py-2 px-3 text-right text-sm font-bold">Sub Total:</td>
-                                    <td className="py-2 px-3 text-right text-sm font-bold font-mono">{data.sub_total?.toLocaleString('en-IN', { minimumFractionDigits: 2 })}</td>
-                                </tr>
-                                {data.gst_amount > 0 && (
-                                    <tr>
-                                        <td colSpan="5" className="py-2 px-3 text-right text-sm font-bold">GST ({data.gst_percentage}%):</td>
-                                        <td className="py-2 px-3 text-right text-sm font-bold font-mono">{data.gst_amount?.toLocaleString('en-IN', { minimumFractionDigits: 2 })}</td>
-                                    </tr>
-                                )}
-                                <tr className="bg-primary/5">
-                                    <td colSpan="5" className="py-4 px-3 text-right text-lg font-black uppercase text-primary">Grand Total:</td>
-                                    <td className="py-4 px-3 text-right text-lg font-black text-primary font-mono">₹{data.total_amount?.toLocaleString('en-IN', { minimumFractionDigits: 2 })}</td>
-                                </tr>
-                            </tfoot>
-                        </table>
-                    </div>
+    if (intNum === 0) {
+        return decimalPart && parseInt(decimalPart) > 0
+            ? 'Zero Rupees and ' + convertLessThanThousand(parseInt(decimalPart)) + ' Paise'
+            : 'Zero Rupees';
+    }
 
-                    {/* Terms & Conditions (derived automatically) */}
-                    <div className="grid grid-cols-1 gap-8 mb-12 relative z-10">
-                        <div>
-                            <h3 className="text-xs font-bold uppercase text-primary mb-3 border-b border-primary/20 pb-1">Terms & Conditions</h3>
-                            <ul className="text-xs text-gray-600 space-y-1.5 list-disc pl-4">
-                                {data.terms?.length > 0 ? (
-                                    data.terms.map((t, i) => <li key={i}>{t}</li>)
-                                ) : (
-                                    <>
-                                        <li>Standard payment terms apply (100% advance or as agreed).</li>
-                                        <li>GST at 18% extra as applicable.</li>
-                                        <li>Validity of this quotation is 30 days.</li>
-                                    </>
-                                )}
-                            </ul>
-                        </div>
-                    </div>
+    let result = '';
+    const remainingAfterCrore = intNum % 10000000;
+    if (intNum >= 10000000) result += convertLessThanThousand(Math.floor(intNum / 10000000)) + ' Crore ';
 
-                    {/* Footer - Signatures */}
-                    <div className="mt-16 pt-8 border-t border-gray-100 flex justify-between items-end relative z-10">
-                        <div className="text-xs text-gray-400 italic">
-                            Generated by {(() => {
-                                const u = appUsers.find(u => u.username === data.created_by || u.id === data.created_by || u.sub === data.created_by || u.email === data.created_by);
-                                return u ? (u.full_name || u.fullName || u.name) : data.created_by;
-                            })()}
-                        </div>
-                        <div className="text-center w-48">
-                            <div className="h-16 border-b border-gray-300 mb-2"></div>
-                            <p className="text-xs font-bold uppercase">Authorized Signatory</p>
-                            <p className="text-[10px] text-gray-500">{getSiteName()}</p>
-                        </div>
-                    </div>
-                </div>
-            ))}
-        </div>
-    );
-});
+    const lakhsPart = Math.floor(remainingAfterCrore / 100000);
+    if (lakhsPart > 0) result += convertLessThanThousand(lakhsPart) + ' Lakh ';
+    const thousandsPart = Math.floor((remainingAfterCrore % 100000) / 1000);
+    if (thousandsPart > 0) result += convertLessThanThousand(thousandsPart) + ' Thousand ';
+    const remainder = remainingAfterCrore % 1000;
+    if (remainder > 0) result += convertLessThanThousand(remainder);
+
+    result = result.trim() + ' Rupees';
+    if (decimalPart && parseInt(decimalPart) > 0) result += ' and ' + convertLessThanThousand(parseInt(decimalPart)) + ' Paise';
+    return result + ' Only';
+};
 
 const NewQuotationPage = () => {
-    const { user, idToken, isAdmin } = useAuth();
-    const { id } = useParams();
-    const navigate = useNavigate();
+    const { services, clientServicePrices } = useServices();
+    const { tests, clientTestPrices } = useTests();
+    const { clients } = useClients();
+    const { settings } = useSettings();
+    const { terms } = useTermsAndConditions();
+    const { technicals } = useTechnicals();
+    const { user, isAdmin, idToken, isStandard } = useAuth();
     const { toast } = useToast();
-    const printRef = useRef();
+    const [searchParams, setSearchParams] = useSearchParams();
+    const location = useLocation();
+    const { id: pathId } = useParams();
+    const navigate = useNavigate();
 
-    const [loading, setLoading] = useState(true);
-    const [saving, setSaving] = useState(false);
-    const [clients, setClients] = useState([]);
-    const [services, setServices] = useState([]);
-    const [appUsers, setAppUsers] = useState([]);
-    const [formData, setFormData] = useState({
-        quotation_no: `QT-${Date.now()}`,
-        client_id: '',
-        project_name: '',
-        location: '',
-        reference_no: '',
-        items: [
-            { description: '', details: '', quantity: 1, unit: 'Nos', rate: 0, amount: 0 }
-        ],
-        gst_percentage: 18,
-        sub_total: 0,
-        gst_amount: 0,
-        total_amount: 0,
-        terms: []
-    });
+    const [savedRecordId, setSavedRecordId] = useState(pathId || searchParams.get('id') || null);
+    const [loadedDocumentType, setLoadedDocumentType] = useState(null);
+    const [isSavingRecord, setIsSavingRecord] = useState(false);
+    const [lastSavedData, setLastSavedData] = useState(null);
 
-    const fetchInitialData = async () => {
-        if (!idToken) return;
-        setLoading(true);
+    const taxCGST = settings?.tax_cgst ? Number(settings.tax_cgst) : 9;
+    const taxSGST = settings?.tax_sgst ? Number(settings.tax_sgst) : 9;
+    const taxTotalPercent = taxCGST + taxSGST;
+
+    const defaultQuoteDetails = useMemo(() => ({
+        clientName: '',
+        clientAddress: '',
+        contractorName: '',
+        contractorAddress: '',
+        projectName: '',
+        projectAddress: '',
+        email: '',
+        phone: '',
+        name: '',
+        date: format(new Date(), 'yyyy-MM-dd'),
+        quoteNumber: '',
+        generatedBy: user?.fullName || user?.full_name || user?.name || '',
+        paymentDate: '',
+        paymentMode: '',
+        paymentAmount: '',
+        bankDetails: '',
+        selectedTcTypes: [],
+        selectedTechTypes: []
+    }), [user]);
+
+    const [quoteDetails, setQuoteDetails] = useState(defaultQuoteDetails);
+    const [items, setItems] = useState([]);
+    const [newItemType, setNewItemType] = useState('service');
+    const [selectedItemId, setSelectedItemId] = useState('');
+    const [qty, setQty] = useState(1);
+    const [documentType, setDocumentType] = useState('Quotation');
+    const [discount, setDiscount] = useState(0);
+    const [clientNameSelection, setClientNameSelection] = useState('');
+    const [customClientName, setCustomClientName] = useState('');
+    const [contactSelectionIdx, setContactSelectionIdx] = useState('');
+    const [recordStatus, setRecordStatus] = useState('QUOTATION_CREATED');
+
+    const currentData = useMemo(() => ({
+        quoteDetails,
+        items,
+        documentType,
+        discount
+    }), [quoteDetails, items, documentType, discount]);
+
+    const derivedTcTypes = useMemo(() => {
+        const itemTcTypes = items.flatMap(item => item.tcList || []);
+        const legacyTcTypes = quoteDetails.selectedTcTypes || [];
+        return [...new Set([...itemTcTypes, ...legacyTcTypes])];
+    }, [items, quoteDetails.selectedTcTypes]);
+
+    const derivedTechTypes = useMemo(() => {
+        const itemTechTypes = items.flatMap(item => item.techList || []);
+        const legacyTechTypes = quoteDetails.selectedTechTypes || [];
+        return [...new Set([...itemTechTypes, ...legacyTechTypes])];
+    }, [items, quoteDetails.selectedTechTypes]);
+
+    const isDirty = useMemo(() => {
+        if (!lastSavedData) return false;
         try {
-            const [clientsData, servicesData, usersData] = await Promise.all([
-                dynamoGenericApi.listByType(DB_TYPES.CLIENT, idToken),
-                dynamoGenericApi.listByType(DB_TYPES.SERVICE, idToken),
-                dynamoGenericApi.listByType(DB_TYPES.USER, idToken)
-            ]);
-            setClients(clientsData || []);
-            setServices(servicesData || []);
-            setAppUsers(usersData || []);
+            return JSON.stringify(currentData) !== lastSavedData;
+        } catch (e) {
+            return false;
+        }
+    }, [currentData, lastSavedData]);
 
-            if (id && id !== 'new') {
-                const existing = await dynamoGenericApi.get(id, idToken);
-                if (existing) {
-                    setFormData(existing);
-                }
+    useEffect(() => {
+        const handleBeforeUnload = (e) => {
+            if (isDirty) {
+                e.preventDefault();
+                e.returnValue = '';
             }
-        } catch (err) {
-            console.error("Error fetching data:", err);
-            toast({ title: "Error", description: "Failed to load required data", variant: "destructive" });
-        } finally {
-            setLoading(false);
-        }
-    };
+        };
+        window.addEventListener('beforeunload', handleBeforeUnload);
+        return () => window.removeEventListener('beforeunload', handleBeforeUnload);
+    }, [isDirty]);
 
-    useEffect(() => {
-        fetchInitialData();
-    }, [idToken, id]);
+    const blocker = useBlocker(
+        ({ nextLocation }) =>
+            isDirty && !isSavingRecord && (nextLocation.pathname !== location.pathname || nextLocation.state?.forceReset)
+    );
 
-    const handleAddItem = () => {
-        setFormData(prev => ({
-            ...prev,
-            items: [...prev.items, { description: '', details: '', quantity: 1, unit: 'Nos', rate: 0, amount: 0 }]
+    const handleReset = useCallback(() => {
+        setQuoteDetails(defaultQuoteDetails);
+        setItems([]);
+        setNewItemType('service');
+        setSelectedItemId('');
+        setQty(1);
+        setDocumentType('Quotation');
+        setDiscount(0);
+        setClientNameSelection('');
+        setCustomClientName('');
+        setContactSelectionIdx('');
+        setSavedRecordId(null);
+        setLoadedDocumentType(null);
+        setRecordStatus('QUOTATION_CREATED');
+        setLastSavedData(JSON.stringify({
+            quoteDetails: defaultQuoteDetails,
+            items: [],
+            documentType: 'Quotation',
+            discount: 0
         }));
-    };
-
-    const handleRemoveItem = (idx) => {
-        const newItems = formData.items.filter((_, i) => i !== idx);
-        setFormData(prev => ({ ...prev, items: newItems }));
-    };
-
-    const handleItemChange = (idx, field, value) => {
-        const newItems = [...formData.items];
-        newItems[idx][field] = value;
-
-        if (field === 'quantity' || field === 'rate') {
-            newItems[idx].amount = (parseFloat(newItems[idx].quantity) || 0) * (parseFloat(newItems[idx].rate) || 0);
-        }
-
-        setFormData(prev => ({ ...prev, items: newItems }));
-    };
+        navigate('/doc/new', { replace: true });
+    }, [defaultQuoteDetails, navigate]);
 
     useEffect(() => {
-        const sub_total = formData.items.reduce((sum, item) => sum + (item.amount || 0), 0);
-        const gst_amount = (sub_total * (formData.gst_percentage || 0)) / 100;
-        const total_amount = sub_total + gst_amount;
+        if (location.state?.forceReset) {
+            handleReset();
+        }
+    }, [location.state?.forceReset, handleReset]);
 
-        setFormData(prev => ({ ...prev, sub_total, gst_amount, total_amount }));
-    }, [formData.items, formData.gst_percentage]);
+    const CLIENT_OPTIONS = useMemo(() => [
+        ...(clients || []).map(client => ({
+            value: client.clientName,
+            label: client.clientName
+        })),
+        { value: 'Other', label: 'Other (Custom)' }
+    ], [clients]);
 
-    const handleSave = async (isPrint = false) => {
-        if (!formData.client_id) {
-            toast({ title: "Error", description: "Please select a client", variant: "destructive" });
+    useEffect(() => {
+        if (clients.length > 0 && quoteDetails.clientName) {
+            const foundClient = clients.find(c => (c.clientName || '').trim() === quoteDetails.clientName.trim());
+            if (foundClient) {
+                if (clientNameSelection !== foundClient.clientName) {
+                    setClientNameSelection(foundClient.clientName);
+                    const contacts = foundClient.contacts || [];
+                    const primaryIdx = contacts.findIndex(con => con.is_primary);
+                    const currentIdx = primaryIdx >= 0 ? primaryIdx : (contacts.length > 0 ? 0 : -1);
+                    if (currentIdx >= 0 && contactSelectionIdx === '') {
+                        setContactSelectionIdx(currentIdx.toString());
+                    }
+                }
+            } else if (quoteDetails.clientName !== '' && !clientNameSelection) {
+                setClientNameSelection('Other');
+                setCustomClientName(quoteDetails.clientName);
+            }
+        }
+    }, [clients, quoteDetails.clientName, clientNameSelection, contactSelectionIdx]);
+
+    useEffect(() => {
+        const loadFromDynamo = async (id) => {
+            if (!idToken) return;
+            try {
+                const data = await dynamoGenericApi.get(id, idToken);
+                if (data) {
+                    const content = data.quotation || {};
+                    const loadedQuoteDetails = content.quoteDetails || content || {};
+                    const loadedItems = content.items || [];
+                    const loadedDocType = data.document_type || content.documentType || 'Quotation';
+                    const loadedDiscount = content.discount || 0;
+
+                    setQuoteDetails({
+                        ...defaultQuoteDetails,
+                        ...loadedQuoteDetails,
+                        quoteNumber: data.quote_number || loadedQuoteDetails.quoteNumber
+                    });
+                    setItems(loadedItems);
+                    setDocumentType(loadedDocType);
+                    setLoadedDocumentType(loadedDocType);
+                    setDiscount(loadedDiscount);
+                    setSavedRecordId(data.id);
+                    setRecordStatus(data.status || 'QUOTATION_CREATED');
+
+                    const snapshot = {
+                        quoteDetails: {
+                            ...defaultQuoteDetails,
+                            ...loadedQuoteDetails,
+                            quoteNumber: data.quote_number || loadedQuoteDetails.quoteNumber
+                        },
+                        items: loadedItems,
+                        documentType: loadedDocType,
+                        discount: loadedDiscount
+                    };
+                    setLastSavedData(JSON.stringify(snapshot));
+                }
+            } catch (err) {
+                console.error('Error loading record:', err);
+                toast({ title: "Error", description: "Failed to load record.", variant: "destructive" });
+            }
+        };
+
+        const id = pathId || searchParams.get('id');
+        if (id && !isSavingRecord) {
+            loadFromDynamo(id);
+        }
+    }, [searchParams, pathId, isSavingRecord, idToken, defaultQuoteDetails, toast]);
+
+    const handleSaveToDatabase = async () => {
+        if (!idToken) {
+            toast({ title: "Authentication Required", description: "You must be logged in to save.", variant: "destructive" });
             return;
         }
 
-        setSaving(true);
+        setIsSavingRecord(true);
         try {
-            const quotationData = {
-                ...formData,
-                created_by: formData.created_by || user.id || user.name || user.username,
+            const isTypeChanged = savedRecordId && loadedDocumentType && documentType !== loadedDocumentType;
+            let docNumber = quoteDetails.quoteNumber;
+            if ((!savedRecordId || isTypeChanged) && (!docNumber || isTypeChanged)) {
+                docNumber = await getNextDocNumber(dynamoGenericApi, documentType, idToken);
+            }
+
+            const updatedQuoteDetails = { ...quoteDetails, quoteNumber: docNumber };
+            const selectedClient = clients.find(c => c.clientName === quoteDetails.clientName);
+
+            const recordData = {
+                id: isTypeChanged ? `doc_${Date.now()}` : (savedRecordId || `job_${crypto.randomUUID()}`),
+                job_order_no: docNumber,
+                quote_number: docNumber,
+                document_type: documentType,
+                client_id: selectedClient?.id || '',
+                client_name: quoteDetails.clientName,
+                project_name: quoteDetails.projectName,
+                po_wo_number: documentType === 'Quotation' ? '' : quoteDetails.quoteNumber,
+                status: (!savedRecordId || isTypeChanged)
+                    ? (documentType === 'Quotation' ? 'QUOTATION_CREATED' : 'RECEIVED')
+                    : (recordStatus || 'RECEIVED'),
+                created_at: new Date().toISOString(),
+                quotation: {
+                    quoteDetails: updatedQuoteDetails,
+                    items,
+                    discount,
+                    documentType,
+                    quotation_no: docNumber
+                },
+                created_by: user.id || user.username || 'unknown',
                 updated_at: new Date().toISOString()
             };
 
-            // NEW LOGIC: Always treat quotations as part of a Job
-            // We use patch to avoid overwriting material_inward or report data
-            const record = await dynamoGenericApi.patch(quotationData.id || `JOB-${Date.now()}`, {
-                quotation: quotationData
-            }, idToken);
+            await dynamoGenericApi.save(DB_TYPES.JOB, recordData, idToken);
 
-            toast({ title: "Success", description: "Quotation saved successfully" });
+            setSavedRecordId(recordData.id);
+            setLoadedDocumentType(documentType);
+            setQuoteDetails(updatedQuoteDetails);
 
-            if (!id || id === 'new') {
-                navigate(`/quotation/${record.id}`);
+            const snapshot = {
+                quoteDetails: updatedQuoteDetails,
+                items,
+                documentType,
+                discount
+            };
+            setLastSavedData(JSON.stringify(snapshot));
+
+            toast({
+                title: "Success",
+                description: (savedRecordId && !isTypeChanged) ? `${documentType} updated.` : `${documentType} saved as ${docNumber}.`
+            });
+
+            if (!savedRecordId || isTypeChanged) {
+                navigate(`/doc/${recordData.id}`, { replace: true });
             }
 
-            // Telegram notification
-            const client = clients.find(c => c.id === formData.client_id);
-            const msg = `🧾 *Quotation Saved*\nNo: \`${formData.quotation_no}\`\nClient: \`${client?.client_name}\`\nAmount: \`₹${formData.total_amount.toLocaleString()}\`\nBy: \`${user.full_name || user.name || user.username}\``;
-            sendTelegramNotification(msg);
-
+            try {
+                const action = (savedRecordId && !isTypeChanged) ? "Updated" : "Created";
+                const emoji = (savedRecordId && !isTypeChanged) ? "📝" : "📄";
+                const message = `${emoji} *${documentType} ${action}*\n\n` +
+                    `Number: \`${docNumber}\`\n` +
+                    `Client: \`${quoteDetails.clientName}\`\n` +
+                    `${action} By: \`${user.fullName || user.full_name || user.name}\``;
+                await sendTelegramNotification(message);
+            } catch (e) { }
         } catch (err) {
-            console.error("Save failed:", err);
-            toast({ title: "Error", description: "Failed to save quotation", variant: "destructive" });
+            console.error('Save Error:', err);
+            toast({ title: "Error", description: err.message || "Failed to save.", variant: "destructive" });
         } finally {
-            setSaving(false);
+            setIsSavingRecord(false);
         }
     };
 
-    const handlePrint = useReactToPrint({
-        content: () => printRef.current,
-        documentTitle: `Quotation_${formData.quotation_no}`,
-        onAfterPrint: () => {
-            const client = clients.find(c => c.id === formData.client_id);
-            sendTelegramNotification(`🖨️ *Quotation Printed*\nNo: \`${formData.quotation_no}\`\nClient: \`${client?.client_name}\``);
+    const getAppropiatePrice = (itemId, type, clientId) => {
+        if (!clientId) {
+            return (type === 'service' ? services : tests).find(s => s.id === itemId)?.price || 0;
         }
+        if (type === 'service') {
+            const cp = clientServicePrices.find(p => p.client_id === clientId && p.service_id === itemId);
+            return cp ? cp.price : (services.find(s => s.id === itemId)?.price || 0);
+        } else {
+            const cp = clientTestPrices.find(p => p.client_id === clientId && p.test_id === itemId);
+            return cp ? cp.price : (tests.find(t => t.id === itemId)?.price || 0);
+        }
+    };
+
+    const componentRef = useRef(null);
+    const handlePrint = useReactToPrint({
+        contentRef: componentRef,
+        documentTitle: `${documentType}_${quoteDetails.quoteNumber}`,
     });
 
-    if (loading) {
-        return <div className="min-h-screen flex items-center justify-center"><Loader2 className="w-8 h-8 animate-spin text-primary" /></div>;
-    }
+    const triggerPrint = async () => {
+        if (!quoteDetails.quoteNumber) {
+            toast({ title: "Save Required", description: "Please save the document before printing.", variant: "destructive" });
+            return;
+        }
+        try {
+            const message = `🖨️ *Print Action*\n\n` +
+                `Doc: \`${documentType}\`\nNo: \`${quoteDetails.quoteNumber}\`\nClient: \`${quoteDetails.clientName}\``;
+            await sendTelegramNotification(message);
+        } catch (e) { }
+        handlePrint();
+    };
 
-    const selectedClient = clients.find(c => c.id === formData.client_id);
+    const handleAddItem = () => {
+        if (!selectedItemId) return;
+        const itemData = (newItemType === 'service' ? services : tests).find(i => i.id === selectedItemId);
+        if (itemData) {
+            const clientId = clients.find(c => c.clientName === quoteDetails.clientName)?.id;
+            const finalPrice = getAppropiatePrice(selectedItemId, newItemType, clientId);
+            setItems(prev => [...prev, {
+                id: Date.now(),
+                sourceId: selectedItemId,
+                type: newItemType,
+                description: newItemType === 'service' ? itemData.serviceType : `${itemData.testType} - ${itemData.materials}`,
+                unit: newItemType === 'service' ? (itemData.unit || 'Nos') : 'Test',
+                price: Number(finalPrice),
+                qty: Number(qty),
+                total: Number(finalPrice) * Number(qty),
+                hsnCode: itemData.hsnCode || '',
+                tcList: itemData.tcList || [],
+                techList: itemData.techList || [],
+                ...(newItemType === 'service' && {
+                    methodOfSampling: itemData.methodOfSampling || 'NA',
+                    numBHs: itemData.numBHs || 0,
+                    measure: itemData.measure || 'NA'
+                })
+            }]);
+            setSelectedItemId('');
+            setQty(1);
+        }
+    };
+
+    const handleDeleteItem = (id) => setItems(items.filter(item => item.id !== id));
+    const handleMoveItemUp = (idx) => {
+        if (idx === 0) return;
+        const newItems = [...items];
+        [newItems[idx - 1], newItems[idx]] = [newItems[idx], newItems[idx - 1]];
+        setItems(newItems);
+    };
+    const handleMoveItemDown = (idx) => {
+        if (idx === items.length - 1) return;
+        const newItems = [...items];
+        [newItems[idx + 1], newItems[idx]] = [newItems[idx], newItems[idx + 1]];
+        setItems(newItems);
+    };
+
+    const calculateTotal = () => items.reduce((sum, item) => sum + item.total, 0);
+
+    // Site configuration for pagination
+    const siteContent = getSiteContent();
+    const p = siteContent.pagination || {};
+    const ITEMS_PER_FIRST_PAGE = p.itemsPerFirstPage || 5;
+    const ITEMS_PER_CONTINUATION_PAGE = p.itemsPerContinuationPage || 7;
+    const TC_ITEMS_PER_FIRST_PAGE = p.tcItemsFirstPage || 15;
+    const TC_ITEMS_PER_CONTINUATION_PAGE = p.tcItemsContinuationPage || 20;
+    const TECH_ITEMS_PER_FIRST_PAGE = p.techItemsFirstPage || 15;
+    const TECH_ITEMS_PER_CONTINUATION_PAGE = p.techItemsContinuationPage || 20;
+
+    const paginateItems = () => {
+        const pages = [];
+        if (items.length === 0) {
+            pages.push({ items: [], pageNumber: 1, isFirstPage: true, isContinuation: false });
+        } else if (items.length <= ITEMS_PER_FIRST_PAGE) {
+            pages.push({ items, pageNumber: 1, isFirstPage: true, isContinuation: false });
+        } else {
+            pages.push({ items: items.slice(0, ITEMS_PER_FIRST_PAGE), pageNumber: 1, isFirstPage: true, isContinuation: false });
+            let remaining = items.slice(ITEMS_PER_FIRST_PAGE);
+            let pNum = 2;
+            while (remaining.length > 0) {
+                pages.push({ items: remaining.slice(0, ITEMS_PER_CONTINUATION_PAGE), pageNumber: pNum, isFirstPage: false, isContinuation: true });
+                remaining = remaining.slice(ITEMS_PER_CONTINUATION_PAGE);
+                pNum++;
+            }
+        }
+        return pages;
+    };
+
+    const paginateTerms = () => {
+        if (!derivedTcTypes.length) return [];
+        const pages = [];
+        let curIdx = 0;
+        const total = derivedTcTypes.length;
+
+        const processPage = (limit, isFirst) => {
+            const pageTypes = derivedTcTypes.slice(curIdx, curIdx + limit);
+            const pageItems = [];
+            pageTypes.forEach(type => {
+                const ts = (terms || []).filter(t => t.type === type);
+                if (ts.length) {
+                    if (type.toLowerCase() !== 'general') pageItems.push({ type: 'header', text: type, id: `h-${type}` });
+                    ts.forEach(t => pageItems.push({ type: 'term', text: t.text, id: t.id }));
+                    pageItems.push({ type: 'spacer', id: `s-${type}` });
+                }
+            });
+            if (pageItems.length && pageItems[pageItems.length - 1].type === 'spacer') pageItems.pop();
+            pages.push({ items: pageItems, pageNumber: pages.length + 1, isFirstPage: isFirst });
+            curIdx += limit;
+        };
+
+        processPage(TC_ITEMS_PER_FIRST_PAGE, true);
+        while (curIdx < total) processPage(TC_ITEMS_PER_CONTINUATION_PAGE, false);
+        return pages;
+    };
+
+    const paginateTechnicals = () => {
+        if (!derivedTechTypes.length) return [];
+        const pages = [];
+        let curIdx = 0;
+        const total = derivedTechTypes.length;
+
+        const processPage = (limit, isFirst) => {
+            const pageTypes = derivedTechTypes.slice(curIdx, curIdx + limit);
+            const pageItems = [];
+            pageTypes.forEach(type => {
+                const tks = (technicals || []).filter(t => t.type === type);
+                if (tks.length) {
+                    pageItems.push({ type: 'header', text: type, id: `th-${type}` });
+                    tks.forEach(tk => pageItems.push({ type: 'tech', text: tk.text, id: tk.id }));
+                    pageItems.push({ type: 'spacer', id: `ts-${type}` });
+                }
+            });
+            if (pageItems.length && pageItems[pageItems.length - 1].type === 'spacer') pageItems.pop();
+            pages.push({ items: pageItems, pageNumber: pages.length + 1, isFirstPage: isFirst });
+            curIdx += limit;
+        };
+
+        processPage(TECH_ITEMS_PER_FIRST_PAGE, true);
+        while (curIdx < total) processPage(TECH_ITEMS_PER_CONTINUATION_PAGE, false);
+        return pages;
+    };
+
+    const itemPages = paginateItems();
+    const tcPages = paginateTerms();
+    const techPages = paginateTechnicals();
+    const totalItemPages = itemPages.length;
+    const totalPages = totalItemPages + 1 + tcPages.length + techPages.length; // +1 for Bank page
 
     return (
-        <div className="min-h-screen bg-gray-50 flex flex-col">
-            <Helmet><title>{id && id !== 'new' ? 'Edit' : 'New'} Quotation | EDGE2</title></Helmet>
-            <Navbar />
+        <div className="h-screen flex flex-col bg-gray-50 overflow-hidden">
+            <div className="shrink-0"><Navbar isDirty={isDirty} isSaving={isSavingRecord} /></div>
 
-            <main className="flex-grow container mx-auto px-4 py-8">
-                <div className="flex flex-col lg:flex-row gap-8">
-                    {/* Form Section */}
-                    <div className="flex-1 space-y-6">
-                        <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 flex justify-between items-center">
-                            <div className="flex items-center gap-3">
-                                <Button variant="ghost" size="icon" onClick={() => navigate('/settings/accounts')} className="rounded-full">
-                                    <ArrowLeft className="w-5 h-5 text-gray-400" />
-                                </Button>
-                                <h1 className="text-2xl font-bold text-gray-900">{id && id !== 'new' ? 'Edit' : 'New'} Quotation</h1>
-                            </div>
-                            <div className="flex gap-3">
-                                <Button variant="outline" onClick={handlePrint} className="gap-2">
-                                    <Printer className="w-4 h-4" /> Print
-                                </Button>
-                                <Button onClick={() => handleSave()} disabled={saving} className="bg-primary hover:bg-primary-dark text-white gap-2">
-                                    {saving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
-                                    Save Quotation
-                                </Button>
-                            </div>
-                        </div>
+            <div className="flex-1 flex flex-col min-h-0 container mx-auto px-4 py-4">
+                <div className="flex justify-between items-center mb-4 shrink-0">
+                    <div className="flex items-center gap-4">
+                        {!isStandard() && (
+                            <button onClick={() => navigate(-1)} className="text-gray-500 hover:text-gray-900 transition-colors">
+                                <ArrowLeft className="w-6 h-6" />
+                            </button>
+                        )}
+                        <h1 className="text-xl font-bold text-gray-900">{savedRecordId ? 'Update' : 'Create new'} {documentType}</h1>
+                    </div>
+                    <div className="flex items-center gap-2">
+                        <Button onClick={handleSaveToDatabase} disabled={isSavingRecord} className="bg-green-800 hover:bg-green-900 text-white">
+                            {isSavingRecord ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : <Save className="w-4 h-4 mr-2" />}
+                            {savedRecordId ? 'Update' : 'Save'} {documentType}
+                        </Button>
+                        <Button onClick={triggerPrint} className="bg-blue-800 hover:bg-blue-900 text-white">
+                            <Printer className="w-4 h-4 mr-2" /> Print / PDF
+                        </Button>
+                    </div>
+                </div>
 
-                        <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                            <div className="space-y-2">
-                                <Label>Quotation Number</Label>
-                                <Input value={formData.quotation_no} onChange={e => setFormData(prev => ({ ...prev, quotation_no: e.target.value }))} className="font-mono bg-gray-50" />
-                            </div>
-                            <div className="space-y-2">
-                                <Label>Client *</Label>
-                                <Select value={formData.client_id} onValueChange={val => setFormData(prev => ({ ...prev, client_id: val }))}>
-                                    <SelectTrigger><SelectValue placeholder="Select Client" /></SelectTrigger>
+                <div className="flex-1 overflow-y-auto min-h-0 grid grid-cols-1 lg:grid-cols-3 gap-2 pb-8 pr-2 custom-scrollbar">
+                    {/* Left Column: Editor */}
+                    <div className="lg:col-span-1 space-y-2">
+                        <div className="bg-white p-4 rounded-xl shadow-sm border border-gray-100">
+                            <div className="mb-4">
+                                <Label>Document Type</Label>
+                                <Select value={documentType} onValueChange={setDocumentType}>
+                                    <SelectTrigger><SelectValue placeholder="Select Type" /></SelectTrigger>
                                     <SelectContent>
-                                        {clients.map(c => <SelectItem key={c.id} value={c.id}>{c.client_name}</SelectItem>)}
+                                        <SelectItem value="Quotation">Quotation</SelectItem>
+                                        <SelectItem value="Tax Invoice">Tax Invoice</SelectItem>
+                                        <SelectItem value="Proforma Invoice">Proforma Invoice</SelectItem>
+                                        <SelectItem value="Purchase Order">Purchase Order</SelectItem>
+                                        <SelectItem value="Delivery Challan">Delivery Challan</SelectItem>
                                     </SelectContent>
                                 </Select>
                             </div>
-                            <div className="space-y-2">
-                                <Label>Project Name</Label>
-                                <Input value={formData.project_name} onChange={e => setFormData(prev => ({ ...prev, project_name: e.target.value }))} placeholder="e.g. Metro Rail Project" />
+
+                            <div className="mb-4">
+                                <Label>{documentType} Number</Label>
+                                <Input value={quoteDetails.quoteNumber || ''} readOnly placeholder="Auto-generated on save" className="bg-gray-50 cursor-not-allowed" />
+                                {!quoteDetails.quoteNumber && <p className="text-[10px] text-red-500 mt-1 italic">* Number will be generated when you save.</p>}
+                            </div>
+
+                            <div className="grid grid-cols-2 gap-4 mb-4">
+                                <div>
+                                    <Label>Date</Label>
+                                    <Input type="date" value={quoteDetails.date} onChange={e => setQuoteDetails({ ...quoteDetails, date: e.target.value })} />
+                                </div>
+                                <div>
+                                    <Label>Discount (%)</Label>
+                                    <Input type="number" min="0" max="100" value={discount} onChange={e => setDiscount(Number(e.target.value))} />
+                                </div>
+                            </div>
+
+                            <div className="space-y-4 border-t pt-4">
+                                <div>
+                                    <Label>Client Name</Label>
+                                    <Select value={clientNameSelection} onValueChange={(v) => {
+                                        setClientNameSelection(v);
+                                        if (v !== 'Other') {
+                                            const sc = clients.find(c => c.clientName === v);
+                                            const cs = sc?.contacts || [];
+                                            const pIdx = cs.findIndex(c => c.is_primary);
+                                            const idx = pIdx >= 0 ? pIdx : (cs.length ? 0 : -1);
+                                            const pc = cs[idx] || {};
+                                            setQuoteDetails({
+                                                ...quoteDetails,
+                                                clientName: v,
+                                                clientAddress: sc?.clientAddress || '',
+                                                email: pc.contact_email || sc?.email || '',
+                                                phone: pc.contact_phone || sc?.phone || '',
+                                                name: pc.contact_person || ''
+                                            });
+                                            setContactSelectionIdx(idx >= 0 ? idx.toString() : '');
+                                        } else {
+                                            setQuoteDetails({ ...quoteDetails, clientName: customClientName, clientAddress: '', email: '', phone: '', name: '' });
+                                        }
+                                    }}>
+                                        <SelectTrigger><SelectValue placeholder="Select client" /></SelectTrigger>
+                                        <SelectContent>
+                                            {CLIENT_OPTIONS.map(o => <SelectItem key={o.value} value={o.value}>{o.label}</SelectItem>)}
+                                        </SelectContent>
+                                    </Select>
+                                    {clientNameSelection === 'Other' && (
+                                        <Input className="mt-2" value={customClientName} onChange={e => {
+                                            setCustomClientName(e.target.value);
+                                            setQuoteDetails({ ...quoteDetails, clientName: e.target.value });
+                                        }} placeholder="Enter custom client name" />
+                                    )}
+                                </div>
+
+                                {clientNameSelection !== 'Other' && clientNameSelection !== '' && (() => {
+                                    const sc = clients.find(c => c.clientName === clientNameSelection);
+                                    const cs = sc?.contacts || [];
+                                    if (cs.length === 0) return <div className="text-[10px] text-amber-600 italic bg-amber-50 p-2 rounded">Setup a contact in Admin Panel</div>;
+                                    return (
+                                        <div>
+                                            <Label>Client Contact</Label>
+                                            <Select value={contactSelectionIdx} onValueChange={(idx) => {
+                                                setContactSelectionIdx(idx);
+                                                const c = cs[parseInt(idx)];
+                                                if (c) setQuoteDetails(prev => ({ ...prev, name: c.contact_person || '', email: c.contact_email || '', phone: c.contact_phone || '' }));
+                                            }}>
+                                                <SelectTrigger><SelectValue placeholder="Pick a contact" /></SelectTrigger>
+                                                <SelectContent>{cs.map((c, i) => <SelectItem key={i} value={i.toString()}>{c.contact_person} {c.is_primary ? '(P)' : ''}</SelectItem>)}</SelectContent>
+                                            </Select>
+                                        </div>
+                                    );
+                                })()}
+
+                                <div>
+                                    <Label>Client Address</Label>
+                                    <Textarea value={quoteDetails.clientAddress} onChange={e => setQuoteDetails({ ...quoteDetails, clientAddress: e.target.value })} rows={2} />
+                                </div>
+                                <div className="grid grid-cols-1 gap-4 pt-2 border-t">
+                                    <div><Label>Contractor Name</Label><Textarea value={quoteDetails.contractorName} onChange={e => setQuoteDetails({ ...quoteDetails, contractorName: e.target.value })} rows={2} /></div>
+                                    <div><Label>Contractor Address</Label><Textarea value={quoteDetails.contractorAddress} onChange={e => setQuoteDetails({ ...quoteDetails, contractorAddress: e.target.value })} rows={2} /></div>
+                                </div>
+                                <div className="grid grid-cols-1 gap-4 pt-2 border-t">
+                                    <div><Label>Project Name</Label><Textarea value={quoteDetails.projectName} onChange={e => setQuoteDetails({ ...quoteDetails, projectName: e.target.value })} rows={2} /></div>
+                                    <div><Label>Project Address</Label><Textarea value={quoteDetails.projectAddress} onChange={e => setQuoteDetails({ ...quoteDetails, projectAddress: e.target.value })} rows={2} /></div>
+                                </div>
                             </div>
                         </div>
 
-                        <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 space-y-6">
-                            <div className="flex justify-between items-center border-b pb-4">
-                                <h3 className="font-bold text-lg flex items-center gap-2 text-primary"><Package className="w-5 h-5" /> Items & Services</h3>
-                                <Button variant="outline" size="sm" onClick={handleAddItem} className="gap-1"><Plus className="w-4 h-4" /> Add Line</Button>
+                        {documentType === 'Tax Invoice' && (
+                            <div className="bg-white p-4 rounded-xl shadow-sm border border-gray-100">
+                                <h2 className="text-sm font-semibold mb-4 flex items-center gap-2 text-primary"><CreditCard className="w-4 h-4" /> Payment Details</h2>
+                                <div className="space-y-4">
+                                    <div className="grid grid-cols-2 gap-4">
+                                        <div><Label>Received Date</Label><Input type="date" value={quoteDetails.paymentDate || ''} onChange={e => setQuoteDetails({ ...quoteDetails, paymentDate: e.target.value })} /></div>
+                                        <div><Label>Mode</Label><Select value={quoteDetails.paymentMode} onValueChange={v => setQuoteDetails({ ...quoteDetails, paymentMode: v })}><SelectTrigger><SelectValue placeholder="Mode" /></SelectTrigger><SelectContent><SelectItem value="Cash">Cash</SelectItem><SelectItem value="Cheque">Cheque</SelectItem><SelectItem value="NEFT/RTGS">NEFT/RTGS</SelectItem><SelectItem value="UPI">UPI</SelectItem><SelectItem value="Other">Other</SelectItem></SelectContent></Select></div>
+                                    </div>
+                                    <div><Label>Amount (<Rupee />)</Label><Input type="number" value={quoteDetails.paymentAmount} onChange={e => setQuoteDetails({ ...quoteDetails, paymentAmount: e.target.value })} /></div>
+                                    <div><Label>Bank / Transaction Details</Label><Textarea value={quoteDetails.bankDetails} onChange={e => setQuoteDetails({ ...quoteDetails, bankDetails: e.target.value })} rows={2} /></div>
+                                </div>
                             </div>
+                        )}
 
+                        <div className="bg-white p-4 rounded-xl shadow-sm border border-gray-100">
+                            <h2 className="text-sm font-semibold mb-4 flex items-center gap-2 text-primary"><Plus className="w-4 h-4" /> Add Item</h2>
                             <div className="space-y-4">
-                                {formData.items.map((item, idx) => (
-                                    <div key={idx} className="group p-4 bg-gray-50/50 rounded-xl border border-gray-100 hover:border-primary/20 transition-all space-y-4 relative">
-                                        <Button variant="ghost" size="icon" onClick={() => handleRemoveItem(idx)} className="absolute top-2 right-2 text-gray-300 hover:text-red-500 opacity-0 group-hover:opacity-100 transition-opacity">
-                                            <Trash2 className="w-4 h-4" />
-                                        </Button>
+                                <div className="grid grid-cols-2 gap-2">
+                                    <Button variant={newItemType === 'service' ? 'default' : 'outline'} onClick={() => setNewItemType('service')} className="w-full flex items-center gap-1"><BriefcaseBusiness className="w-3 h-3" /> Service</Button>
+                                    <Button variant={newItemType === 'test' ? 'default' : 'outline'} onClick={() => setNewItemType('test')} className="w-full flex items-center gap-1"><TestTube className="w-3 h-3" /> Test</Button>
+                                </div>
+                                <ReactSelect
+                                    options={newItemType === 'service'
+                                        ? services.map(s => ({ value: s.id, label: s.serviceType }))
+                                        : tests.map(t => ({ value: t.id, label: `${t.testType} - ${t.materials}` }))}
+                                    onChange={(o) => setSelectedItemId(o ? o.value : '')}
+                                    value={selectedItemId ? {
+                                        value: selectedItemId,
+                                        label: newItemType === 'service'
+                                            ? services.find(s => s.id === selectedItemId)?.serviceType
+                                            : tests.find(t => t.id === selectedItemId)?.testType + ' - ' + tests.find(t => t.id === selectedItemId)?.materials
+                                    } : null}
+                                    placeholder={`Search ${newItemType}...`}
+                                    styles={{ control: (b) => ({ ...b, borderRadius: '0.5rem', fontSize: '14px' }) }}
+                                />
+                                <div><Label>Quantity</Label><Input type="number" min="1" value={qty} onChange={e => setQty(e.target.value)} /></div>
+                                <Button onClick={handleAddItem} className="w-full" disabled={!selectedItemId}>Add to List</Button>
+                            </div>
+                        </div>
+                    </div>
 
-                                        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                                            <div className="md:col-span-2 space-y-2">
-                                                <Label className="text-xs">Description *</Label>
-                                                <Input value={item.description} onChange={e => handleItemChange(idx, 'description', e.target.value)} placeholder="Service Title" />
+                    {/* Right Column: A4 Preview (EXACT Reference Style) */}
+                    <div className="lg:col-span-2">
+                        <div className="a4-preview-wrapper rounded-xl border border-gray-100 shadow-inner overflow-hidden">
+                            <div ref={componentRef} id="printable-quote-root">
+                                {itemPages.map((page, pIdx) => (
+                                    <div key={`page-${pIdx}`} className="a4-container">
+                                        {/* Watermark */}
+                                        <div className="absolute inset-0 flex items-center justify-center pointer-events-none opacity-[0.02]" style={{ transform: 'rotate(-55deg)', zIndex: 0 }}>
+                                            <span style={{ fontSize: '42pt', fontWeight: 700, whiteSpace: 'nowrap' }}>EDGE2 Engineering Solutions India Pvt. Ltd.</span>
+                                        </div>
+
+                                        <div className="a4-page-content relative z-10">
+                                            {page.isFirstPage && (
+                                                <>
+                                                    <div className="flex justify-between items-start border-b pb-4 mb-2">
+                                                        <div className="w-[30%]">
+                                                            <h3 className="text-lg font-bold text-gray-900 tracking-tight uppercase">{documentType}</h3>
+                                                            <p className="text-gray-500 mt-1 text-xs">#{quoteDetails.quoteNumber || 'PENDING'}</p>
+                                                            <p className="text-gray-500 text-xs">Date: {format(new Date(quoteDetails.date), 'dd MMM yyyy')}</p>
+                                                        </div>
+                                                        <div className="w-[70%] flex items-center gap-4 text-right">
+                                                            <div className="text-right flex-1">
+                                                                <h2 className="font-bold text-md leading-tight">EDGE2 Engineering Solutions India Pvt. Ltd.</h2>
+                                                                <p className="text-gray-600 text-[10px] leading-tight mt-1">Shivaganga Arcade, B35/130, 6th Cross, 6th Block, Vishweshwaraiah Layout, Ullal Upanagar, Bangalore - 560056, KA</p>
+                                                                <p className="text-gray-600 text-[10px] leading-tight"><span className="font-bold">PAN:</span> AACCE1702A | <span className="font-bold">GSTIN:</span> 29AACCE1702A1ZD</p>
+                                                                <p className="text-gray-600 text-[10px] leading-tight">Ph: 09448377127 / 080-50056086 | Email: info@edge2.in | Web: edge2.in</p>
+                                                            </div>
+                                                            <img src={`${import.meta.env.BASE_URL}edge2-logo.png`} alt="Logo" className="w-16 h-16 object-contain" />
+                                                        </div>
+                                                    </div>
+
+                                                    <div className="grid grid-cols-3 gap-6 mb-2 border-b pb-2">
+                                                        <div className="space-y-1">
+                                                            <h3 className="text-[10px] text-gray-400 font-bold uppercase border-b pb-0.5 mb-1">Client</h3>
+                                                            <p className="font-bold text-[11px]">{quoteDetails.clientName || '-'}</p>
+                                                            <p className="text-gray-600 text-[10px] whitespace-pre-wrap leading-tight">{quoteDetails.clientAddress}</p>
+                                                            <p className="text-gray-600 text-[10px] mt-1">{quoteDetails.name} | {quoteDetails.phone}</p>
+                                                        </div>
+                                                        <div className="space-y-1 border-l pl-2">
+                                                            <h3 className="text-[10px] text-gray-400 font-bold uppercase border-b pb-0.5 mb-1">Contractor</h3>
+                                                            <p className="font-bold text-[11px]">{quoteDetails.contractorName || '-'}</p>
+                                                            <p className="text-gray-600 text-[10px] whitespace-pre-wrap leading-tight">{quoteDetails.contractorAddress}</p>
+                                                        </div>
+                                                        <div className="space-y-1 border-l pl-2">
+                                                            <h3 className="text-[10px] text-gray-400 font-bold uppercase border-b pb-0.5 mb-1">Project</h3>
+                                                            <p className="font-bold text-[11px]">{quoteDetails.projectName || '-'}</p>
+                                                            <p className="text-gray-600 text-[10px] whitespace-pre-wrap leading-tight">{quoteDetails.projectAddress}</p>
+                                                        </div>
+                                                    </div>
+                                                    <p className="text-[9px] text-right italic mb-2">Generated by: {quoteDetails.generatedBy}</p>
+                                                </>
+                                            )}
+
+                                            {page.isContinuation && (
+                                                <div className="border-b pb-2 mb-4">
+                                                    <h3 className="text-md font-bold text-gray-900">{documentType} #{quoteDetails.quoteNumber} (Continued)</h3>
+                                                </div>
+                                            )}
+
+                                            <table className="w-full border-collapse">
+                                                <thead>
+                                                    <tr className="bg-gray-50 border-y border-gray-200">
+                                                        <th className="p-2 border border-gray-200 text-left text-[9px] font-bold uppercase w-8">Sl No.</th>
+                                                        <th className="p-2 border border-gray-200 text-left text-[9px] font-bold uppercase">Description</th>
+                                                        <th className="p-2 border border-gray-200 text-left text-[9px] font-bold uppercase w-16">HSN/SAC</th>
+                                                        <th className="p-2 border border-gray-200 text-right text-[9px] font-bold uppercase w-20">Rate</th>
+                                                        <th className="p-2 border border-gray-200 text-right text-[9px] font-bold uppercase w-16">Qty</th>
+                                                        <th className="p-2 border border-gray-200 text-right text-[9px] font-bold uppercase w-24">Total</th>
+                                                        <th className="w-10 print:hidden"></th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody>
+                                                    {page.items.map((item, idx) => {
+                                                        const slNo = pIdx === 0 ? idx + 1 : ITEMS_PER_FIRST_PAGE + (pIdx - 1) * ITEMS_PER_CONTINUATION_PAGE + idx + 1;
+                                                        return (
+                                                            <tr key={idx} className="border-b border-gray-100 group">
+                                                                <td className="p-2 border border-gray-100 text-[10px] align-top text-center">{slNo}.</td>
+                                                                <td className="p-2 border border-gray-100 text-[10px] align-top">
+                                                                    <p className="font-bold leading-tight">{item.description}</p>
+                                                                    <p className="text-[9px] text-gray-400 italic capitalize">{item.type} | {item.unit}</p>
+                                                                    {item.type === 'service' && (
+                                                                        <div className="mt-1 flex gap-2 text-[9px] text-gray-500">
+                                                                            {item.methodOfSampling !== 'NA' && <span>Method: {item.methodOfSampling}</span>}
+                                                                            {item.numBHs > 0 && <span>| BHs: {item.numBHs}</span>}
+                                                                            {item.measure !== 'NA' && <span>| Measure: {item.measure}</span>}
+                                                                        </div>
+                                                                    )}
+                                                                </td>
+                                                                <td className="p-2 border border-gray-100 text-[10px] align-top text-center">{item.hsnCode || '-'}</td>
+                                                                <td className="p-2 border border-gray-100 text-[10px] align-top text-right"><Rupee />{item.price.toLocaleString()}</td>
+                                                                <td className="p-2 border border-gray-100 text-[10px] align-top text-right">{item.qty}</td>
+                                                                <td className="p-2 border border-gray-100 text-[10px] align-top text-right font-bold"><Rupee />{item.total.toLocaleString()}</td>
+                                                                <td className="text-right print:hidden align-top p-1">
+                                                                    <div className="flex items-center justify-end gap-0.5">
+                                                                        <button onClick={() => handleMoveItemUp(slNo - 1)} disabled={slNo === 1} className="text-gray-400 hover:text-gray-600 p-1 disabled:opacity-10 transition-colors"><ChevronUp className="w-3 h-3" /></button>
+                                                                        <button onClick={() => handleMoveItemDown(slNo - 1)} disabled={slNo === items.length} className="text-gray-400 hover:text-gray-600 p-1 disabled:opacity-10 transition-colors"><ChevronDown className="w-3 h-3" /></button>
+                                                                        <button onClick={() => handleDeleteItem(item.id)} className="text-red-300 hover:text-red-500 p-1 transition-colors"><Trash2 className="w-3 h-3" /></button>
+                                                                    </div>
+                                                                </td>
+                                                            </tr>
+                                                        );
+                                                    })}
+                                                </tbody>
+                                            </table>
+
+                                            {pIdx === totalItemPages - 1 && (
+                                                <div className="mt-6 flex flex-col items-end space-y-1">
+                                                    <div className="w-1/2 divide-y divide-gray-100 border-t border-gray-200 pt-2">
+                                                        <div className="flex justify-between text-[11px] mb-1"><span>Subtotal:</span><span className="font-bold"><Rupee />{calculateTotal().toLocaleString()}</span></div>
+                                                        {discount > 0 && <div className="flex justify-between text-[11px] text-green-600 mb-1"><span>Discount ({discount}%):</span><span>- <Rupee />{(calculateTotal() * discount / 100).toLocaleString()}</span></div>}
+                                                        <div className="flex justify-between text-[11px] mb-1"><span>CGST ({taxCGST}%):</span><span><Rupee />{((calculateTotal() * (1 - discount / 100)) * taxCGST / 100).toLocaleString()}</span></div>
+                                                        <div className="flex justify-between text-[11px] mb-1"><span>SGST ({taxSGST}%):</span><span><Rupee />{((calculateTotal() * (1 - discount / 100)) * taxSGST / 100).toLocaleString()}</span></div>
+                                                        <div className="flex justify-between text-[13px] font-black text-gray-900 border-t border-gray-400 mt-2 pt-1"><span>Grand Total:</span><span><Rupee />{((calculateTotal() * (1 - discount / 100)) * (1 + taxTotalPercent / 100)).toLocaleString()}</span></div>
+                                                    </div>
+                                                    {documentType === 'Tax Invoice' && quoteDetails.paymentAmount > 0 && (
+                                                        <div className="w-1/2 border-t pt-1 mt-1 text-right">
+                                                            <div className="flex justify-between text-[11px] text-red-600"><span>Payment Received:</span><span>- <Rupee />{Number(quoteDetails.paymentAmount).toLocaleString()}</span></div>
+                                                            <div className="flex justify-between text-sm font-black text-primary mt-1 border-t pt-1"><span>Balance Due:</span><span><Rupee />{(((calculateTotal() * (1 - discount / 100)) * (1 + taxTotalPercent / 100)) - Number(quoteDetails.paymentAmount)).toLocaleString()}</span></div>
+                                                        </div>
+                                                    )}
+                                                    <div className="w-full mt-4 text-[10px] italic border-t pt-2 text-gray-600 font-medium">Amount in words: {numberToWords((calculateTotal() * (1 - discount / 100)) * (1 + taxTotalPercent / 100))}</div>
+                                                </div>
+                                            )}
+                                        </div>
+
+                                        <div className="a4-page-footer absolute bottom-[10mm] left-[10mm] right-[10mm]">
+                                            <span>EDGE2 Engineering Solutions India Pvt. Ltd.</span>
+                                            <span className="font-bold uppercase">{documentType} #{quoteDetails.quoteNumber || 'Pending'} | Page {pIdx + 1} of {totalPages}</span>
+                                        </div>
+                                    </div>
+                                ))}
+
+                                {/* Bank and Signatory Page */}
+                                <div className="a4-container">
+                                    <div className="absolute inset-0 flex items-center justify-center pointer-events-none opacity-[0.02]" style={{ transform: 'rotate(-55deg)', zIndex: 0 }}>
+                                        <span style={{ fontSize: '42pt', fontWeight: 700, whiteSpace: 'nowrap' }}>EDGE2 Engineering Solutions India Pvt. Ltd.</span>
+                                    </div>
+                                    <div className="a4-page-content relative z-10">
+                                        <h2 className="text-center font-bold text-lg mb-8 uppercase border-b pb-4">Bank & Payment Terms</h2>
+                                        <div className="grid grid-cols-2 gap-12 text-[11px]">
+                                            <div className="space-y-4">
+                                                <h3 className="font-bold text-gray-900 border-b pb-1 uppercase">Our Bank Details</h3>
+                                                <table className="w-full text-[11px]">
+                                                    <tbody className="space-y-2">
+                                                        <tr><td className="font-bold w-24">A/c Holder:</td><td>{settings?.bank_account_holder_name || 'EDGE2 Engineering Solutions India Pvt. Ltd.'}</td></tr>
+                                                        <tr><td className="font-bold">A/c Number:</td><td>{settings?.bank_account_number || '560321000022687'}</td></tr>
+                                                        <tr><td className="font-bold">Bank Name:</td><td>{settings?.bank_name || 'Union Bank of India'}</td></tr>
+                                                        <tr><td className="font-bold">Branch:</td><td>{settings?.branch_name || 'Peenya, Bangalore'}</td></tr>
+                                                        <tr><td className="font-bold">IFSC Code:</td><td>{settings?.ifsc_code || 'UBIN0907634'}</td></tr>
+                                                    </tbody>
+                                                </table>
                                             </div>
-                                            <div className="space-y-2">
-                                                <Label className="text-xs">Unit</Label>
-                                                <Input value={item.unit} onChange={e => handleItemChange(idx, 'unit', e.target.value)} placeholder="e.g. Nos, Mtrs" />
+                                            <div className="flex flex-col items-center justify-center space-y-20 border-l pl-12">
+                                                <h3 className="font-bold uppercase">Authorized Signatory</h3>
+                                                <p className="border-t border-gray-400 w-full text-center pt-2 font-bold text-gray-600">For EDGE2 Engineering Solutions India Pvt. Ltd.</p>
                                             </div>
                                         </div>
-                                        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                                            <div className="space-y-2">
-                                                <Label className="text-xs">Quantity</Label>
-                                                <Input type="number" value={item.quantity} onChange={e => handleItemChange(idx, 'quantity', e.target.value)} />
+                                        <div className="mt-12 space-y-4 border-t pt-8">
+                                            <h3 className="font-bold text-gray-900 uppercase">Payment Terms:</h3>
+                                            {settings?.payment_terms
+                                                ? <div className="text-[11px] whitespace-pre-wrap leading-relaxed">{settings.payment_terms}</div>
+                                                : <ul className="list-disc pl-5 text-[11px] space-y-2 text-gray-700">
+                                                    <li>Advance Payment of 60% + GST ({taxTotalPercent}%) along with Work order as mobilization advance.</li>
+                                                    <li>Mobilization of Men and Machines shall be done in 3–5 days after confirmation of Advance Payment.</li>
+                                                    <li>Balance Payment to be done after completion of field work and submission of draft report.</li>
+                                                </ul>
+                                            }
+                                        </div>
+                                    </div>
+                                    <div className="a4-page-footer absolute bottom-[10mm] left-[10mm] right-[10mm]">
+                                        <span>EDGE2 Engineering Solutions India Pvt. Ltd.</span>
+                                        <span className="font-bold uppercase">{documentType} #{quoteDetails.quoteNumber || 'Pending'} | Page {totalItemPages + 1} of {totalPages}</span>
+                                    </div>
+                                </div>
+
+                                {/* Terms & Conditions Pages */}
+                                {tcPages.map((page, tcIdx) => (
+                                    <div key={`tc-${tcIdx}`} className="a4-container">
+                                        <div className="a4-page-content relative z-10">
+                                            <h2 className="text-center font-bold text-lg mb-8 uppercase border-b pb-4">{tcIdx === 0 ? "Terms & Conditions" : "Terms & Conditions (Cont.)"}</h2>
+                                            <div className="space-y-4 text-[10px]">
+                                                {page.items.map((item, idx) => (
+                                                    <div key={idx}>
+                                                        {item.type === 'header' && <h4 className="font-bold text-primary mt-4 mb-2 border-l-4 border-primary pl-2 uppercase">{item.text}</h4>}
+                                                        {item.type === 'term' && <p className="text-gray-700 leading-relaxed text-justify mb-1">{item.text}</p>}
+                                                    </div>
+                                                ))}
                                             </div>
-                                            <div className="space-y-2">
-                                                <Label className="text-xs">Rate</Label>
-                                                <div className="relative">
-                                                    <IndianRupee className="absolute left-3 top-1/2 -translate-y-1/2 w-3 h-3 text-gray-400" />
-                                                    <Input type="number" value={item.rate} onChange={e => handleItemChange(idx, 'rate', e.target.value)} className="pl-8" />
-                                                </div>
+                                        </div>
+                                        <div className="a4-page-footer absolute bottom-[10mm] left-[10mm] right-[10mm]">
+                                            <span>EDGE2 Engineering Solutions India Pvt. Ltd.</span>
+                                            <span className="font-bold uppercase">{documentType} #{quoteDetails.quoteNumber || 'Pending'} | Page {totalItemPages + 2 + tcIdx} of {totalPages}</span>
+                                        </div>
+                                    </div>
+                                ))}
+
+                                {/* Technicals Pages */}
+                                {techPages.map((page, techIdx) => (
+                                    <div key={`tech-${techIdx}`} className="a4-container">
+                                        <div className="a4-page-content relative z-10">
+                                            <h2 className="text-center font-bold text-lg mb-8 uppercase border-b pb-4">{techIdx === 0 ? "Technicals" : "Technicals (Cont.)"}</h2>
+                                            <div className="space-y-4 text-[10px]">
+                                                {page.items.map((item, idx) => (
+                                                    <div key={idx}>
+                                                        {item.type === 'header' && <h4 className="font-bold text-primary mt-4 mb-2 border-l-4 border-primary pl-2 uppercase">{item.text}</h4>}
+                                                        {item.type === 'tech' && <p className="text-gray-700 leading-relaxed text-justify mb-1">{item.text}</p>}
+                                                    </div>
+                                                ))}
                                             </div>
-                                            <div className="space-y-2">
-                                                <Label className="text-xs">Amount</Label>
-                                                <Input value={item.amount.toLocaleString()} readOnly className="font-bold bg-white" />
-                                            </div>
+                                        </div>
+                                        <div className="a4-page-footer absolute bottom-[10mm] left-[10mm] right-[10mm]">
+                                            <span>EDGE2 Engineering Solutions India Pvt. Ltd.</span>
+                                            <span className="font-bold uppercase">{documentType} #{quoteDetails.quoteNumber || 'Pending'} | Page {totalItemPages + 2 + tcPages.length + techIdx} of {totalPages}</span>
                                         </div>
                                     </div>
                                 ))}
                             </div>
-
-                            <div className="border-t pt-6 flex flex-col items-end space-y-2">
-                                <div className="flex justify-between w-64 text-sm"><span className="text-gray-500">Sub Total:</span><span className="font-bold font-mono">₹{formData.sub_total.toLocaleString()}</span></div>
-                                <div className="flex justify-between w-64 text-sm items-center">
-                                    <span className="text-gray-500">GST (%):</span>
-                                    <Input type="number" value={formData.gst_percentage} onChange={e => setFormData(prev => ({ ...prev, gst_percentage: parseFloat(e.target.value) || 0 }))} className="w-20 h-8 text-right font-mono" />
-                                </div>
-                                <div className="flex justify-between w-64 text-sm border-b pb-2"><span className="text-gray-500">GST Amount:</span><span className="font-bold font-mono">₹{formData.gst_amount.toLocaleString()}</span></div>
-                                <div className="flex justify-between w-64 text-xl font-black text-primary pt-2"><span>TOTAL:</span><span>₹{formData.total_amount.toLocaleString()}</span></div>
-                            </div>
-                        </div>
-                    </div>
-
-                    {/* Preview Section (Sticky) */}
-                    <div className="hidden xl:block w-[400px]">
-                        <div className="sticky top-8 bg-gray-200 p-4 rounded-xl shadow-inner overflow-y-auto max-h-[calc(100vh-100px)]">
-                            <h3 className="text-center text-xs font-bold text-gray-400 uppercase tracking-widest mb-4">Document Preview</h3>
-                            <div className="bg-white shadow-2xl scale-[0.35] origin-top border border-gray-300">
-                                <QuotationDocument data={formData} client={selectedClient} siteInfo={{ siteName: "Easy Billing", address: "Premium Engineering Lab" }} appUsers={appUsers} isPreview={true} />
-                            </div>
                         </div>
                     </div>
                 </div>
-            </main>
 
-            {/* Hidden Print Content */}
-            <div style={{ display: 'none' }}>
-                <QuotationDocument ref={printRef} data={formData} client={selectedClient} siteInfo={{ siteName: "Easy Billing", address: "Premium Engineering Lab" }} appUsers={appUsers} />
+                <AlertDialog open={blocker.state === 'blocked'} onOpenChange={blocker.reset}>
+                    <AlertDialogContent>
+                        <AlertDialogHeader><AlertDialogTitle className="flex items-center text-amber-600"><AlertCircle className="w-5 h-5 mr-2" /> Unsaved Changes</AlertDialogTitle><AlertDialogDescription>You have unsaved changes in your document. Leaving this page will discard all details added. Are you sure you want to leave?</AlertDialogDescription></AlertDialogHeader>
+                        <AlertDialogFooter><AlertDialogCancel onClick={blocker.reset}>Stay on Page</AlertDialogCancel><AlertDialogAction onClick={blocker.proceed} className="bg-amber-600 hover:bg-amber-700 text-white">Leave and Discard</AlertDialogAction></AlertDialogFooter>
+                    </AlertDialogContent>
+                </AlertDialog>
             </div>
         </div>
     );

@@ -24,7 +24,7 @@ import { useToast } from '@/components/ui/use-toast';
 
 import { useNavigate, useParams } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
-import { getSiteContent } from '@/data/config';
+import { getSiteContent } from '@/config';
 
 const AdminPage = () => {
     const { user, loading, logout, isAdmin, isStandard } = useAuth();
@@ -57,7 +57,7 @@ const AdminPage = () => {
     //   }
     // }, [mainTab, navigate]);
 
-    const settingsTabs = ['clients', 'pricing', 'services', 'tests', 'system', 'info', 'jobs'];
+    const settingsTabs = ['clients', 'pricing', 'services', 'tests', 'system', 'info'];
     const isSettingsTab = settingsTabs.includes(mainTab);
 
     const handleTabChange = (value) => {
@@ -175,7 +175,6 @@ const AdminPage = () => {
                     <TabsContent value="jobs" className="focus-visible:outline-none animate-in fade-in slide-in-from-bottom-2 duration-500">
                         <AdminJobsManager />
                     </TabsContent>
-
 
                     <TabsContent value="services" className="focus-visible:outline-none animate-in fade-in slide-in-from-bottom-2 duration-500">
                         <AdminServicesManager />

@@ -25,7 +25,7 @@ import {
 } from "@/components/ui/alert-dialog";
 import { dynamoGenericApi } from '@/lib/dynamoGenericApi';
 import NewReportForm from './NewReportForm';
-import { DB_TYPES } from '@/data/config';
+import { DB_TYPES } from '@/config';
 
 const AdminReportsManager = () => {
     const [reports, setReports] = useState([]);
