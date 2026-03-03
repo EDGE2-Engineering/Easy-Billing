@@ -142,7 +142,11 @@ const NewReportForm = ({ editReport, onCancel, onSuccess }) => {
     useEffect(() => {
         if (editReport) {
             const reportData = editReport.content || editReport;
-            setFormData({ ...reportData, id: editReport.id }); // Ensure DB ID is tracked
+            // Merge with defaults so that any fields added after this report was saved
+            // (e.g. grainSizeAnalysis, sbcDetails, subSoilProfile, directShearResults, etc.)
+            // fall back to their default values rather than being undefined and crashing .map()
+            const defaults = getInitialFormData();
+            setFormData({ ...defaults, ...reportData, id: editReport.id });
             toast({
                 title: "Report Loaded",
                 description: `Editing report: ${reportData.projectDetails || reportData.reportId}`,

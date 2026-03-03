@@ -180,7 +180,7 @@ const MaterialInwardManager = () => {
                 job_order_no: dataToSave.job_order_no || `JO-${Date.now()}`,
                 client_name: clientName,
                 client_id: dataToSave.client_id,
-                status: isAddingNew ? 'RECEIVED' : dataToSave.status,
+                status: isAddingNew ? 'MATERIAL_RECEIVED' : dataToSave.status,
                 material_inward: {
                     po_wo_number: dataToSave.po_wo_number,
                     samples: dataToSave.samples.map(sample => ({

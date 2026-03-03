@@ -60,18 +60,18 @@ const MaterialInwardForm = ({
     return (
         <div className="bg-white p-6 rounded-lg shadow-sm animate-in slide-in-from-right-4 duration-300">
             <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
-                <h2 className="text-xl font-bold">{isAddingNew ? 'Add Material Inward Entry' : 'Edit Material Inward Entry'}</h2>
+                <h2 className="text-md font-bold">{isAddingNew ? 'Add Material Inward Entry' : 'Edit Material Inward Entry'}</h2>
                 <div className="flex items-center gap-2">
                     <Button variant="outline" onClick={onCancel} disabled={isSaving}>
                         Cancel
                     </Button>
                     <Button
                         onClick={() => onSave(editingRecord)}
-                        className="bg-primary hover:bg-primary-dark flex items-center text-white"
+                        className="bg-primary hover:bg-primary-dark flex items-center text-white p-2"
                         disabled={isSaving}
                     >
                         <Save className="w-4 h-4 mr-2" />
-                        {isSaving ? 'Saving...' : 'Save Changes'}
+                        {isSaving ? 'Saving...' : 'Save'}
                     </Button>
                 </div>
             </div>

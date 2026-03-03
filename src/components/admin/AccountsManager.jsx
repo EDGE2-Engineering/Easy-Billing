@@ -37,7 +37,7 @@ const AccountsManager = () => {
   const [filterDocType, setFilterDocType] = useState('all');
   const [filterUser, setFilterUser] = useState('all');
   const [filterClient, setFilterClient] = useState('all');
-  const [deleteConfirmation, setDeleteConfirmation] = useState({ isOpen: false, recordId: null, quoteNumber: '' });
+  const [deleteConfirmation, setDeleteConfirmation] = useState({ isOpen: false, recordId: null, jobOrderNo: '' });
   const [sortField, setSortField] = useState('date');
   const [sortOrder, setSortOrder] = useState('desc');
   const [currentPage, setCurrentPage] = useState(1);
@@ -118,7 +118,7 @@ const AccountsManager = () => {
     setDeleteConfirmation({
       isOpen: true,
       recordId: record.id,
-      quoteNumber: record.quote_number
+      jobOrderNo: record.job_order_no
     });
   };
 
@@ -133,7 +133,7 @@ const AccountsManager = () => {
       console.error('Error deleting account from DynamoDB:', error);
       toast({ title: "Error", description: "Failed to delete account.", variant: "destructive" });
     } finally {
-      setDeleteConfirmation({ isOpen: false, recordId: null, quoteNumber: '' });
+      setDeleteConfirmation({ isOpen: false, recordId: null, jobOrderNo: '' });
     }
   };
 
@@ -155,7 +155,7 @@ const AccountsManager = () => {
     .sort();
 
   const filteredAccounts = accounts.filter(r => {
-    const matchesSearch = (r.quote_number?.toLowerCase() || '').includes(searchTerm.toLowerCase()) ||
+    const matchesSearch = (r.job_order_no?.toLowerCase() || '').includes(searchTerm.toLowerCase()) ||
       (r.client_name?.toLowerCase() || '').includes(searchTerm.toLowerCase()) ||
       (r.document_type?.toLowerCase() || '').includes(searchTerm.toLowerCase());
 
@@ -481,35 +481,9 @@ const AccountsManager = () => {
               ) : (
                 paginatedAccounts.map((record) => (
                   <tr key={record.id} className="border-b hover:bg-gray-50 transition-colors">
-                    {/* Document # + other details */}
                     <td className="py-2 px-4 text-sm text-gray-600">
                       <div className="font-semibold text-gray-900 flex items-center gap-2">
-                        <span className="font-semibold font-mono text-black text-md bg-gray-200 p-1 rounded">{record.quote_number}</span>
-                        {/* <span className={`inline - flex items - center px - 2 py - 0.5 rounded text - xs font - medium ${
-  record.document_type === 'Tax Invoice'
-  ? 'bg-blue-100 text-blue-800'
-  : record.document_type === 'Proforma Invoice'
-    ? 'bg-purple-100 text-purple-800'
-    : 'bg-green-100 text-green-800'
-} `}>
-                          {record.document_type}
-                        </span> */}
-                      </div>
-                      <div className="text-gray-600 text-xs mt-1 space-y-1">
-                        <div>
-                          {/* <span className="font-semibold text-gray-900 font-bold text-sm">Created on: </span>{' '}
-                           <span className="font-semibold text-blue-600 font-semibold text-sm"> {format(new Date(record.created_at), 'dd MMM yyyy')}</span> */}
-                          {/* <span className="mx-4"></span> */}
-                          {/* <span className="font-semibold text-gray-900 font-bold text-sm">Created By:</span>{' '}
-                          <span className="font-semibold text-blue-600 font-semibold text-sm"> {record.app_users?.full_name || '-'}</span> */}
-                        </div>
-                        <div>
-                          {/* <span className="font-semibold text-gray-900 font-bold text-sm">For Client:</span>{' '}
-                          <span className="font-semibold text-blue-600 font-semibold text-sm"> {record.client_name || '-'}</span> */}
-                        </div>
-                        <div className="font-semibold text-blue-900">
-                          {/* <span className="font-semibold text-gray-900 font-bold text-sm">Total Amount:</span> <span className="font-semibold text-blue-600 font-semibold text-sm"> <Rupee />{calculateRecordTotal(record).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span> */}
-                        </div>
+                        <span className="font-semibold font-mono text-black text-md bg-gray-200 p-1 rounded">{record.job_order_no}</span>
                       </div>
                     </td>
 
@@ -551,14 +525,14 @@ const AccountsManager = () => {
                     </td>
 
                     {/* Actions */}
-                    <td className="py-1 px-1 text-right">
+                    < td className="py-1 px-1 text-right" >
                       <div className="flex justify-end space-x-2">
                         <Button
                           variant="ghost"
                           size="sm"
                           title="Open Document"
                           className="text-primary hover:text-primary-dark hover:bg-primary/10 px-0 text-blue-600 text-xs px-1"
-                          onClick={() => handleOpen(record.id, record.quote_number)}
+                          onClick={() => handleOpen(record.id, record.job_order_no)}
                         >
                           <ExternalLink className="w-4 h-4 mr-1 text-blue-600" />
                         </Button>
@@ -580,38 +554,40 @@ const AccountsManager = () => {
 
           </table>
         </div>
-      </div>
+      </div >
 
       {/* Pagination Controls - Bottom */}
-      {totalPages > 1 && (
-        <div className="flex flex-wrap items-center justify-between gap-4 bg-white p-4 rounded-lg shadow border border-gray-100">
-          <div className="flex items-center gap-2">
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
-              disabled={currentPage === 1}
-              className="h-9 px-4 text-sm border-gray-200 bg-gray-50/50 rounded-lg disabled:opacity-50"
-            >
-              Previous
-            </Button>
-            <span className="text-sm text-gray-600 px-3">
-              Page {currentPage} of {totalPages}
-            </span>
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
-              disabled={currentPage === totalPages}
-              className="h-9 px-4 text-sm border-gray-200 bg-gray-50/50 rounded-lg disabled:opacity-50"
-            >
-              Next
-            </Button>
+      {
+        totalPages > 1 && (
+          <div className="flex flex-wrap items-center justify-between gap-4 bg-white p-4 rounded-lg shadow border border-gray-100">
+            <div className="flex items-center gap-2">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
+                disabled={currentPage === 1}
+                className="h-9 px-4 text-sm border-gray-200 bg-gray-50/50 rounded-lg disabled:opacity-50"
+              >
+                Previous
+              </Button>
+              <span className="text-sm text-gray-600 px-3">
+                Page {currentPage} of {totalPages}
+              </span>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
+                disabled={currentPage === totalPages}
+                className="h-9 px-4 text-sm border-gray-200 bg-gray-50/50 rounded-lg disabled:opacity-50"
+              >
+                Next
+              </Button>
+            </div>
           </div>
-        </div>
-      )}
+        )
+      }
 
-      <AlertDialog open={deleteConfirmation.isOpen} onOpenChange={(isOpen) => !isOpen && setDeleteConfirmation({ isOpen: false, recordId: null, quoteNumber: '' })}>
+      <AlertDialog open={deleteConfirmation.isOpen} onOpenChange={(isOpen) => !isOpen && setDeleteConfirmation({ isOpen: false, recordId: null, jobOrderNo: '' })}>
         <AlertDialogContent>
           <AlertDialogHeader>
             <AlertDialogTitle className="flex items-center text-red-600">
@@ -619,7 +595,7 @@ const AccountsManager = () => {
               Delete Account?
             </AlertDialogTitle>
             <AlertDialogDescription>
-              Are you sure you want to delete <span className="font-semibold text-gray-900">{deleteConfirmation.quoteNumber}</span>?
+              Are you sure you want to delete <span className="font-semibold text-gray-900">{deleteConfirmation.jobOrderNo}</span>?
               This action cannot be undone.
             </AlertDialogDescription>
           </AlertDialogHeader>
@@ -631,7 +607,7 @@ const AccountsManager = () => {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
-    </div>
+    </div >
   );
 };
 

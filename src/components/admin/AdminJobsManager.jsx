@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import {
     BriefcaseBusiness, Search, Calendar, User, Eye, ArrowLeft, ArrowRight,
-    CheckCircle2, Clock, MoreVertical, LayoutDashboard, Plus, Edit
+    CheckCircle2, Clock, MoreVertical, LayoutDashboard, Plus, Edit, FileText, Beaker, Package
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -21,8 +21,14 @@ import { MermaidDiagram } from '@lightenna/react-mermaid-diagram';
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { DB_TYPES, WORKFLOW_STEPS } from '@/config';
 import MaterialInwardForm from './MaterialInwardForm';
+import TestingDetailsForm from './TestingDetailsForm';
 import { useToast } from '@/components/ui/use-toast';
 import { sendTelegramNotification } from '@/lib/notifier';
+import {
+    AlertDialog, AlertDialogAction, AlertDialogCancel,
+    AlertDialogContent, AlertDialogDescription, AlertDialogFooter,
+    AlertDialogHeader, AlertDialogTitle
+} from '@/components/ui/alert-dialog';
 
 const AdminJobsManager = () => {
     const { idToken, user, isAdmin } = useAuth();
@@ -35,6 +41,8 @@ const AdminJobsManager = () => {
     const [clientsList, setClientsList] = useState([]);
     const [isSaving, setIsSaving] = useState(false);
     const [showInwardForm, setShowInwardForm] = useState(false);
+    const [showTestingForm, setShowTestingForm] = useState(false);
+    const [showConfirmDialog, setShowConfirmDialog] = useState(false);
     const { toast } = useToast();
 
     const workflowStates = WORKFLOW_STEPS.map(s => s.id);
@@ -72,9 +80,9 @@ const AdminJobsManager = () => {
 
     const getStatusBadge = (status) => {
         const variants = {
-            'RECEIVED': 'bg-blue-100 text-blue-700',
+            'MATERIAL_RECEIVED': 'bg-blue-100 text-blue-700',
             'COMPLETED': 'bg-green-100 text-green-700',
-            'SENT_TO_DEPARTMENT': 'bg-purple-100 text-purple-700',
+            'SENT_TO_TESTING_DEPARTMENT': 'bg-purple-100 text-purple-700',
             'UNDER_TESTING': 'bg-orange-100 text-orange-700',
             'SIGNED': 'bg-emerald-100 text-emerald-700',
             'PAYMENT_PENDING': 'bg-red-100 text-red-700',
@@ -127,9 +135,11 @@ const AdminJobsManager = () => {
 
             const updatedJob = {
                 ...selectedJob,
-                status: selectedJob.status === 'QUOTATION_CREATED' ? 'RECEIVED' : selectedJob.status,
+                status: selectedJob.status === 'QUOTATION_CREATED' ? 'MATERIAL_RECEIVED' : selectedJob.status,
                 material_inward: {
                     po_wo_number: inwardData.po_wo_number,
+                    inward_date: inwardData.samples?.[0]?.received_date || format(new Date(), 'yyyy-MM-dd'),
+                    received_by: inwardData.samples?.[0]?.received_by || user.id || user.username,
                     samples: inwardData.samples.map(sample => ({
                         ...sample,
                         quantity: parseFloat(sample.quantity) || 0,
@@ -146,7 +156,7 @@ const AdminJobsManager = () => {
             setSelectedJob(updatedJob);
             setShowInwardForm(false);
 
-            toast({ title: "Success", description: "Material Inward details added and job status updated to RECEIVED." });
+            toast({ title: "Success", description: "Material Inward details added and job status updated to MATERIAL_RECEIVED." });
 
             // Telegram Notification
             const message = `📥 *Material Inward Entry Added*\n\nJob Order No: \`${updatedJob.job_order_no}\`\nClient: \`${clientName}\`\nSamples: \`${updatedJob.material_inward.samples.length}\`\nBy: \`${user?.full_name || user?.name || 'Unknown'}\``;
@@ -155,6 +165,39 @@ const AdminJobsManager = () => {
         } catch (error) {
             console.error('Error saving inward details:', error);
             toast({ title: "Error", description: "Failed to save inward details: " + error.message, variant: "destructive" });
+        } finally {
+            setIsSaving(false);
+        }
+    };
+
+    const handleSaveTestingDetails = async (testingData) => {
+        setIsSaving(true);
+        try {
+            const updatedJob = {
+                ...selectedJob,
+                lab_test_results: testingData.labTestResults,
+                chemical_analysis: testingData.chemicalAnalysis,
+                grain_size_analysis: testingData.grainSizeAnalysis,
+                updated_at: new Date().toISOString(),
+                updated_by: user.id || user.username
+            };
+
+            await dynamoGenericApi.save(DB_TYPES.JOB, updatedJob, idToken);
+
+            setJobs(prev => prev.map(j => j.id === updatedJob.id ? updatedJob : j));
+            setSelectedJob(updatedJob);
+            setShowTestingForm(false);
+
+            toast({ title: "Success", description: "Testing details saved successfully." });
+
+            // Telegram Notification
+            const labLevels = testingData.labTestResults?.length || 0;
+            const message = `🧪 *Testing Details Added/Updated*\n\nJob Order No: \`${updatedJob.job_order_no}\`\nClient: \`${updatedJob.client_name}\`\nLab Levels: \`${labLevels}\`\nBy: \`${user?.full_name || user?.name || 'Unknown'}\``;
+            sendTelegramNotification(message);
+
+        } catch (error) {
+            console.error('Error saving testing details:', error);
+            toast({ title: "Error", description: "Failed to save testing details: " + error.message, variant: "destructive" });
         } finally {
             setIsSaving(false);
         }
@@ -182,7 +225,8 @@ const AdminJobsManager = () => {
             // Overwrite or append current style to the active node for thicker border
             if (isCurrentNode) nodeStyle = ":::currentNode";
 
-            const icon = isCompleted ? " ✅" : "";
+            // const icon = isCompleted ? " ✅" : "";
+            const icon = "";
             source += `  ${step.id}["${label}${icon}"]${nodeStyle}\n`;
 
             if (index < WORKFLOW_STEPS.length - 1) {
@@ -235,6 +279,29 @@ const AdminJobsManager = () => {
                 </div>
             );
         }
+        if (showTestingForm) {
+            return (
+                <div className="space-y-6">
+                    <div className="flex items-center gap-4 mb-4">
+                        <Button variant="ghost" size="icon" onClick={() => setShowTestingForm(false)} className="rounded-full">
+                            <ArrowLeft className="w-5 h-5" />
+                        </Button>
+                        <h2 className="text-xl font-bold">{selectedJob.lab_test_results ? 'Edit' : 'Add'} Testing Details for {selectedJob.job_order_no}</h2>
+                    </div>
+                    <TestingDetailsForm
+                        initialData={{
+                            labTestResults: selectedJob.lab_test_results,
+                            chemicalAnalysis: selectedJob.chemical_analysis,
+                            grainSizeAnalysis: selectedJob.grain_size_analysis,
+                        }}
+                        appUsers={appUsers}
+                        onSave={handleSaveTestingDetails}
+                        onCancel={() => setShowTestingForm(false)}
+                        isSaving={isSaving}
+                    />
+                </div>
+            );
+        }
 
         return (
             <div className="space-y-6 animate-in fade-in duration-500">
@@ -271,13 +338,13 @@ const AdminJobsManager = () => {
                         if (!canPerformAction) return (
                             <div className="flex items-center gap-2 text-gray-400 text-sm italic">
                                 <Clock className="w-4 h-4" />
-                                Requires {currentStep.id === 'UNDER_TESTING' || currentStep.id === 'SENT_TO_DEPARTMENT' ? 'Test Staff' : 'Admin'} permission
+                                Requires {currentStep.id === 'UNDER_TESTING' || currentStep.id === 'SENT_TO_TESTING_DEPARTMENT' ? 'Test Staff' : 'Admin'} permission
                             </div>
                         );
 
                         return (
                             <div className="flex items-center gap-2">
-                                {selectedJob.status === 'RECEIVED' && canPerformAction && (
+                                {selectedJob.status === 'MATERIAL_RECEIVED' && canPerformAction && (
                                     <Button
                                         variant="outline"
                                         onClick={() => setShowInwardForm(true)}
@@ -287,8 +354,38 @@ const AdminJobsManager = () => {
                                         Edit Material Inward
                                     </Button>
                                 )}
+                                {selectedJob.status === 'QUOTATION_CREATED' && canPerformAction && (
+                                    <Button
+                                        variant="outline"
+                                        onClick={() => navigate(`/doc/${selectedJob.id}`)}
+                                        className="border-primary text-primary hover:bg-primary/5 rounded-xl px-4 flex items-center gap-2 h-11 transition-all"
+                                    >
+                                        <FileText className="w-4 h-4" />
+                                        Edit Quotation
+                                    </Button>
+                                )}
+                                {selectedJob.status === 'REPORT_GENERATED' && canPerformAction && (
+                                    <Button
+                                        variant="outline"
+                                        onClick={() => window.open(`#/doc/${selectedJob.id}`, '_blank')}
+                                        className="border-primary text-primary hover:bg-primary/5 rounded-xl px-4 flex items-center gap-2 h-11 transition-all"
+                                    >
+                                        <Eye className="w-4 h-4" />
+                                        Preview Report
+                                    </Button>
+                                )}
+                                {selectedJob.status === 'UNDER_TESTING' && canPerformAction && (
+                                    <Button
+                                        variant="outline"
+                                        onClick={() => setShowTestingForm(true)}
+                                        className="border-primary text-primary hover:bg-primary/5 rounded-xl px-4 flex items-center gap-2 h-11 transition-all"
+                                    >
+                                        <Beaker className="w-4 h-4" />
+                                        {selectedJob.lab_test_results ? 'Edit Testing Details' : 'Add Testing Details'}
+                                    </Button>
+                                )}
                                 <Button
-                                    onClick={handleStatusTransition}
+                                    onClick={() => setShowConfirmDialog(true)}
                                     disabled={loading}
                                     className="bg-primary hover:bg-primary/90 text-white rounded-xl px-6 flex items-center gap-2 h-11 shadow-sm transition-all active:scale-95"
                                 >
@@ -303,6 +400,59 @@ const AdminJobsManager = () => {
                         );
                     })()}
                 </div>
+
+                {/* ── Status Transition Confirmation Dialog ─────────────────── */}
+                {(() => {
+                    const currentIndex = workflowStates.indexOf(selectedJob.status);
+                    const nextStatusId = workflowStates[currentIndex + 1];
+                    const currentStep = WORKFLOW_STEPS.find(s => s.id === selectedJob.status);
+                    const nextStep = WORKFLOW_STEPS.find(s => s.id === nextStatusId);
+                    return (
+                        <AlertDialog open={showConfirmDialog} onOpenChange={setShowConfirmDialog}>
+                            <AlertDialogContent className="rounded-2xl">
+                                <AlertDialogHeader>
+                                    <AlertDialogTitle className="flex items-center gap-2">
+                                        <ArrowRight className="w-5 h-5 text-primary" />
+                                        Confirm Status Transition
+                                    </AlertDialogTitle>
+                                    <AlertDialogDescription asChild>
+                                        <div className="space-y-3 pt-1">
+                                            <p className="text-sm text-gray-500">
+                                                Are you sure you want to move job{' '}
+                                                <span className="font-semibold text-gray-800">{selectedJob.job_order_no}</span>{' '}
+                                                to the next stage?
+                                            </p>
+                                            <div className="flex items-center gap-3 bg-gray-50 border border-gray-200 rounded-xl p-3">
+                                                <span className="text-xs font-semibold px-2 py-1 bg-gray-200 text-gray-700 rounded-lg">
+                                                    {currentStep?.label || selectedJob.status.replace(/_/g, ' ')}
+                                                </span>
+                                                <ArrowRight className="w-4 h-4 text-gray-400 shrink-0" />
+                                                <span className="text-xs font-semibold px-2 py-1 bg-primary/10 text-primary rounded-lg">
+                                                    {nextStep?.label || nextStatusId?.replace(/_/g, ' ')}
+                                                </span>
+                                            </div>
+                                            <p className="text-xs text-amber-600 bg-amber-50 border border-amber-200 rounded-lg px-3 py-2">
+                                                ⚠️ This action cannot be undone.
+                                            </p>
+                                        </div>
+                                    </AlertDialogDescription>
+                                </AlertDialogHeader>
+                                <AlertDialogFooter>
+                                    <AlertDialogCancel className="rounded-xl">Cancel</AlertDialogCancel>
+                                    <AlertDialogAction
+                                        className="bg-primary hover:bg-primary/90 rounded-xl"
+                                        onClick={() => {
+                                            setShowConfirmDialog(false);
+                                            handleStatusTransition();
+                                        }}
+                                    >
+                                        {currentStep?.action || 'Confirm'}
+                                    </AlertDialogAction>
+                                </AlertDialogFooter>
+                            </AlertDialogContent>
+                        </AlertDialog>
+                    );
+                })()}
 
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
 
@@ -343,7 +493,7 @@ const AdminJobsManager = () => {
                                     </div>
                                     <div className="space-y-1">
                                         <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider">PO/WO #</p>
-                                        <p className="text-sm font-medium">{selectedJob.po_wo_number || '-'}</p>
+                                        <p className="text-sm font-medium">{selectedJob.material_inward?.po_wo_number || selectedJob.po_wo_number || '-'}</p>
                                     </div>
                                     <div className="space-y-1">
                                         <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider">Created By</p>
@@ -351,17 +501,215 @@ const AdminJobsManager = () => {
                                     </div>
                                 </div>
 
-                                <div className="pt-4 border-t">
-                                    <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2">Samples ({(selectedJob.material_inward?.samples || selectedJob.content?.samples)?.length || 0})</p>
-                                    <div className="space-y-2">
-                                        {(selectedJob.material_inward?.samples || selectedJob.content?.samples)?.map((sample, idx) => (
-                                            <div key={idx} className="p-2 bg-gray-50 rounded-lg text-xs">
-                                                <p className="font-bold text-gray-700">{sample.sample_code}</p>
-                                                <p className="text-gray-500 truncate">{sample.sample_description}</p>
-                                            </div>
+                                {/* {selectedJob.status === 'SENT_TO_TESTING_DEPARTMENT' && selectedJob.material_inward && (
+                                    <div className="p-4 bg-blue-50/50 rounded-2xl border border-blue-100 space-y-3 mt-4">
+                                        <p className="text-xs font-bold text-blue-600 uppercase tracking-widest flex items-center gap-2">
+                                            <Package className="w-3.5 h-3.5" /> Inward Summaryss
+                                        </p>
+                                        {selectedJob?.material_inward?.samples?.map((sample, index) => (
+                                            console.log(sample),
+                                            <table key={index} className="w-full border border-gray-200  text-blue-400 uppercase tracking-wider">
+                                                <tbody>
+                                                    <tr>
+                                                        <td className="font-bold text-[11px]">Quantity</td>
+                                                        <td className="font-bold text-[11px]">Expected Test Days</td>
+                                                        <td className="font-bold text-[11px]">Received Date</td>
+                                                        <td className="font-bold text-[11px]">Sample Code</td>
+                                                        <td className="font-bold text-[11px]">Sample Description</td>
+                                                        <td className="font-bold text-[11px]">Received By</td>
+                                                    </tr>
+                                                    <tr>
+                                                        <td className="font-semibold text-[10px]">{sample.quantity}</td>
+                                                        <td className="font-semibold text-[10px]">{sample.expected_test_days}</td>
+                                                        <td className="font-semibold text-[10px]">{sample.received_date}</td>
+                                                        <td className="font-semibold text-[10px]">{sample.sample_code}</td>
+                                                        <td className="font-semibold text-[10px]">{sample.sample_description}</td>
+                                                        <td className="font-semibold text-[10px]">{sample.received_by}</td>
+                                                    </tr>
+                                                </tbody>
+                                            </table>
                                         ))}
+                                        <div className="grid grid-cols-2 gap-y-3 gap-x-4">
+                                            <div className="space-y-0.5">
+                                                <p className="text-[10px] font-bold text-blue-400 uppercase tracking-wider">Inward Date</p>
+                                                <p className="text-sm font-bold text-blue-900">
+                                                    {selectedJob.material_inward.inward_date ? format(new Date(selectedJob.material_inward.inward_date), 'dd MMM yyyy') : '-'}
+                                                </p>
+                                            </div>
+                                            <div className="space-y-0.5">
+                                                <p className="text-[10px] font-bold text-blue-400 uppercase tracking-wider">Total Quantity</p>
+                                                <p className="text-sm font-bold text-blue-900">
+                                                    {selectedJob.material_inward.samples?.reduce((sum, s) => sum + (parseFloat(s.quantity) || 0), 0)} Units
+                                                </p>
+                                            </div>
+                                            <div className="space-y-0.5">
+                                                <p className="text-[10px] font-bold text-blue-400 uppercase tracking-wider">Received By</p>
+                                                <p className="text-sm font-bold text-blue-900 uppercase">
+                                                    {getUserName(selectedJob.material_inward.received_by)}
+                                                </p>
+                                            </div>
+                                            <div className="space-y-0.5">
+                                                <p className="text-[10px] font-bold text-blue-400 uppercase tracking-wider">Total Samples</p>
+                                                <p className="text-sm font-bold text-blue-900">
+                                                    {selectedJob.material_inward.samples?.length || 0} items
+                                                </p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                )} */}
+
+                                <div className="pt-4 border-t">
+                                    <div className="p-4 bg-blue-50/50 rounded-2xl border border-blue-100 space-y-3 mt-4">
+                                        <p className="text-xs font-bold text-blue-600 uppercase tracking-widest flex items-center gap-2">
+                                            <Package className="w-3.5 h-3.5" /> Summary of Material Inward
+                                        </p>
+                                        <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2">Samples ({(selectedJob.material_inward?.samples || selectedJob.content?.samples)?.length || 0})</p>
+                                        <div className="space-y-2">
+                                            <div className="w-full overflow-x-auto">
+                                                <table className="w-full border border-gray-200 text-xs">
+                                                    <thead className="bg-gray-100">
+                                                        <tr>
+                                                            <th className="p-2 border text-left">Sample Code</th>
+                                                            <th className="p-2 border text-left">Sample Description</th>
+                                                            <th className="p-2 border text-left">Quantity</th>
+                                                            <th className="p-2 border text-left">Expected Test Days</th>
+                                                            <th className="p-2 border text-left">Received Date</th>
+                                                            <th className="p-2 border text-left">Received By</th>
+                                                        </tr>
+                                                    </thead>
+                                                    <tbody>
+                                                        {(selectedJob.material_inward?.samples || selectedJob.content?.samples)?.map((sample, idx) => (
+                                                            <tr key={idx} className="bg-white even:bg-gray-50">
+                                                                <td className="p-2 border">{sample.sample_code}</td>
+                                                                <td className="p-2 border">{sample.sample_description}</td>
+                                                                <td className="p-2 border">{sample.quantity}</td>
+                                                                <td className="p-2 border">{sample.expected_test_days}</td>
+                                                                <td className="p-2 border">{sample.received_date}</td>
+                                                                <td className="p-2 border">{sample.received_by}</td>
+                                                            </tr>
+                                                        ))}
+                                                    </tbody>
+                                                </table>
+                                            </div>
+                                        </div>
                                     </div>
                                 </div>
+
+                                {/* ── Summary of Tests ───────────────────────────────────── */}
+                                {(selectedJob.lab_test_results || selectedJob.chemical_analysis || selectedJob.grain_size_analysis) && (
+                                    <div className="pt-4 border-t">
+                                        <div className="p-4 bg-purple-50/50 rounded-2xl border border-purple-100 space-y-4 mt-4">
+                                            <p className="text-xs font-bold text-purple-600 uppercase tracking-widest flex items-center gap-2">
+                                                <Beaker className="w-3.5 h-3.5" /> Summary of Tests
+                                            </p>
+
+                                            {/* Lab Test Results */}
+                                            {Array.isArray(selectedJob.lab_test_results) && selectedJob.lab_test_results.length > 0 && (
+                                                <div>
+                                                    <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2">
+                                                        Lab Test Results ({selectedJob.lab_test_results.length} level{selectedJob.lab_test_results.length !== 1 ? 's' : ''})
+                                                    </p>
+                                                    <div className="w-full overflow-x-auto">
+                                                        <table className="w-full border border-gray-200 text-xs">
+                                                            <thead className="bg-purple-50">
+                                                                <tr>
+                                                                    <th className="p-2 border text-left text-purple-700">Level</th>
+                                                                    <th className="p-2 border text-left text-purple-700">Readings</th>
+                                                                    <th className="p-2 border text-left text-purple-700">Depth Range</th>
+                                                                </tr>
+                                                            </thead>
+                                                            <tbody>
+                                                                {selectedJob.lab_test_results.map((level, li) => {
+                                                                    const rows = Array.isArray(level) ? level : [];
+                                                                    const depths = rows.map(r => r.depth).filter(Boolean);
+                                                                    const depthRange = depths.length > 0
+                                                                        ? (depths.length === 1 ? depths[0] : `${depths[0]} – ${depths[depths.length - 1]}`)
+                                                                        : '-';
+                                                                    return (
+                                                                        <tr key={li} className="bg-white even:bg-purple-50/30">
+                                                                            <td className="p-2 border font-medium">Level {li + 1}</td>
+                                                                            <td className="p-2 border">{rows.length}</td>
+                                                                            <td className="p-2 border">{depthRange}</td>
+                                                                        </tr>
+                                                                    );
+                                                                })}
+                                                            </tbody>
+                                                        </table>
+                                                    </div>
+                                                </div>
+                                            )}
+
+                                            {/* Chemical Analysis */}
+                                            {Array.isArray(selectedJob.chemical_analysis) && selectedJob.chemical_analysis.length > 0 && (
+                                                <div>
+                                                    <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2">
+                                                        Chemical Analysis ({selectedJob.chemical_analysis.length} level{selectedJob.chemical_analysis.length !== 1 ? 's' : ''})
+                                                    </p>
+                                                    <div className="w-full overflow-x-auto">
+                                                        <table className="w-full border border-gray-200 text-xs">
+                                                            <thead className="bg-purple-50">
+                                                                <tr>
+                                                                    <th className="p-2 border text-left text-purple-700">Level</th>
+                                                                    <th className="p-2 border text-left text-purple-700">pH Value</th>
+                                                                    <th className="p-2 border text-left text-purple-700">Sulphates (%)</th>
+                                                                    <th className="p-2 border text-left text-purple-700">Chlorides (%)</th>
+                                                                    <th className="p-2 border text-left text-purple-700">Additional Keys</th>
+                                                                </tr>
+                                                            </thead>
+                                                            <tbody>
+                                                                {selectedJob.chemical_analysis.map((item, ci) => (
+                                                                    <tr key={ci} className="bg-white even:bg-purple-50/30">
+                                                                        <td className="p-2 border font-medium">Level {ci + 1}</td>
+                                                                        <td className="p-2 border">{item.phValue || '-'}</td>
+                                                                        <td className="p-2 border">{item.sulphates || '-'}</td>
+                                                                        <td className="p-2 border">{item.chlorides || '-'}</td>
+                                                                        <td className="p-2 border">{item.additionalKeys?.filter(k => k.key).length || 0}</td>
+                                                                    </tr>
+                                                                ))}
+                                                            </tbody>
+                                                        </table>
+                                                    </div>
+                                                </div>
+                                            )}
+
+                                            {/* Grain Size Analysis */}
+                                            {Array.isArray(selectedJob.grain_size_analysis) && selectedJob.grain_size_analysis.length > 0 && (
+                                                <div>
+                                                    <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2">
+                                                        Grain Size Analysis ({selectedJob.grain_size_analysis.length} level{selectedJob.grain_size_analysis.length !== 1 ? 's' : ''})
+                                                    </p>
+                                                    <div className="w-full overflow-x-auto">
+                                                        <table className="w-full border border-gray-200 text-xs">
+                                                            <thead className="bg-purple-50">
+                                                                <tr>
+                                                                    <th className="p-2 border text-left text-purple-700">Level</th>
+                                                                    <th className="p-2 border text-left text-purple-700">Rows</th>
+                                                                    <th className="p-2 border text-left text-purple-700">Depth Range</th>
+                                                                </tr>
+                                                            </thead>
+                                                            <tbody>
+                                                                {selectedJob.grain_size_analysis.map((level, gi) => {
+                                                                    const rows = Array.isArray(level) ? level : [];
+                                                                    const depths = rows.map(r => r.depth).filter(Boolean);
+                                                                    const depthRange = depths.length > 0
+                                                                        ? (depths.length === 1 ? depths[0] : `${depths[0]} – ${depths[depths.length - 1]}`)
+                                                                        : '-';
+                                                                    return (
+                                                                        <tr key={gi} className="bg-white even:bg-purple-50/30">
+                                                                            <td className="p-2 border font-medium">Level {gi + 1}</td>
+                                                                            <td className="p-2 border">{rows.length}</td>
+                                                                            <td className="p-2 border">{depthRange}</td>
+                                                                        </tr>
+                                                                    );
+                                                                })}
+                                                            </tbody>
+                                                        </table>
+                                                    </div>
+                                                </div>
+                                            )}
+                                        </div>
+                                    </div>
+                                )}
                             </CardContent>
                         </Card>
                     </div>
@@ -393,7 +741,7 @@ const AdminJobsManager = () => {
                     </div>
                     <Button
                         onClick={() => navigate('/doc/new')}
-                        className="bg-primary hover:bg-primary/90 text-white rounded-xl px-4 flex items-center gap-2 h-11"
+                        className="bg-primary hover:bg-primary/90 text-white rounded-xl p-2 flex items-center gap-2 h-11"
                     >
                         <Plus className="w-4 h-4" /> New Job
                     </Button>

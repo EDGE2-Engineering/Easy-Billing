@@ -15,7 +15,7 @@ export const getNextDocNumber = async (api, type, idToken) => {
         // Some records might have the number in `quote_number` or inside `quotation.quotation_no`
         const numbers = records
             .map(r => {
-                const numStr = r.quote_number || (r.quotation && r.quotation.quotation_no) || '';
+                const numStr = r.job_order_no || r.quote_number || (r.quotation && r.quotation.quotation_no) || '';
                 if (numStr.startsWith(prefix)) {
                     const num = parseInt(numStr.replace(prefix, ''));
                     return isNaN(num) ? 0 : num;

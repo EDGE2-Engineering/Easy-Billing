@@ -113,24 +113,24 @@ const NewQuotationPage = () => {
     const taxTotalPercent = taxCGST + taxSGST;
 
     const defaultQuoteDetails = useMemo(() => ({
-        clientName: '',
-        clientAddress: '',
-        contractorName: '',
-        contractorAddress: '',
-        projectName: '',
-        projectAddress: '',
+        client_name: '',
+        client_address: '',
+        contractor_name: '',
+        contractor_address: '',
+        project_name: '',
+        project_address: '',
         email: '',
         phone: '',
         name: '',
         date: format(new Date(), 'yyyy-MM-dd'),
-        quoteNumber: '',
-        generatedBy: user?.fullName || user?.full_name || user?.name || '',
-        paymentDate: '',
-        paymentMode: '',
-        paymentAmount: '',
-        bankDetails: '',
-        selectedTcTypes: [],
-        selectedTechTypes: []
+        quote_number: '',
+        generated_by: user?.fullName || user?.full_name || user?.name || '',
+        payment_date: '',
+        payment_mode: '',
+        payment_amount: '',
+        bank_details: '',
+        selected_tc_types: [],
+        selected_tech_types: []
     }), [user]);
 
     const [quoteDetails, setQuoteDetails] = useState(defaultQuoteDetails);
@@ -144,6 +144,7 @@ const NewQuotationPage = () => {
     const [customClientName, setCustomClientName] = useState('');
     const [contactSelectionIdx, setContactSelectionIdx] = useState('');
     const [recordStatus, setRecordStatus] = useState('QUOTATION_CREATED');
+    const [existingRecord, setExistingRecord] = useState(null);
 
     const currentData = useMemo(() => ({
         quoteDetails,
@@ -154,15 +155,15 @@ const NewQuotationPage = () => {
 
     const derivedTcTypes = useMemo(() => {
         const itemTcTypes = items.flatMap(item => item.tcList || []);
-        const legacyTcTypes = quoteDetails.selectedTcTypes || [];
+        const legacyTcTypes = quoteDetails.selected_tc_types || [];
         return [...new Set([...itemTcTypes, ...legacyTcTypes])];
-    }, [items, quoteDetails.selectedTcTypes]);
+    }, [items, quoteDetails.selected_tc_types]);
 
     const derivedTechTypes = useMemo(() => {
         const itemTechTypes = items.flatMap(item => item.techList || []);
-        const legacyTechTypes = quoteDetails.selectedTechTypes || [];
+        const legacyTechTypes = quoteDetails.selected_tech_types || [];
         return [...new Set([...itemTechTypes, ...legacyTechTypes])];
-    }, [items, quoteDetails.selectedTechTypes]);
+    }, [items, quoteDetails.selected_tech_types]);
 
     const isDirty = useMemo(() => {
         if (!lastSavedData) return false;
@@ -201,6 +202,7 @@ const NewQuotationPage = () => {
         setCustomClientName('');
         setContactSelectionIdx('');
         setSavedRecordId(null);
+        setExistingRecord(null);
         setLoadedDocumentType(null);
         setRecordStatus('QUOTATION_CREATED');
         setLastSavedData(JSON.stringify({
@@ -227,8 +229,8 @@ const NewQuotationPage = () => {
     ], [clients]);
 
     useEffect(() => {
-        if (clients.length > 0 && quoteDetails.clientName) {
-            const foundClient = clients.find(c => (c.clientName || '').trim() === quoteDetails.clientName.trim());
+        if (clients.length > 0 && quoteDetails.client_name) {
+            const foundClient = clients.find(c => (c.clientName || '').trim() === quoteDetails.client_name.trim());
             if (foundClient) {
                 if (clientNameSelection !== foundClient.clientName) {
                     setClientNameSelection(foundClient.clientName);
@@ -239,12 +241,12 @@ const NewQuotationPage = () => {
                         setContactSelectionIdx(currentIdx.toString());
                     }
                 }
-            } else if (quoteDetails.clientName !== '' && !clientNameSelection) {
+            } else if (quoteDetails.client_name !== '' && !clientNameSelection) {
                 setClientNameSelection('Other');
-                setCustomClientName(quoteDetails.clientName);
+                setCustomClientName(quoteDetails.client_name);
             }
         }
-    }, [clients, quoteDetails.clientName, clientNameSelection, contactSelectionIdx]);
+    }, [clients, quoteDetails.client_name, clientNameSelection, contactSelectionIdx]);
 
     useEffect(() => {
         const loadFromDynamo = async (id) => {
@@ -258,11 +260,30 @@ const NewQuotationPage = () => {
                     const loadedDocType = data.document_type || content.documentType || 'Quotation';
                     const loadedDiscount = content.discount || 0;
 
-                    setQuoteDetails({
+                    setExistingRecord(data);
+                    const mappedQuoteDetails = {
                         ...defaultQuoteDetails,
-                        ...loadedQuoteDetails,
-                        quoteNumber: data.quote_number || loadedQuoteDetails.quoteNumber
-                    });
+                        client_name: loadedQuoteDetails.client_name || loadedQuoteDetails.clientName || '',
+                        client_address: loadedQuoteDetails.client_address || loadedQuoteDetails.clientAddress || '',
+                        contractor_name: loadedQuoteDetails.contractor_name || loadedQuoteDetails.contractorName || '',
+                        contractor_address: loadedQuoteDetails.contractor_address || loadedQuoteDetails.contractorAddress || '',
+                        project_name: loadedQuoteDetails.project_name || loadedQuoteDetails.projectName || '',
+                        project_address: loadedQuoteDetails.project_address || loadedQuoteDetails.projectAddress || '',
+                        email: loadedQuoteDetails.email || '',
+                        phone: loadedQuoteDetails.phone || '',
+                        name: loadedQuoteDetails.name || '',
+                        date: loadedQuoteDetails.date || format(new Date(), 'yyyy-MM-dd'),
+                        quote_number: data.job_order_no || data.quote_number || loadedQuoteDetails.quote_number || loadedQuoteDetails.quoteNumber || '',
+                        generated_by: loadedQuoteDetails.generated_by || loadedQuoteDetails.generatedBy || '',
+                        payment_date: loadedQuoteDetails.payment_date || loadedQuoteDetails.paymentDate || '',
+                        payment_mode: loadedQuoteDetails.payment_mode || loadedQuoteDetails.paymentMode || '',
+                        payment_amount: loadedQuoteDetails.payment_amount || loadedQuoteDetails.paymentAmount || '',
+                        bank_details: loadedQuoteDetails.bank_details || loadedQuoteDetails.bankDetails || '',
+                        selected_tc_types: loadedQuoteDetails.selected_tc_types || loadedQuoteDetails.selectedTcTypes || [],
+                        selected_tech_types: loadedQuoteDetails.selected_tech_types || loadedQuoteDetails.selectedTechTypes || []
+                    };
+
+                    setQuoteDetails(mappedQuoteDetails);
                     setItems(loadedItems);
                     setDocumentType(loadedDocType);
                     setLoadedDocumentType(loadedDocType);
@@ -271,11 +292,7 @@ const NewQuotationPage = () => {
                     setRecordStatus(data.status || 'QUOTATION_CREATED');
 
                     const snapshot = {
-                        quoteDetails: {
-                            ...defaultQuoteDetails,
-                            ...loadedQuoteDetails,
-                            quoteNumber: data.quote_number || loadedQuoteDetails.quoteNumber
-                        },
+                        quoteDetails: mappedQuoteDetails,
                         items: loadedItems,
                         documentType: loadedDocType,
                         discount: loadedDiscount
@@ -300,7 +317,7 @@ const NewQuotationPage = () => {
             return;
         }
 
-        if (!quoteDetails.clientName) {
+        if (!quoteDetails.client_name) {
             toast({ title: "Client Required", description: "Please select a client before saving.", variant: "destructive" });
             return;
         }
@@ -308,35 +325,34 @@ const NewQuotationPage = () => {
         setIsSavingRecord(true);
         try {
             const isTypeChanged = savedRecordId && loadedDocumentType && documentType !== loadedDocumentType;
-            let docNumber = quoteDetails.quoteNumber;
+            let docNumber = quoteDetails.quote_number;
             if ((!savedRecordId || isTypeChanged) && (!docNumber || isTypeChanged)) {
                 docNumber = await getNextDocNumber(dynamoGenericApi, documentType, idToken);
             }
 
-            const updatedQuoteDetails = { ...quoteDetails, quoteNumber: docNumber };
-            const selectedClient = clients.find(c => c.clientName === quoteDetails.clientName);
+            const updatedQuoteDetails = { ...quoteDetails, quote_number: docNumber };
+            const selectedClient = clients.find(c => c.clientName === quoteDetails.client_name);
 
             const recordData = {
+                ...existingRecord,
                 id: isTypeChanged ? `doc_${Date.now()}` : (savedRecordId || `job_${crypto.randomUUID()}`),
                 job_order_no: docNumber,
-                quote_number: docNumber,
                 document_type: documentType,
                 client_id: selectedClient?.id || '',
-                client_name: quoteDetails.clientName,
-                project_name: quoteDetails.projectName,
-                po_wo_number: documentType === 'Quotation' ? '' : quoteDetails.quoteNumber,
+                client_name: quoteDetails.client_name,
+                project_name: quoteDetails.project_name,
+                po_wo_number: documentType === 'Quotation' ? '' : quoteDetails.quote_number,
                 status: (!savedRecordId || isTypeChanged)
-                    ? (documentType === 'Quotation' ? 'QUOTATION_CREATED' : 'RECEIVED')
-                    : (recordStatus || 'RECEIVED'),
-                created_at: new Date().toISOString(),
+                    ? (documentType === 'Quotation' ? 'QUOTATION_CREATED' : 'MATERIAL_RECEIVED')
+                    : (recordStatus || 'MATERIAL_RECEIVED'),
+                created_at: existingRecord?.created_at || new Date().toISOString(),
                 quotation: {
                     quoteDetails: updatedQuoteDetails,
                     items,
                     discount,
-                    documentType,
-                    quotation_no: docNumber
+                    documentType
                 },
-                created_by: user.id || user.username || 'unknown',
+                created_by: existingRecord?.created_by || user.id || user.username || 'unknown',
                 updated_at: new Date().toISOString()
             };
 
@@ -368,8 +384,8 @@ const NewQuotationPage = () => {
                 const emoji = (savedRecordId && !isTypeChanged) ? "📝" : "📄";
                 const message = `${emoji} *${documentType} ${action}*\n\n` +
                     `Number: \`${docNumber}\`\n` +
-                    `Client: \`${quoteDetails.clientName}\`\n` +
-                    `${action} By: \`${user.fullName || user.full_name || user.name}\``;
+                    `Client: \`${quoteDetails.client_name}\`\n` +
+                    `Generated By: \`${user.fullName || user.full_name || user.name}\``;
                 await sendTelegramNotification(message);
             } catch (e) { }
         } catch (err) {
@@ -396,17 +412,17 @@ const NewQuotationPage = () => {
     const componentRef = useRef(null);
     const handlePrint = useReactToPrint({
         contentRef: componentRef,
-        documentTitle: `${documentType}_${quoteDetails.quoteNumber}`,
+        documentTitle: `${documentType}_${quoteDetails.quote_number}`,
     });
 
     const triggerPrint = async () => {
-        if (!quoteDetails.quoteNumber) {
+        if (!quoteDetails.quote_number) {
             toast({ title: "Save Required", description: "Please save the document before printing.", variant: "destructive" });
             return;
         }
         try {
             const message = `🖨️ *Print Action*\n\n` +
-                `Doc: \`${documentType}\`\nNo: \`${quoteDetails.quoteNumber}\`\nClient: \`${quoteDetails.clientName}\``;
+                `Doc: \`${documentType}\`\nNo: \`${quoteDetails.quote_number}\`\nClient: \`${quoteDetails.client_name}\``;
             await sendTelegramNotification(message);
         } catch (e) { }
         handlePrint();
@@ -416,7 +432,7 @@ const NewQuotationPage = () => {
         if (!selectedItemId) return;
         const itemData = (newItemType === 'service' ? services : tests).find(i => i.id === selectedItemId);
         if (itemData) {
-            const clientId = clients.find(c => c.clientName === quoteDetails.clientName)?.id;
+            const clientId = clients.find(c => c.clientName === quoteDetails.client_name)?.id;
             const finalPrice = getAppropiatePrice(selectedItemId, newItemType, clientId);
             setItems(prev => [...prev, {
                 id: Date.now(),
@@ -591,8 +607,8 @@ const NewQuotationPage = () => {
 
                             <div className="mb-4">
                                 <Label>{documentType} Number</Label>
-                                <Input value={quoteDetails.quoteNumber || ''} readOnly placeholder="Auto-generated on save" className="bg-gray-50 cursor-not-allowed" />
-                                {!quoteDetails.quoteNumber && <p className="text-[10px] text-red-500 mt-1 italic">* Number will be generated when you save.</p>}
+                                <Input value={quoteDetails.quote_number || ''} readOnly placeholder="Auto-generated on save" className="bg-gray-50 cursor-not-allowed" />
+                                {!quoteDetails.quote_number && <p className="text-[10px] text-red-500 mt-1 italic">* Number will be generated when you save.</p>}
                             </div>
 
                             <div className="grid grid-cols-2 gap-4 mb-4">
@@ -619,15 +635,15 @@ const NewQuotationPage = () => {
                                             const pc = cs[idx] || {};
                                             setQuoteDetails({
                                                 ...quoteDetails,
-                                                clientName: v,
-                                                clientAddress: sc?.clientAddress || '',
+                                                client_name: v,
+                                                client_address: sc?.clientAddress || '',
                                                 email: pc.contact_email || sc?.email || '',
                                                 phone: pc.contact_phone || sc?.phone || '',
                                                 name: pc.contact_person || ''
                                             });
                                             setContactSelectionIdx(idx >= 0 ? idx.toString() : '');
                                         } else {
-                                            setQuoteDetails({ ...quoteDetails, clientName: customClientName, clientAddress: '', email: '', phone: '', name: '' });
+                                            setQuoteDetails({ ...quoteDetails, client_name: customClientName, client_address: '', email: '', phone: '', name: '' });
                                         }
                                     }}>
                                         <SelectTrigger><SelectValue placeholder="Select client" /></SelectTrigger>
@@ -638,7 +654,7 @@ const NewQuotationPage = () => {
                                     {clientNameSelection === 'Other' && (
                                         <Input className="mt-2" value={customClientName} onChange={e => {
                                             setCustomClientName(e.target.value);
-                                            setQuoteDetails({ ...quoteDetails, clientName: e.target.value });
+                                            setQuoteDetails({ ...quoteDetails, client_name: e.target.value });
                                         }} placeholder="Enter custom client name" />
                                     )}
                                 </div>
@@ -664,15 +680,15 @@ const NewQuotationPage = () => {
 
                                 <div>
                                     <Label>Client Address</Label>
-                                    <Textarea value={quoteDetails.clientAddress} onChange={e => setQuoteDetails({ ...quoteDetails, clientAddress: e.target.value })} rows={2} />
+                                    <Textarea value={quoteDetails.client_address} onChange={e => setQuoteDetails({ ...quoteDetails, client_address: e.target.value })} rows={2} />
                                 </div>
                                 <div className="grid grid-cols-1 gap-4 pt-2 border-t">
-                                    <div><Label>Contractor Name</Label><Textarea value={quoteDetails.contractorName} onChange={e => setQuoteDetails({ ...quoteDetails, contractorName: e.target.value })} rows={2} /></div>
-                                    <div><Label>Contractor Address</Label><Textarea value={quoteDetails.contractorAddress} onChange={e => setQuoteDetails({ ...quoteDetails, contractorAddress: e.target.value })} rows={2} /></div>
+                                    <div><Label>Contractor Name</Label><Textarea value={quoteDetails.contractor_name} onChange={e => setQuoteDetails({ ...quoteDetails, contractor_name: e.target.value })} rows={2} /></div>
+                                    <div><Label>Contractor Address</Label><Textarea value={quoteDetails.contractor_address} onChange={e => setQuoteDetails({ ...quoteDetails, contractor_address: e.target.value })} rows={2} /></div>
                                 </div>
                                 <div className="grid grid-cols-1 gap-4 pt-2 border-t">
-                                    <div><Label>Project Name</Label><Textarea value={quoteDetails.projectName} onChange={e => setQuoteDetails({ ...quoteDetails, projectName: e.target.value })} rows={2} /></div>
-                                    <div><Label>Project Address</Label><Textarea value={quoteDetails.projectAddress} onChange={e => setQuoteDetails({ ...quoteDetails, projectAddress: e.target.value })} rows={2} /></div>
+                                    <div><Label>Project Name</Label><Textarea value={quoteDetails.project_name} onChange={e => setQuoteDetails({ ...quoteDetails, project_name: e.target.value })} rows={2} /></div>
+                                    <div><Label>Project Address</Label><Textarea value={quoteDetails.project_address} onChange={e => setQuoteDetails({ ...quoteDetails, project_address: e.target.value })} rows={2} /></div>
                                 </div>
                             </div>
                         </div>
@@ -682,11 +698,11 @@ const NewQuotationPage = () => {
                                 <h2 className="text-sm font-semibold mb-4 flex items-center gap-2 text-primary"><CreditCard className="w-4 h-4" /> Payment Details</h2>
                                 <div className="space-y-4">
                                     <div className="grid grid-cols-2 gap-4">
-                                        <div><Label>Received Date</Label><Input type="date" value={quoteDetails.paymentDate || ''} onChange={e => setQuoteDetails({ ...quoteDetails, paymentDate: e.target.value })} /></div>
-                                        <div><Label>Mode</Label><Select value={quoteDetails.paymentMode} onValueChange={v => setQuoteDetails({ ...quoteDetails, paymentMode: v })}><SelectTrigger><SelectValue placeholder="Mode" /></SelectTrigger><SelectContent><SelectItem value="Cash">Cash</SelectItem><SelectItem value="Cheque">Cheque</SelectItem><SelectItem value="NEFT/RTGS">NEFT/RTGS</SelectItem><SelectItem value="UPI">UPI</SelectItem><SelectItem value="Other">Other</SelectItem></SelectContent></Select></div>
+                                        <div><Label>Received Date</Label><Input type="date" value={quoteDetails.payment_date || ''} onChange={e => setQuoteDetails({ ...quoteDetails, payment_date: e.target.value })} /></div>
+                                        <div><Label>Mode</Label><Select value={quoteDetails.payment_mode} onValueChange={v => setQuoteDetails({ ...quoteDetails, payment_mode: v })}><SelectTrigger><SelectValue placeholder="Mode" /></SelectTrigger><SelectContent><SelectItem value="Cash">Cash</SelectItem><SelectItem value="Cheque">Cheque</SelectItem><SelectItem value="NEFT/RTGS">NEFT/RTGS</SelectItem><SelectItem value="UPI">UPI</SelectItem><SelectItem value="Other">Other</SelectItem></SelectContent></Select></div>
                                     </div>
-                                    <div><Label>Amount (<Rupee />)</Label><Input type="number" value={quoteDetails.paymentAmount} onChange={e => setQuoteDetails({ ...quoteDetails, paymentAmount: e.target.value })} /></div>
-                                    <div><Label>Bank / Transaction Details</Label><Textarea value={quoteDetails.bankDetails} onChange={e => setQuoteDetails({ ...quoteDetails, bankDetails: e.target.value })} rows={2} /></div>
+                                    <div><Label>Amount (<Rupee />)</Label><Input type="number" value={quoteDetails.payment_amount} onChange={e => setQuoteDetails({ ...quoteDetails, payment_amount: e.target.value })} /></div>
+                                    <div><Label>Bank / Transaction Details</Label><Textarea value={quoteDetails.bank_details} onChange={e => setQuoteDetails({ ...quoteDetails, bank_details: e.target.value })} rows={2} /></div>
                                 </div>
                             </div>
                         )}
@@ -735,7 +751,7 @@ const NewQuotationPage = () => {
                                                     <div className="flex justify-between items-start border-b pb-4 mb-2">
                                                         <div className="w-[30%]">
                                                             <h3 className="text-lg font-bold text-gray-900 tracking-tight uppercase">{documentType}</h3>
-                                                            <p className="text-gray-500 mt-1 text-xs">#{quoteDetails.quoteNumber || 'PENDING'}</p>
+                                                            <p className="text-gray-500 mt-1 text-xs">#{quoteDetails.quote_number || 'PENDING'}</p>
                                                             <p className="text-gray-500 text-xs">Date: {format(new Date(quoteDetails.date), 'dd MMM yyyy')}</p>
                                                         </div>
                                                         <div className="w-[70%] flex items-center gap-4 text-right">
@@ -752,28 +768,28 @@ const NewQuotationPage = () => {
                                                     <div className="grid grid-cols-3 gap-6 mb-2 border-b pb-2">
                                                         <div className="space-y-1">
                                                             <h3 className="text-[10px] text-gray-400 font-bold uppercase border-b pb-0.5 mb-1">Client</h3>
-                                                            <p className="font-bold text-[11px]">{quoteDetails.clientName || '-'}</p>
-                                                            <p className="text-gray-600 text-[10px] whitespace-pre-wrap leading-tight">{quoteDetails.clientAddress}</p>
+                                                            <p className="font-bold text-[11px]">{quoteDetails.client_name || '-'}</p>
+                                                            <p className="text-gray-600 text-[10px] whitespace-pre-wrap leading-tight">{quoteDetails.client_address}</p>
                                                             <p className="text-gray-600 text-[10px] mt-1">{quoteDetails.name} | {quoteDetails.phone}</p>
                                                         </div>
                                                         <div className="space-y-1 border-l pl-2">
                                                             <h3 className="text-[10px] text-gray-400 font-bold uppercase border-b pb-0.5 mb-1">Contractor</h3>
-                                                            <p className="font-bold text-[11px]">{quoteDetails.contractorName || '-'}</p>
-                                                            <p className="text-gray-600 text-[10px] whitespace-pre-wrap leading-tight">{quoteDetails.contractorAddress}</p>
+                                                            <p className="font-bold text-[11px]">{quoteDetails.contractor_name || '-'}</p>
+                                                            <p className="text-gray-600 text-[10px] whitespace-pre-wrap leading-tight">{quoteDetails.contractor_address}</p>
                                                         </div>
                                                         <div className="space-y-1 border-l pl-2">
                                                             <h3 className="text-[10px] text-gray-400 font-bold uppercase border-b pb-0.5 mb-1">Project</h3>
-                                                            <p className="font-bold text-[11px]">{quoteDetails.projectName || '-'}</p>
-                                                            <p className="text-gray-600 text-[10px] whitespace-pre-wrap leading-tight">{quoteDetails.projectAddress}</p>
+                                                            <p className="font-bold text-[11px]">{quoteDetails.project_name || '-'}</p>
+                                                            <p className="text-gray-600 text-[10px] whitespace-pre-wrap leading-tight">{quoteDetails.project_address}</p>
                                                         </div>
                                                     </div>
-                                                    <p className="text-[9px] text-right italic mb-2">Generated by: {quoteDetails.generatedBy}</p>
+                                                    <p className="text-[9px] text-right italic mb-2">Generated by: {quoteDetails.generated_by}</p>
                                                 </>
                                             )}
 
                                             {page.isContinuation && (
                                                 <div className="border-b pb-2 mb-4">
-                                                    <h3 className="text-md font-bold text-gray-900">{documentType} #{quoteDetails.quoteNumber} (Continued)</h3>
+                                                    <h3 className="text-md font-bold text-gray-900">{documentType} #{quoteDetails.quote_number} (Continued)</h3>
                                                 </div>
                                             )}
 
@@ -832,10 +848,10 @@ const NewQuotationPage = () => {
                                                         <div className="flex justify-between text-[11px] mb-1"><span>SGST ({taxSGST}%):</span><span><Rupee />{((calculateTotal() * (1 - discount / 100)) * taxSGST / 100).toLocaleString()}</span></div>
                                                         <div className="flex justify-between text-[13px] font-black text-gray-900 border-t border-gray-400 mt-2 pt-1"><span>Grand Total:</span><span><Rupee />{((calculateTotal() * (1 - discount / 100)) * (1 + taxTotalPercent / 100)).toLocaleString()}</span></div>
                                                     </div>
-                                                    {documentType === 'Tax Invoice' && quoteDetails.paymentAmount > 0 && (
+                                                    {documentType === 'Tax Invoice' && quoteDetails.payment_amount > 0 && (
                                                         <div className="w-1/2 border-t pt-1 mt-1 text-right">
-                                                            <div className="flex justify-between text-[11px] text-red-600"><span>Payment Received:</span><span>- <Rupee />{Number(quoteDetails.paymentAmount).toLocaleString()}</span></div>
-                                                            <div className="flex justify-between text-sm font-black text-primary mt-1 border-t pt-1"><span>Balance Due:</span><span><Rupee />{(((calculateTotal() * (1 - discount / 100)) * (1 + taxTotalPercent / 100)) - Number(quoteDetails.paymentAmount)).toLocaleString()}</span></div>
+                                                            <div className="flex justify-between text-[11px] text-red-600"><span>Payment Received:</span><span>- <Rupee />{Number(quoteDetails.payment_amount).toLocaleString()}</span></div>
+                                                            <div className="flex justify-between text-sm font-black text-primary mt-1 border-t pt-1"><span>Balance Due:</span><span><Rupee />{(((calculateTotal() * (1 - discount / 100)) * (1 + taxTotalPercent / 100)) - Number(quoteDetails.payment_amount)).toLocaleString()}</span></div>
                                                         </div>
                                                     )}
                                                     <div className="w-full mt-4 text-[10px] italic border-t pt-2 text-gray-600 font-medium">Amount in words: {numberToWords((calculateTotal() * (1 - discount / 100)) * (1 + taxTotalPercent / 100))}</div>
@@ -845,7 +861,7 @@ const NewQuotationPage = () => {
 
                                         <div className="a4-page-footer absolute bottom-[10mm] left-[10mm] right-[10mm]">
                                             <span>EDGE2 Engineering Solutions India Pvt. Ltd.</span>
-                                            <span className="font-bold uppercase">{documentType} #{quoteDetails.quoteNumber || 'Pending'} | Page {pIdx + 1} of {totalPages}</span>
+                                            <span className="font-bold uppercase">{documentType} #{quoteDetails.quote_number || 'Pending'} | Page {pIdx + 1} of {totalPages}</span>
                                         </div>
                                     </div>
                                 ))}
@@ -889,7 +905,7 @@ const NewQuotationPage = () => {
                                     </div>
                                     <div className="a4-page-footer absolute bottom-[10mm] left-[10mm] right-[10mm]">
                                         <span>EDGE2 Engineering Solutions India Pvt. Ltd.</span>
-                                        <span className="font-bold uppercase">{documentType} #{quoteDetails.quoteNumber || 'Pending'} | Page {totalItemPages + 1} of {totalPages}</span>
+                                        <span className="font-bold uppercase">{documentType} #{quoteDetails.quote_number || 'Pending'} | Page {totalItemPages + 1} of {totalPages}</span>
                                     </div>
                                 </div>
 
@@ -909,7 +925,7 @@ const NewQuotationPage = () => {
                                         </div>
                                         <div className="a4-page-footer absolute bottom-[10mm] left-[10mm] right-[10mm]">
                                             <span>EDGE2 Engineering Solutions India Pvt. Ltd.</span>
-                                            <span className="font-bold uppercase">{documentType} #{quoteDetails.quoteNumber || 'Pending'} | Page {totalItemPages + 2 + tcIdx} of {totalPages}</span>
+                                            <span className="font-bold uppercase">{documentType} #{quoteDetails.quote_number || 'Pending'} | Page {totalItemPages + 2 + tcIdx} of {totalPages}</span>
                                         </div>
                                     </div>
                                 ))}
@@ -930,7 +946,7 @@ const NewQuotationPage = () => {
                                         </div>
                                         <div className="a4-page-footer absolute bottom-[10mm] left-[10mm] right-[10mm]">
                                             <span>EDGE2 Engineering Solutions India Pvt. Ltd.</span>
-                                            <span className="font-bold uppercase">{documentType} #{quoteDetails.quoteNumber || 'Pending'} | Page {totalItemPages + 2 + tcPages.length + techIdx} of {totalPages}</span>
+                                            <span className="font-bold uppercase">{documentType} #{quoteDetails.quote_number || 'Pending'} | Page {totalItemPages + 2 + tcPages.length + techIdx} of {totalPages}</span>
                                         </div>
                                     </div>
                                 ))}
