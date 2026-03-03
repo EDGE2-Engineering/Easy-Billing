@@ -29,6 +29,8 @@ import {
     AlertDialogContent, AlertDialogDescription, AlertDialogFooter,
     AlertDialogHeader, AlertDialogTitle
 } from '@/components/ui/alert-dialog';
+import { Dialog, DialogContent } from '@/components/ui/dialog';
+import ReportPreview from '@/components/ReportPreview';
 
 const AdminJobsManager = () => {
     const { idToken, user, isAdmin } = useAuth();
@@ -43,6 +45,7 @@ const AdminJobsManager = () => {
     const [showInwardForm, setShowInwardForm] = useState(false);
     const [showTestingForm, setShowTestingForm] = useState(false);
     const [showConfirmDialog, setShowConfirmDialog] = useState(false);
+    const [showReportPreview, setShowReportPreview] = useState(false);
     const { toast } = useToast();
 
     const workflowStates = WORKFLOW_STEPS.map(s => s.id);
@@ -367,7 +370,7 @@ const AdminJobsManager = () => {
                                 {selectedJob.status === 'REPORT_GENERATED' && canPerformAction && (
                                     <Button
                                         variant="outline"
-                                        onClick={() => window.open(`#/doc/${selectedJob.id}`, '_blank')}
+                                        onClick={() => setShowReportPreview(true)}
                                         className="border-primary text-primary hover:bg-primary/5 rounded-xl px-4 flex items-center gap-2 h-11 transition-all"
                                     >
                                         <Eye className="w-4 h-4" />
@@ -713,8 +716,18 @@ const AdminJobsManager = () => {
                             </CardContent>
                         </Card>
                     </div>
-
                 </div>
+
+                <Dialog open={showReportPreview} onOpenChange={setShowReportPreview}>
+                    <DialogContent className="max-w-5xl h-[95vh] p-0 overflow-hidden flex flex-col bg-gray-100">
+                        <div className="flex-grow overflow-y-auto p-4 flex justify-center">
+                            <ReportPreview
+                                formData={selectedJob.content || selectedJob}
+                                onClose={() => setShowReportPreview(false)}
+                            />
+                        </div>
+                    </DialogContent>
+                </Dialog>
             </div>
         );
     }
