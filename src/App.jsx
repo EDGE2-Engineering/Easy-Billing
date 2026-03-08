@@ -44,7 +44,7 @@ const router = createBrowserRouter([
     path: "/",
     element: <RootRedirect />,
   },
-// ... (trimmed for this thought, I will use full content in actual call)
+  // ... (trimmed for this thought, I will use full content in actual call)
 
   {
     path: "/settings/:tab?",
