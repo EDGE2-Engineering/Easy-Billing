@@ -535,10 +535,11 @@ const MaterialInwardManager = ({ initialJobId, onClose }) => {
                         />
                     </div>
                     <div className="space-y-2">
-                        <Label htmlFor="client">Client *</Label>
+                        <Label htmlFor="client">Client</Label>
                         <Select
                             value={editingRecord.client_id}
                             onValueChange={(value) => setEditingRecord(prev => ({ ...prev, client_id: value }))}
+                            disabled={!!initialJobId || !!editingRecord.job_id}
                         >
                             <SelectTrigger id="client">
                                 <SelectValue placeholder="Select a client" />

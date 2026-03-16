@@ -171,7 +171,7 @@ const JobsManager = () => {
             // Fetch Quotations/Invoices
             const { data: docs, error: docsError } = await supabase
                 .from('accounts')
-                .select('*')
+                .select('*, users(full_name)')
                 .eq('job_id', jobId)
                 .order('created_at', { ascending: false });
             if (docsError) throw docsError;
@@ -482,18 +482,20 @@ const JobsManager = () => {
                                         <table className="w-full text-sm">
                                             <thead className="bg-gray-100/50 border-b">
                                                 <tr>
-                                                    <th className="text-left py-3 px-4 font-semibold text-gray-600">Doc Type</th>
-                                                    <th className="text-left py-3 px-4 font-semibold text-gray-600">Doc Number</th>
-                                                    <th className="text-left py-3 px-4 font-semibold text-gray-600">Date</th>
+                                                    {/* <th className="text-left py-3 px-4 font-semibold text-gray-600">Doc Type</th> */}
+                                                    <th className="text-left py-3 px-4 font-semibold text-gray-600">Quotation Number</th>
+                                                    <th className="text-left py-3 px-4 font-semibold text-gray-600">Raised On</th>
+                                                    <th className="text-left py-3 px-4 font-semibold text-gray-600">Raised By</th>
                                                     <th className="text-right py-3 px-4 font-semibold text-gray-600">Action</th>
                                                 </tr>
                                             </thead>
                                             <tbody>
                                                 {linkedDocs.map((doc) => (
                                                     <tr key={doc.id} className="border-b border-gray-100 last:border-0 hover:bg-white/50 transition-colors">
-                                                        <td className="py-3 px-4 font-medium">{doc.document_type}</td>
+                                                        {/* <td className="py-3 px-4 font-medium">{doc.document_type}</td> */}
                                                         <td className="py-3 px-4 font-mono text-primary">{doc.quote_number}</td>
                                                         <td className="py-3 px-4 text-gray-500">{format(new Date(doc.created_at), 'dd MMM yyyy')}</td>
+                                                        <td className="py-3 px-4 text-gray-500">{doc.users?.full_name || 'System'}</td>
                                                         <td className="py-3 px-4 text-right">
                                                             <Button 
                                                                 variant="ghost" 
@@ -531,54 +533,53 @@ const JobsManager = () => {
                                             <thead className="bg-gray-100/50 border-b">
                                                 <tr>
                                                     <th className="text-left py-3 px-4 font-semibold text-gray-600">Job Order No</th>
-                                                    <th className="text-left py-3 px-4 font-semibold text-gray-600">PO/WO Number</th>
-                                                    <th className="text-left py-3 px-4 font-semibold text-gray-600">Samples Summary</th>
+                                                    <th className="text-left py-3 px-4 font-semibold text-gray-600">Sample Code</th>
+                                                    <th className="text-left py-3 px-4 font-semibold text-gray-600">Description</th>
+                                                    <th className="text-left py-3 px-4 font-semibold text-gray-600 whitespace-nowrap">Qty</th>
+                                                    <th className="text-left py-3 px-4 font-semibold text-gray-600">Collection At</th>
                                                     <th className="text-left py-3 px-4 font-semibold text-gray-600">Status</th>
-                                                    <th className="text-left py-3 px-4 font-semibold text-gray-600">Date</th>
+                                                    <th className="text-left py-3 px-4 font-semibold text-gray-600">Received On</th>
                                                     <th className="text-right py-3 px-4 font-semibold text-gray-600">Action</th>
                                                 </tr>
                                             </thead>
                                             <tbody>
-                                                {linkedInwards.map((inward) => (
-                                                    <tr key={inward.id} className="border-b border-gray-100 last:border-0 hover:bg-white/50 transition-colors">
-                                                        <td className="py-3 px-4 font-bold font-mono text-primary">{inward.job_order_no}</td>
-                                                        <td className="py-3 px-4">{inward.po_wo_number}</td>
+                                                {linkedInwards.flatMap(inward => 
+                                                    (inward.material_samples || []).map(sample => ({
+                                                        ...sample,
+                                                        inward_jo: inward.job_order_no,
+                                                        inward_status: inward.status
+                                                    }))
+                                                ).map((sample) => (
+                                                    <tr key={sample.id} className="border-b border-gray-100 last:border-0 hover:bg-white/50 transition-colors">
+                                                        <td className="py-3 px-4 font-bold font-mono text-xs text-primary">{sample.inward_jo}</td>
+                                                        <td className="py-3 px-4 font-semibold">{sample.sample_code}</td>
+                                                        <td className="py-3 px-4 text-gray-600 max-w-[200px] truncate" title={sample.sample_description}>
+                                                            {sample.sample_description || '-'}
+                                                        </td>
+                                                        <td className="py-3 px-4 font-medium">{sample.quantity}</td>
                                                         <td className="py-3 px-4">
-                                                            <div className="flex flex-col gap-1">
-                                                                <span className="text-xs font-semibold text-gray-700">
-                                                                    {inward.material_samples?.length || 0} Samples
-                                                                </span>
-                                                                <div className="flex flex-wrap gap-1">
-                                                                    {inward.material_samples?.slice(0, 3).map(s => (
-                                                                        <Badge key={s.id} variant="secondary" className="text-[10px] px-1 py-0 h-4 bg-gray-100 text-gray-600">
-                                                                            {s.sample_code}
-                                                                        </Badge>
-                                                                    ))}
-                                                                    {inward.material_samples?.length > 3 && (
-                                                                        <span className="text-[10px] text-gray-400">+{inward.material_samples.length - 3} more</span>
-                                                                    )}
-                                                                </div>
-                                                            </div>
+                                                            <span className="text-xs text-gray-500">
+                                                                {sample.collection_centers?.name || '-'}
+                                                            </span>
                                                         </td>
                                                         <td className="py-3 px-4">
-                                                            <Badge variant="outline" className="text-[10px] h-5 border-primary/20 text-primary">
-                                                                {inward.status}
+                                                            <Badge variant="outline" className="text-[10px] h-5 border-primary/20 text-primary uppercase">
+                                                                {sample.inward_status}
                                                             </Badge>
                                                         </td>
-                                                        <td className="py-3 px-4 text-gray-500">{format(new Date(inward.created_at), 'dd MMM yyyy')}</td>
+                                                        <td className="py-3 px-4 text-gray-500 whitespace-nowrap">
+                                                            {format(new Date(sample.received_date), 'dd MMM yyyy')}
+                                                        </td>
                                                         <td className="py-3 px-4 text-right">
-                                                            {/* Placeholder for future detailed view or edit */}
                                                             <Button 
                                                                 variant="ghost" 
                                                                 size="sm" 
-                                                                className="text-primary hover:bg-primary/5 h-8"
+                                                                className="text-primary hover:bg-primary/5 h-8 w-8 p-0"
                                                                 onClick={() => {
-                                                                    // We could potentially set an active inward view here
-                                                                    toast({ title: "View Details", description: "This will open detailed inward view." });
+                                                                    toast({ title: "Sample Details", description: `Code: ${sample.sample_code}\nDesc: ${sample.sample_description}` });
                                                                 }}
                                                             >
-                                                                <ExternalLink className="w-4 h-4 mr-1.5" />
-                                                                View
+                                                                <ExternalLink className="w-4 h-4" />
                                                             </Button>
                                                         </td>
                                                     </tr>
