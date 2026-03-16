@@ -39,4 +39,23 @@ export const TG_NOTIFIER_CONFIG = {
 
 export const enableInfoDiagramZoom = false;
 
+
 export const JOB_CATEGORIES = ["Soil Testing", "Material Testing", "Geotechnical Testing"];
+
+export const WORKFLOW_STEPS = [
+    { id: 'JOB_CREATED', label: 'Job Created', action: 'Create Quotation', roles: ['superadmin', 'admin', 'mro'] },
+    { id: 'QUOTATION_CREATED', label: 'Quotation Created', action: 'Add Material Inward', roles: ['superadmin', 'admin', 'mro'] },
+    { id: 'MATERIAL_RECEIVED', label: 'Material Received', action: 'Send for Testing', roles: ['superadmin', 'admin', 'mro'] },
+    { id: 'SENT_TO_TESTING_DEPARTMENT', label: 'Sent for Testing', action: 'Start Testing', roles: ['superadmin', 'admin', 'test-staff'] },
+    { id: 'UNDER_TESTING', label: 'Under Testing', action: 'Mark Test Completed', roles: ['superadmin', 'admin', 'test-staff'] },
+    { id: 'TEST_COMPLETED', label: 'Testing Completed', action: 'Generate Report', roles: ['superadmin', 'admin', 'mro'] },
+    { id: 'REPORT_GENERATED', label: 'Report Generated', action: 'Submit for Review', roles: ['superadmin', 'admin', 'mro'] },
+    { id: 'UNDER_REVIEW', label: 'Under Review', action: 'Sign Report', roles: ['superadmin', 'admin'] },
+    { id: 'SIGNED', label: 'Signed', action: 'Mark Payment Pending', roles: ['superadmin', 'admin', 'mro', 'accountant'] },
+    { id: 'PAYMENT_PENDING', label: 'Payment Pending', action: 'Mark Payment Received', roles: ['superadmin', 'admin', 'accountant'] },
+    { id: 'PAYMENT_RECEIVED', label: 'Payment Received', action: 'Release Report', roles: ['superadmin', 'admin', 'accountant'] },
+    { id: 'REPORT_RELEASED', label: 'Report Released', action: 'Complete Job', roles: ['superadmin', 'admin', 'accountant'] },
+    { id: 'COMPLETED', label: 'Completed', action: null, roles: [] }
+];
+
+export const WORKFLOW_STATUS_OPTIONS = WORKFLOW_STEPS.map(step => step.id);

@@ -16,6 +16,7 @@ import AdminReportsManager from '@/components/admin/AdminReportsManager.jsx';
 import MaterialInwardManager from '@/components/admin/MaterialInwardManager';
 import AdminServicesManager from '@/components/admin/AdminServicesManager.jsx';
 import AdminTestsManager from '@/components/admin/AdminTestsManager.jsx';
+import JobsManager from '@/components/admin/JobsManager.jsx';
 
 
 import AdminLogin from '@/components/admin/AdminLogin';
@@ -39,7 +40,7 @@ const AdminPage = () => {
   const { toast } = useToast();
 
   useEffect(() => {
-    const allowedTabs = ['accounts', 'inward_register', 'reports'];
+    const allowedTabs = ['accounts', 'inward_register', 'reports', 'jobs'];
     if (isStandard() && !allowedTabs.includes(mainTab)) {
       navigate('/settings/accounts');
     }
@@ -103,7 +104,7 @@ const AdminPage = () => {
       <main className="flex-grow container mx-auto px-4 py-0 relative">
         <Tabs value={mainTab} onValueChange={handleTabChange} className="w-full space-y-4">
           {/* Show sub-navigation ONLY if we are in a settings-related tab */}
-          {(!['inward_register', 'reports', 'accounts'].includes(mainTab)) && (
+          {(!['inward_register', 'reports', 'accounts', 'jobs'].includes(mainTab)) && (
             <>
               {/* Mobile View: Select Dropdown */}
               <div className="block md:hidden relative">
@@ -115,6 +116,7 @@ const AdminPage = () => {
                   className="w-full bg-white border border-gray-200 rounded-xl px-4 py-3 text-gray-900 font-medium focus:ring-2 focus:ring-primary focus:border-primary transition-all shadow-sm outline-none appearance-none"
                 >
                   <option value="accounts">Accounts</option>
+                  <option value="jobs">Jobs</option>
                   {!isStandard() && <option value="services">Services</option>}
                   {!isStandard() && <option value="tests">Tests</option>}
                   {!isStandard() && <option value="clients">Clients</option>}
@@ -201,6 +203,10 @@ const AdminPage = () => {
 
           <TabsContent value="accounts" className="focus-visible:outline-none animate-in fade-in slide-in-from-bottom-2 duration-500">
             <AccountsManager />
+          </TabsContent>
+
+          <TabsContent value="jobs" className="focus-visible:outline-none animate-in fade-in slide-in-from-bottom-2 duration-500">
+            <JobsManager />
           </TabsContent>
 
           <TabsContent value="inward_register" className="focus-visible:outline-none animate-in fade-in slide-in-from-bottom-2 duration-500">

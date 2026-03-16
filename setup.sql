@@ -208,6 +208,7 @@ create table public.reports (
   updated_at timestamptz default now()
 );
 
+
 -- 16. collection_centers
 create table public.collection_centers (
   id serial primary key,
@@ -216,6 +217,43 @@ create table public.collection_centers (
   created_at timestamptz default now(),
   updated_at timestamptz default now()
 );
+
+-- 17. jobs
+create table public.jobs (
+  id uuid primary key default gen_random_uuid(),
+  job_id text unique,
+  client_id text not null references public.clients(id) on delete cascade,
+  project_name text not null,
+  project_address text,
+  job_categories text[] default '{}',
+  status text not null default 'JOB_CREATED',
+  created_by uuid not null references public.users(id) on delete cascade,
+  updated_by uuid references public.users(id) on delete cascade,
+  created_at timestamptz default current_timestamp,
+  updated_at timestamptz default current_timestamp
+);
+
+-- Sequence for Job IDs if needed (or we can use timestamp-based)
+CREATE SEQUENCE IF NOT EXISTS job_number_seq START 1;
+
+CREATE OR REPLACE FUNCTION generate_job_id()
+RETURNS TRIGGER AS $$
+DECLARE
+    year_str TEXT;
+    seq_val INT;
+BEGIN
+    year_str := to_char(CURRENT_DATE, 'YYYY');
+    seq_val := nextval('job_number_seq');
+    NEW.job_id := 'EESIPL/JOB/' || year_str || '/' || LPAD(seq_val::text, 2, '0');
+    RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE TRIGGER trigger_generate_job_id
+BEFORE INSERT ON public.jobs
+FOR EACH ROW
+WHEN (NEW.job_id IS NULL)
+EXECUTE FUNCTION generate_job_id();
 
 
 
@@ -284,9 +322,14 @@ create policy "Reports are viewable by everyone" on public.reports for select us
 create policy "Allow public management of reports" on public.reports for all using ( true ) with check ( true );
 ---
 
+
 alter table public.collection_centers enable row level security;
 create policy "Collection centers are viewable by everyone" on public.collection_centers for select using ( true );
 create policy "Allow public management of collection centers" on public.collection_centers for all using ( true ) with check ( true );
+
+alter table public.jobs enable row level security;
+create policy "Jobs are viewable by everyone" on public.jobs for select using ( true );
+create policy "Allow public management of jobs" on public.jobs for all using ( true ) with check ( true );
 
 
 -- -----------------------------------------------------------------------------
