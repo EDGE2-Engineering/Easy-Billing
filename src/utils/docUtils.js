@@ -2,9 +2,9 @@
  * Document numbering utility
  */
 
-export const getNextDocNumber = async (api, type, idToken) => {
+export const getNextDocNumber = async (api, type) => {
     try {
-        const records = await api.listByType('job', idToken);
+        const records = await api.listByType('job');
         if (!records || records.length === 0) {
             return generateFirstNumber(type);
         }

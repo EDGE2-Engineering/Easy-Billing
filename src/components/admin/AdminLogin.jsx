@@ -17,25 +17,8 @@ const AdminLogin = ({ onLoginSuccess }) => {
     const [isLoading, setIsLoading] = useState(false);
     const [hasAttemptedAutoLogin, setHasAttemptedAutoLogin] = useState(false);
 
-    // Auto-redirect to Cognito if not already authenticated
-    useEffect(() => {
-        const justLoggedOut = localStorage.getItem('edge2_just_logged_out') === 'true';
-        
-        // Skip auto-redirect if loading, if we already tried, or if we just intentionally logged out
-        if (hasAttemptedAutoLogin || isLoading || justLoggedOut) {
-            if (justLoggedOut && !hasAttemptedAutoLogin) {
-                console.log("AdminLogin: Suppressing auto-login due to recent logout.");
-                setHasAttemptedAutoLogin(true);
-            }
-            return;
-        }
-
-        console.log("AdminLogin: Attempting automatic redirect to Cognito...");
-        setHasAttemptedAutoLogin(true);
-        login().catch(err => {
-            console.error("AdminLogin: Auto-login failed:", err);
-        });
-    }, [login, hasAttemptedAutoLogin, isLoading]);
+    // Note: Automatic login with signInWithPopup is blocked by most browsers.
+    // Use the "Sign In" button below to authenticate.
 
     const handleSubmit = async (e) => {
         e.preventDefault();
@@ -77,21 +60,67 @@ const AdminLogin = ({ onLoginSuccess }) => {
                     </div>
                 )}
 
-                <Button
-                    onClick={() => login()}
-                    className="w-full bg-primary hover:bg-primary-dark text-white h-12 font-semibold text-lg transition-all rounded-xl shadow-md hover:shadow-lg"
-                    disabled={isLoading}
-                >
-                    {isLoading ? (
-                        <>
-                            <Loader2 className="w-5 h-5 mr-3 animate-spin" /> Connecting...
-                        </>
-                    ) : (
-                        <>
-                            Sign In
-                        </>
-                    )}
-                </Button>
+                <form onSubmit={handleSubmit} className="space-y-5">
+                    <div className="space-y-2 text-left">
+                        <Label htmlFor="email" className="text-gray-700 font-medium ml-1">Email Address</Label>
+                        <div className="relative group">
+                            <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-gray-400 group-focus-within:text-primary transition-colors">
+                                <User className="w-5 h-5" />
+                            </div>
+                            <Input
+                                id="email"
+                                type="email"
+                                placeholder="name@company.com"
+                                value={username}
+                                onChange={(e) => setUsername(e.target.value)}
+                                className="pl-12 h-14 bg-gray-50/50 border-gray-200 focus:border-primary focus:ring-primary/20 rounded-xl transition-all"
+                                required
+                            />
+                        </div>
+                    </div>
+
+                    <div className="space-y-2 text-left">
+                        <Label htmlFor="password" className="text-gray-700 font-medium ml-1">Password</Label>
+                        <div className="relative group">
+                            <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-gray-400 group-focus-within:text-primary transition-colors">
+                                <Lock className="w-5 h-5" />
+                            </div>
+                            <Input
+                                id="password"
+                                type={showPassword ? "text" : "password"}
+                                placeholder="••••••••"
+                                value={password}
+                                onChange={(e) => setPassword(e.target.value)}
+                                className="pl-12 pr-12 h-14 bg-gray-50/50 border-gray-200 focus:border-primary focus:ring-primary/20 rounded-xl transition-all"
+                                required
+                            />
+                            <button
+                                type="button"
+                                onClick={() => setShowPassword(!showPassword)}
+                                className="absolute inset-y-0 right-0 pr-4 flex items-center text-gray-400 hover:text-gray-600 transition-colors"
+                            >
+                                {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+                            </button>
+                        </div>
+                    </div>
+
+                    <Button
+                        type="submit"
+                        className="w-full bg-primary hover:bg-primary-dark text-white h-14 font-semibold text-lg transition-all rounded-xl shadow-md hover:shadow-lg mt-4"
+                        disabled={isLoading}
+                    >
+                        {isLoading ? (
+                            <>
+                                <Loader2 className="w-5 h-5 mr-3 animate-spin" /> Signing In...
+                            </>
+                        ) : (
+                            <>
+                                Sign In
+                            </>
+                        )}
+                    </Button>
+                </form>
+
 
                 <div className="mt-8 pt-6 border-t border-gray-50">
                     <p className="text-xs text-gray-400 flex items-center justify-center gap-1">

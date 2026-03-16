@@ -1,6 +1,6 @@
 
 import React, { createContext, useState, useContext, useEffect, useCallback, useMemo } from 'react';
-import { dynamoGenericApi } from '@/lib/dynamoGenericApi';
+import { dataApi } from '@/lib/dataApi';
 import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/components/ui/use-toast';
 import { DB_TYPES } from '@/config';
@@ -17,10 +17,10 @@ const TechnicalsProvider = ({ children }) => {
         if (!idToken) return;
         setLoading(true);
         try {
-            const data = await dynamoGenericApi.listByType(DB_TYPES.TECHNICAL, idToken);
+            const data = await dataApi.listByType(DB_TYPES.TECHNICAL);
             setTechnicals(data || []);
         } catch (error) {
-            console.error('Error fetching technicals from DynamoDB:', error);
+            console.error('Error fetching technicals from Firebase Data Connect:', error);
         } finally {
             setLoading(false);
         }
@@ -30,11 +30,11 @@ const TechnicalsProvider = ({ children }) => {
         if (!idToken) throw new Error("User not authenticated");
         try {
             const payload = { text, tech_type };
-            const savedItem = await dynamoGenericApi.save(DB_TYPES.TECHNICAL, payload, idToken);
+            const savedItem = await dataApi.save(DB_TYPES.TECHNICAL, payload);
             setTechnicals(prev => [...prev.filter(t => t.id !== savedItem.id), savedItem]);
             return [savedItem];
         } catch (error) {
-            console.error('Error adding technical to DynamoDB:', error);
+            console.error('Error adding technical to Firebase Data Connect:', error);
             throw error;
         }
     }, [idToken]);
@@ -43,11 +43,11 @@ const TechnicalsProvider = ({ children }) => {
         if (!idToken) throw new Error("User not authenticated");
         try {
             const payload = { id, text, tech_type };
-            const savedItem = await dynamoGenericApi.save(DB_TYPES.TECHNICAL, payload, idToken);
+            const savedItem = await dataApi.save(DB_TYPES.TECHNICAL, payload);
             setTechnicals(prev => prev.map(tech => tech.id === id ? savedItem : tech));
             return [savedItem];
         } catch (error) {
-            console.error('Error updating technical in DynamoDB:', error);
+            console.error('Error updating technical in Firebase Data Connect:', error);
             throw error;
         }
     }, [idToken]);
@@ -55,10 +55,10 @@ const TechnicalsProvider = ({ children }) => {
     const deleteTechnical = useCallback(async (id) => {
         if (!idToken) throw new Error("User not authenticated");
         try {
-            await dynamoGenericApi.delete(id, idToken);
+            await dataApi.delete(id, DB_TYPES.TECHNICAL);
             setTechnicals(prev => prev.filter(tech => tech.id !== id));
         } catch (error) {
-            console.error('Error deleting technical from DynamoDB:', error);
+            console.error('Error deleting technical from Firebase Data Connect:', error);
             throw error;
         }
     }, [idToken]);

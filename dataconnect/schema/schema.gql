@@ -1,0 +1,134 @@
+
+# Data Connect Schema for EDGE2 LIMS
+
+type User @table(key: ["id"]) {
+  id: String!
+  username: String! @unique
+  fullName: String @col(name: "full_name")
+  role: String
+  department: String
+  isActive: Boolean @col(name: "is_active")
+  type: String
+  createdAt: String @col(name: "created_at")
+  updatedAt: String @col(name: "updated_at")
+  createdBy: String @col(name: "created_by")
+}
+
+type Client @table(key: ["id"]) {
+  id: String!
+  clientName: String! @col(name: "client_name")
+  clientAddress: String @col(name: "client_address")
+  contacts: Any
+  createdAt: String @col(name: "created_at")
+  updatedAt: String @col(name: "updated_at")
+}
+
+type Service @table(key: ["id"]) {
+  id: String!
+  serviceType: String! @col(name: "service_type")
+  price: Float
+  unit: String
+  qty: Float
+  methodOfSampling: String @col(name: "method_of_sampling")
+  numBhs: Int @col(name: "num_bhs")
+  measure: String
+  hsnCode: String @col(name: "hsn_code")
+  tcList: Any @col(name: "tc_list")
+  techList: Any @col(name: "tech_list")
+  createdAt: String @col(name: "created_at")
+  updatedAt: String @col(name: "updated_at")
+}
+
+type Test @table(key: ["id"]) {
+  id: String!
+  testType: String! @col(name: "test_type")
+  materials: String
+  group: String
+  testMethodSpecification: String @col(name: "test_method_specification")
+  numDays: Int @col(name: "num_days")
+  price: Float
+  hsnCode: String @col(name: "hsn_code")
+  tcList: Any @col(name: "tc_list")
+  techList: Any @col(name: "tech_list")
+  createdAt: String @col(name: "created_at")
+  updatedAt: String @col(name: "updated_at")
+}
+
+type Job @table(key: ["id"]) {
+  id: String!
+  type: String!
+  status: String!
+  jobOrderNo: String @col(name: "job_order_no")
+  clientId: String @col(name: "client_id") @index
+  clientName: String @col(name: "client_name")
+  projectName: String @col(name: "project_name")
+  poWoNumber: String @col(name: "po_wo_number")
+  materialInward: Any @col(name: "material_inward")
+  labTestResults: Any @col(name: "lab_test_results")
+  chemicalAnalysis: Any @col(name: "chemical_analysis")
+  grainSizeAnalysis: Any @col(name: "grain_size_analysis")
+  content: Any
+  createdAt: String @col(name: "created_at")
+  updatedAt: String @col(name: "updated_at")
+  createdBy: String @col(name: "created_by")
+  updatedBy: String @col(name: "updated_by")
+}
+
+type Technical @table(key: ["id"]) {
+  id: String!
+  name: String!
+  designation: String
+  department: String
+  createdAt: String @col(name: "created_at")
+  updatedAt: String @col(name: "updated_at")
+}
+
+type TermAndCondition @table(key: ["id"]) {
+  id: String!
+  content: String!
+  department: String
+  createdAt: String @col(name: "created_at")
+  updatedAt: String @col(name: "updated_at")
+}
+
+type HSNSACCode @table(key: ["id"]) {
+  id: String!
+  code: String!
+  description: String
+  taxRate: Float @col(name: "tax_rate")
+  createdAt: String @col(name: "created_at")
+  updatedAt: String @col(name: "updated_at")
+}
+
+type AppSetting @table(key: ["id"]) {
+  id: String!
+  key: String! @unique
+  value: Any
+  createdAt: String @col(name: "created_at")
+  updatedAt: String @col(name: "updated_at")
+}
+
+type ServiceUnitType @table(key: ["id"]) {
+  id: String!
+  unit: String!
+  createdAt: String @col(name: "created_at")
+  updatedAt: String @col(name: "updated_at")
+}
+
+type ClientServicePrice @table(key: ["id"]) {
+  id: String!
+  clientId: String! @col(name: "client_id") @index
+  serviceId: String! @col(name: "service_id") @index
+  price: Float!
+  createdAt: String @col(name: "created_at")
+  updatedAt: String @col(name: "updated_at")
+}
+
+type ClientTestPrice @table(key: ["id"]) {
+  id: String!
+  clientId: String! @col(name: "client_id") @index
+  testId: String! @col(name: "test_id") @index
+  price: Float!
+  createdAt: String @col(name: "created_at")
+  updatedAt: String @col(name: "updated_at")
+}

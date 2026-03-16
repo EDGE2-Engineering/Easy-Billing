@@ -1,52 +1,8 @@
-import { WebStorageStateStore } from 'oidc-client-ts';
 
 /**
  * Application Configuration
- * Centralized configuration for Cognito authentication and other app settings
+ * Centralized configuration for the app settings
  */
-
-const region = "us-east-1";
-const userPoolId = "us-east-1_fmXaDAY2D";
-const clientId = "59guo9f9l0ivjtcsm7ejggguep";
-const identityPoolId = "us-east-1:62a1566e-990e-4f51-9830-040effebfb36";
-const cognitoDomainPrefix = "edge2-lims";
-const domain = `https://${cognitoDomainPrefix}.auth.${region}.amazoncognito.com`;
-
-const origin_url = typeof window !== 'undefined'
-    ? window.location.origin + window.location.pathname
-    : "http://localhost:3000";
-
-const login_origin_url = typeof window !== 'undefined'
-    ? window.location.origin + window.location.pathname
-    : "http://localhost:3000";
-
-// Cognito Configuration
-export const cognitoConfig = {
-    region,
-    userPoolId,
-    clientId,
-    identityPoolId,
-    cognitoDomainPrefix,
-
-    // OIDC Configuration for react-oidc-context
-    oidc: {
-        authority: `https://cognito-idp.${region}.amazonaws.com/${userPoolId}`,
-        client_id: clientId,
-        redirect_uri: login_origin_url,
-        response_type: "code",
-        scope: "phone openid profile email aws.cognito.signin.user.admin",
-        post_logout_redirect_uri: login_origin_url,
-        userStore: new WebStorageStateStore({ store: window.localStorage }),
-        automaticSilentRenew: true,
-        loadUserInfo: true,
-    },
-
-    // Logout Configuration
-    getLogoutUrl: () => {
-        const encodedLogoutUri = encodeURIComponent(login_origin_url);
-        return `${domain}/logout?client_id=${clientId}&logout_uri=${encodedLogoutUri}`;
-    },
-};
 
 // Hardcoded Departments
 export const DEPARTMENTS = {
@@ -69,14 +25,10 @@ export const initialSiteContent = {
         footerAbout: "EDGE2 - Easy LIMS"
     },
     pagination: {
-        // Very conservative - first page has header, client details, totals, bank details, payment terms
         itemsPerFirstPage: 4,
-        // Continuation pages have more space (just header + table)
         itemsPerContinuationPage: 5,
-        // T&C Pagination
         tcItemsFirstPage: 3,
         tcItemsContinuationPage: 3,
-        // Technicals Pagination
         techItemsFirstPage: 3,
         techItemsContinuationPage: 3
     }
@@ -137,4 +89,4 @@ export const WORKFLOW_STEPS = [
 
 export const WORKFLOW_STATUS_OPTIONS = WORKFLOW_STEPS.map(step => step.id);
 
-export default cognitoConfig;
+export default { DEPARTMENTS, initialSiteContent, getSiteContent, saveSiteContent, DB_TYPES, WORKFLOW_STEPS };

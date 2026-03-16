@@ -1,6 +1,6 @@
 
 import React, { createContext, useContext, useEffect, useState, useCallback, useMemo } from 'react';
-import { dynamoGenericApi } from '@/lib/dynamoGenericApi';
+import { dataApi } from '@/lib/dataApi';
 import { useAuth } from '@/contexts/AuthContext';
 import { DB_TYPES } from '@/config';
 
@@ -26,7 +26,7 @@ const SettingsProvider = ({ children }) => {
         if (!idToken) return;
         setLoading(true);
         try {
-            const data = await dynamoGenericApi.listByType(DB_TYPES.APP_SETTING, idToken);
+            const data = await dataApi.listByType(DB_TYPES.APP_SETTING);
             if (data && data.length > 0) {
                 const newSettings = {};
                 data.forEach(item => {
@@ -36,7 +36,7 @@ const SettingsProvider = ({ children }) => {
                 setSettings(prev => ({ ...prev, ...newSettings }));
             }
         } catch (err) {
-            console.error("Fetch Settings Exception from DynamoDB:", err);
+            console.error("Fetch Settings Exception from Firebase Data Connect:", err);
         } finally {
             setLoading(false);
         }
@@ -52,13 +52,13 @@ const SettingsProvider = ({ children }) => {
                 setting_key: key,
                 setting_value: String(value)
             };
-            await dynamoGenericApi.save(DB_TYPES.APP_SETTING, payload, idToken);
+            await dataApi.save(DB_TYPES.APP_SETTING, payload);
         } catch (err) {
-            console.error("Update Setting Exception in DynamoDB:", err);
+            console.error("Update Setting Exception in Firebase Data Connect:", err);
             await fetchSettings();
             throw err;
         }
-    }, [idToken, fetchSettings]);
+    }, [isAuthenticated, fetchSettings]); // Changed from idToken to isAuthenticated
 
     useEffect(() => {
         if (!authLoading && isAuthenticated) {

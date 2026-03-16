@@ -23,7 +23,7 @@ import {
     AlertDialogHeader,
     AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import { dynamoGenericApi } from '@/lib/dynamoGenericApi';
+import { dataApi } from '@/lib/dataApi';
 import NewReportForm from './NewReportForm';
 import { DB_TYPES } from '@/config';
 
@@ -41,7 +41,7 @@ const AdminReportsManager = () => {
     const fetchUsers = async () => {
         if (!idToken) return;
         try {
-            const data = await dynamoGenericApi.listByType(DB_TYPES.USER, idToken);
+            const data = await dataApi.listByType(DB_TYPES.USER);
             setAppUsers(data || []);
         } catch (error) {
             console.error('Error fetching users:', error);
@@ -52,7 +52,7 @@ const AdminReportsManager = () => {
         if (!idToken) return;
         setLoading(true);
         try {
-            const data = await dynamoGenericApi.listByType(DB_TYPES.JOB, idToken);
+            const data = await dataApi.listByType(DB_TYPES.JOB);
             // Filter only jobs that have report data or are ready for reports
             setReports(data || []);
         } catch (error) {
@@ -93,7 +93,7 @@ const AdminReportsManager = () => {
     const confirmDelete = async () => {
         if (!idToken) return;
         try {
-            await dynamoGenericApi.delete(deleteConfirmation.reportId, idToken);
+            await dataApi.delete(deleteConfirmation.reportId, DB_TYPES.JOB);
             toast({ title: "Record Deleted", variant: "destructive" });
 
             // Telegram Notification

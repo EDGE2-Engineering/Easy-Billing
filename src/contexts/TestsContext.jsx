@@ -1,6 +1,6 @@
 
 import React, { createContext, useState, useEffect, useCallback, useMemo } from 'react';
-import { dynamoGenericApi } from '@/lib/dynamoGenericApi';
+import { dataApi } from '@/lib/dataApi';
 import { useAuth } from '@/contexts/AuthContext';
 import { DB_TYPES } from '@/config';
 
@@ -46,7 +46,7 @@ const TestsProvider = ({ children }) => {
     const fetchTests = useCallback(async () => {
         if (!idToken) return;
         try {
-            const data = await dynamoGenericApi.listByType(DB_TYPES.TEST, idToken);
+            const data = await dataApi.listByType(DB_TYPES.TEST);
 
             if (data && data.length > 0) {
                 const mappedData = data.map(mapFromDb);
@@ -55,7 +55,7 @@ const TestsProvider = ({ children }) => {
                 setTests([]);
             }
         } catch (error) {
-            console.error("Error loading tests from DynamoDB:", error);
+            console.error("Error loading tests from Firebase Data Connect:", error);
             if (tests.length === 0) setTests([]);
         } finally {
             setLoading(false);
@@ -65,12 +65,12 @@ const TestsProvider = ({ children }) => {
     const fetchClientTestPrices = useCallback(async () => {
         if (!idToken) return;
         try {
-            const data = await dynamoGenericApi.listByType(DB_TYPES.CLIENT_TEST_PRICE, idToken);
+            const data = await dataApi.listByType(DB_TYPES.CLIENT_TEST_PRICE);
             if (data) {
                 setClientTestPrices(data);
             }
         } catch (error) {
-            console.error("Error loading client test prices from DynamoDB:", error);
+            console.error("Error loading client test prices from Firebase Data Connect:", error);
         }
     }, [idToken]);
 
@@ -91,7 +91,7 @@ const TestsProvider = ({ children }) => {
         setTests(prev => prev.map(t => t.id === updatedTest.id ? updatedTest : t));
         try {
             const dbPayload = mapToDb(updatedTest);
-            await dynamoGenericApi.save(DB_TYPES.TEST, dbPayload, idToken);
+            await dataApi.save(DB_TYPES.TEST, dbPayload);
         } catch (err) {
             console.warn("Update Test Exception:", err);
             throw err;
@@ -105,7 +105,7 @@ const TestsProvider = ({ children }) => {
         setTests(prev => [...prev, testWithId]);
         try {
             const dbPayload = mapToDb(testWithId);
-            await dynamoGenericApi.save(DB_TYPES.TEST, dbPayload, idToken);
+            await dataApi.save(DB_TYPES.TEST, dbPayload);
         } catch (err) {
             console.warn("Add Test Exception:", err);
             throw err;
@@ -116,7 +116,7 @@ const TestsProvider = ({ children }) => {
         if (!idToken) throw new Error("User not authenticated");
         setTests(prev => prev.filter(t => t.id !== id));
         try {
-            await dynamoGenericApi.delete(id, idToken);
+            await dataApi.delete(id, DB_TYPES.TEST);
         } catch (err) {
             console.warn("Delete Test Exception:", err);
         }
@@ -132,7 +132,7 @@ const TestsProvider = ({ children }) => {
                 test_id: testId,
                 price: price
             };
-            const savedItem = await dynamoGenericApi.save(DB_TYPES.CLIENT_TEST_PRICE, payload, idToken);
+            const savedItem = await dataApi.save(DB_TYPES.CLIENT_TEST_PRICE, payload);
             setClientTestPrices(prev => {
                 const filtered = prev.filter(p => p.id !== priceId);
                 return [...filtered, savedItem];
@@ -147,7 +147,7 @@ const TestsProvider = ({ children }) => {
         if (!idToken) throw new Error("User not authenticated");
         try {
             const priceId = `ctp_${clientId}_${testId}`;
-            await dynamoGenericApi.delete(priceId, idToken);
+            await dataApi.delete(priceId, DB_TYPES.CLIENT_TEST_PRICE);
             setClientTestPrices(prev => prev.filter(p => p.id !== priceId));
         } catch (err) {
             console.error("Error deleting client test price:", err);

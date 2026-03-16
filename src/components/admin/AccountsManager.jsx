@@ -18,7 +18,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import { dynamoGenericApi } from '@/lib/dynamoGenericApi';
+import { dataApi } from '@/lib/dataApi';
 import {
   Select,
   SelectContent,
@@ -70,10 +70,9 @@ const AccountsManager = () => {
   };
 
   const fetchAccounts = async () => {
-    if (!idToken) return;
     setLoading(true);
     try {
-      const data = await dynamoGenericApi.listByType(DB_TYPES.ACCOUNT, idToken);
+      const data = await dataApi.listByType(DB_TYPES.ACCOUNT);
 
       // Filter by standard user if applicable
       let filteredData = data || [];
@@ -86,7 +85,7 @@ const AccountsManager = () => {
 
       setAccounts(filteredData);
     } catch (error) {
-      console.error('Error fetching accounts from DynamoDB:', error);
+      console.error('Error fetching accounts from Firebase Data Connect:', error);
       toast({
         title: "Error",
         description: "Failed to load accounts. " + error.message,
@@ -98,9 +97,8 @@ const AccountsManager = () => {
   };
 
   const fetchUsers = async () => {
-    if (!idToken) return;
     try {
-      const data = await dynamoGenericApi.listByType(DB_TYPES.USER, idToken);
+      const data = await dataApi.listByType(DB_TYPES.USER);
       setAppUsers(data || []);
     } catch (error) {
       console.error('Error fetching users:', error);
@@ -108,11 +106,9 @@ const AccountsManager = () => {
   };
 
   useEffect(() => {
-    if (idToken) {
-      fetchAccounts();
-      fetchUsers();
-    }
-  }, [idToken]);
+    fetchAccounts();
+    fetchUsers();
+  }, []);
 
   const handleDeleteClick = (record) => {
     setDeleteConfirmation({
@@ -123,14 +119,14 @@ const AccountsManager = () => {
   };
 
   const confirmDelete = async () => {
-    if (!deleteConfirmation.recordId || !idToken) return;
+    if (!deleteConfirmation.recordId) return;
 
     try {
-      await dynamoGenericApi.delete(deleteConfirmation.recordId, idToken);
+      await dataApi.delete(deleteConfirmation.recordId, DB_TYPES.ACCOUNT);
       toast({ title: "Account Deleted", description: "The account record has been removed.", variant: "destructive" });
       fetchAccounts();
     } catch (error) {
-      console.error('Error deleting account from DynamoDB:', error);
+      console.error('Error deleting account from Firebase Data Connect:', error);
       toast({ title: "Error", description: "Failed to delete account.", variant: "destructive" });
     } finally {
       setDeleteConfirmation({ isOpen: false, recordId: null, jobOrderNo: '' });

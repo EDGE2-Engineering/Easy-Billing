@@ -1,6 +1,6 @@
 
 import React, { createContext, useState, useEffect, useCallback, useContext, useMemo } from 'react';
-import { dynamoGenericApi } from '@/lib/dynamoGenericApi';
+import { dataApi } from '@/lib/dataApi';
 import { useAuth } from '@/contexts/AuthContext';
 import { DB_TYPES } from '@/config';
 
@@ -15,12 +15,12 @@ const UnitTypesProvider = ({ children }) => {
         if (!idToken) return;
         setLoading(true);
         try {
-            const data = await dynamoGenericApi.listByType(DB_TYPES.SERVICE_UNIT_TYPE, idToken);
+            const data = await dataApi.listByType(DB_TYPES.SERVICE_UNIT_TYPE);
             if (data) {
                 setUnitTypes(data);
             }
         } catch (error) {
-            console.error("Error loading unit types from DynamoDB:", error);
+            console.error("Error loading unit types from Firebase Data Connect:", error);
         } finally {
             setLoading(false);
         }
@@ -30,10 +30,10 @@ const UnitTypesProvider = ({ children }) => {
         if (!idToken) throw new Error("User not authenticated");
         try {
             const payload = { unit_type: unitType };
-            const savedItem = await dynamoGenericApi.save(DB_TYPES.SERVICE_UNIT_TYPE, payload, idToken);
+            const savedItem = await dataApi.save(DB_TYPES.SERVICE_UNIT_TYPE, payload);
             setUnitTypes(prev => [...prev.filter(u => u.id !== savedItem.id), savedItem]);
         } catch (error) {
-            console.error("Error adding unit type to DynamoDB:", error);
+            console.error("Error adding unit type to Firebase Data Connect:", error);
             throw error;
         }
     }, [idToken]);
@@ -42,10 +42,10 @@ const UnitTypesProvider = ({ children }) => {
         if (!idToken) throw new Error("User not authenticated");
         try {
             const payload = { id, unit_type: unitType };
-            const savedItem = await dynamoGenericApi.save(DB_TYPES.SERVICE_UNIT_TYPE, payload, idToken);
+            const savedItem = await dataApi.save(DB_TYPES.SERVICE_UNIT_TYPE, payload);
             setUnitTypes(prev => prev.map(u => u.id === id ? savedItem : u));
         } catch (error) {
-            console.error("Error updating unit type in DynamoDB:", error);
+            console.error("Error updating unit type in Firebase Data Connect:", error);
             throw error;
         }
     }, [idToken]);
@@ -53,10 +53,10 @@ const UnitTypesProvider = ({ children }) => {
     const deleteUnitType = useCallback(async (id) => {
         if (!idToken) throw new Error("User not authenticated");
         try {
-            await dynamoGenericApi.delete(id, idToken);
+            await dataApi.delete(id, DB_TYPES.SERVICE_UNIT_TYPE);
             setUnitTypes(prev => prev.filter(u => u.id !== id));
         } catch (error) {
-            console.error("Error deleting unit type from DynamoDB:", error);
+            console.error("Error deleting unit type from Firebase Data Connect:", error);
             throw error;
         }
     }, [idToken]);

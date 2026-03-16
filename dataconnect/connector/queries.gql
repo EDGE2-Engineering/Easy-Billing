@@ -1,0 +1,241 @@
+
+# Queries for all entities
+
+query ListUsers @auth(level: USER, insecureReason: "Discovery of users by any authenticated clerk.") {
+  users {
+    id
+    username
+    fullName
+    role
+    department
+    isActive
+    type
+    createdAt
+    updatedAt
+    createdBy
+  }
+}
+
+query GetUser($id: String!) @auth(level: USER, insecureReason: "User lookup by any authenticated clerk.") {
+  user(id: $id) {
+    id
+    username
+    fullName
+    role
+    department
+    isActive
+    type
+    createdAt
+    updatedAt
+    createdBy
+  }
+}
+
+query ListClients @auth(level: USER, insecureReason: "Client directory access.") {
+  clients {
+    id
+    clientName
+    clientAddress
+    contacts
+    createdAt
+    updatedAt
+  }
+}
+
+query GetClient($id: String!) @auth(level: USER, insecureReason: "Client lookup.") {
+  client(id: $id) {
+    id
+    clientName
+    clientAddress
+    contacts
+    createdAt
+    updatedAt
+  }
+}
+
+query ListJobs($type: String) @auth(level: USER, insecureReason: "Job list access.") {
+  jobs(where: { type: { eq: $type } }) {
+    id
+    type
+    status
+    jobOrderNo
+    clientId
+    clientName
+    projectName
+    poWoNumber
+    materialInward
+    labTestResults
+    chemicalAnalysis
+    grainSizeAnalysis
+    content
+    createdAt
+    updatedAt
+    createdBy
+    updatedBy
+  }
+}
+
+query GetJob($id: String!) @auth(level: USER, insecureReason: "Job details access.") {
+  job(id: $id) {
+    id
+    type
+    status
+    jobOrderNo
+    clientId
+    clientName
+    projectName
+    poWoNumber
+    materialInward
+    labTestResults
+    chemicalAnalysis
+    grainSizeAnalysis
+    content
+    createdAt
+    updatedAt
+    createdBy
+    updatedBy
+  }
+}
+
+query ListServices @auth(level: USER, insecureReason: "Service catalog.") {
+  services {
+    id
+    serviceType
+    price
+    unit
+    qty
+    methodOfSampling
+    numBhs
+    measure
+    hsnCode
+    tcList
+    techList
+    createdAt
+    updatedAt
+  }
+}
+
+query GetService($id: String!) @auth(level: USER, insecureReason: "Service details.") {
+  service(id: $id) {
+    id
+    serviceType
+    price
+    unit
+    qty
+    methodOfSampling
+    numBhs
+    measure
+    hsnCode
+    tcList
+    techList
+    createdAt
+    updatedAt
+  }
+}
+
+query ListTests @auth(level: USER, insecureReason: "Test catalog.") {
+  tests {
+    id
+    testType
+    materials
+    group
+    testMethodSpecification
+    numDays
+    price
+    hsnCode
+    tcList
+    techList
+    createdAt
+    updatedAt
+  }
+}
+
+query GetTest($id: String!) @auth(level: USER, insecureReason: "Test details.") {
+  test(id: $id) {
+    id
+    testType
+    materials
+    group
+    testMethodSpecification
+    numDays
+    price
+    hsnCode
+    tcList
+    techList
+    createdAt
+    updatedAt
+  }
+}
+
+query ListTechnicals @auth(level: USER, insecureReason: "Technical staff directory.") {
+  technicals {
+    id
+    name
+    designation
+    department
+    createdAt
+    updatedAt
+  }
+}
+
+query ListTermsAndConditions @auth(level: USER, insecureReason: "T&C list.") {
+  termAndConditions {
+    id
+    content
+    department
+    createdAt
+    updatedAt
+  }
+}
+
+query ListHSNSACCodes @auth(level: USER, insecureReason: "HSN code directory.") {
+  hSNSACCodes {
+    id
+    code
+    description
+    taxRate
+    createdAt
+    updatedAt
+  }
+}
+
+query ListAppSettings @auth(level: USER, insecureReason: "App settings read.") {
+  appSettings {
+    id
+    key
+    value
+    createdAt
+    updatedAt
+  }
+}
+
+query ListServiceUnitTypes @auth(level: USER, insecureReason: "Unit types directory.") {
+  serviceUnitTypes {
+    id
+    unit
+    createdAt
+    updatedAt
+  }
+}
+
+query ListClientServicePrices @auth(level: USER, insecureReason: "Price list read.") {
+  clientServicePrices {
+    id
+    clientId
+    serviceId
+    price
+    createdAt
+    updatedAt
+  }
+}
+
+query ListClientTestPrices @auth(level: USER, insecureReason: "Price list read.") {
+  clientTestPrices {
+    id
+    clientId
+    testId
+    price
+    createdAt
+    updatedAt
+  }
+}

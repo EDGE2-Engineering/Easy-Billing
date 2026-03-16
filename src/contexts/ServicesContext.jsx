@@ -1,6 +1,6 @@
 
 import React, { createContext, useState, useEffect, useCallback, useMemo } from 'react';
-import { dynamoGenericApi } from '@/lib/dynamoGenericApi';
+import { dataApi } from '@/lib/dataApi';
 import { useAuth } from '@/contexts/AuthContext';
 import { DB_TYPES } from '@/config';
 
@@ -48,7 +48,7 @@ const ServicesProvider = ({ children }) => {
     const fetchServices = useCallback(async () => {
         if (!idToken) return;
         try {
-            const data = await dynamoGenericApi.listByType(DB_TYPES.SERVICE, idToken);
+            const data = await dataApi.listByType(DB_TYPES.SERVICE);
 
             if (data && data.length > 0) {
                 const mappedData = data.map(mapFromDb);
@@ -57,7 +57,7 @@ const ServicesProvider = ({ children }) => {
                 setServices([]);
             }
         } catch (error) {
-            console.error("Error loading services from DynamoDB:", error);
+            console.error("Error loading services from Firebase Data Connect:", error);
             if (services.length === 0) setServices([]);
         } finally {
             setLoading(false);
@@ -67,12 +67,12 @@ const ServicesProvider = ({ children }) => {
     const fetchClientServicePrices = useCallback(async () => {
         if (!idToken) return;
         try {
-            const data = await dynamoGenericApi.listByType(DB_TYPES.CLIENT_SERVICE_PRICE, idToken);
+            const data = await dataApi.listByType(DB_TYPES.CLIENT_SERVICE_PRICE);
             if (data) {
                 setClientServicePrices(data);
             }
         } catch (error) {
-            console.error("Error loading client service prices from DynamoDB:", error);
+            console.error("Error loading client service prices from Firebase Data Connect:", error);
         }
     }, [idToken]);
 
@@ -95,7 +95,7 @@ const ServicesProvider = ({ children }) => {
 
         try {
             const dbPayload = mapToDb(updatedService);
-            const savedItem = await dynamoGenericApi.save(DB_TYPES.SERVICE, dbPayload, idToken);
+            const savedItem = await dataApi.save(DB_TYPES.SERVICE, dbPayload);
             const updated = mapFromDb(savedItem);
             setServices(prev => prev.map(s => s.id === updated.id ? updated : s));
         } catch (err) {
@@ -114,7 +114,7 @@ const ServicesProvider = ({ children }) => {
 
         try {
             const dbPayload = mapToDb(serviceWithId);
-            const savedItem = await dynamoGenericApi.save(DB_TYPES.SERVICE, dbPayload, idToken);
+            const savedItem = await dataApi.save(DB_TYPES.SERVICE, dbPayload);
             const added = mapFromDb(savedItem);
             setServices(prev => prev.map(s => s.id === tempId ? added : s));
         } catch (err) {
@@ -130,7 +130,7 @@ const ServicesProvider = ({ children }) => {
         setServices(prev => prev.filter(s => s.id !== id));
 
         try {
-            await dynamoGenericApi.delete(id, idToken);
+            await dataApi.delete(id, DB_TYPES.SERVICE);
         } catch (err) {
             console.error("Delete Service Exception:", err);
             setServices(previousServices);
@@ -148,7 +148,7 @@ const ServicesProvider = ({ children }) => {
                 service_id: serviceId,
                 price: price
             };
-            const savedItem = await dynamoGenericApi.save(DB_TYPES.CLIENT_SERVICE_PRICE, payload, idToken);
+            const savedItem = await dataApi.save(DB_TYPES.CLIENT_SERVICE_PRICE, payload);
             setClientServicePrices(prev => {
                 const filtered = prev.filter(p => p.id !== priceId);
                 return [...filtered, savedItem];
@@ -163,7 +163,7 @@ const ServicesProvider = ({ children }) => {
         if (!idToken) throw new Error("User not authenticated");
         try {
             const priceId = `csp_${clientId}_${serviceId}`;
-            await dynamoGenericApi.delete(priceId, idToken);
+            await dataApi.delete(priceId, DB_TYPES.CLIENT_SERVICE_PRICE);
             setClientServicePrices(prev => prev.filter(p => p.id !== priceId));
         } catch (err) {
             console.error("Error deleting client service price:", err);

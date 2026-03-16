@@ -26,7 +26,7 @@ import {
     SelectTrigger,
     SelectValue,
 } from "@/components/ui/select";
-import { dynamoGenericApi } from '@/lib/dynamoGenericApi';
+import { dataApi } from '@/lib/dataApi';
 import { Textarea } from '@/components/ui/textarea';
 import { DB_TYPES, WORKFLOW_STATUS_OPTIONS } from '@/config';
 import MaterialInwardForm from './MaterialInwardForm';
@@ -59,7 +59,7 @@ const MaterialInwardManager = () => {
     const fetchClients = async () => {
         if (!idToken) return;
         try {
-            const data = await dynamoGenericApi.listByType(DB_TYPES.CLIENT, idToken);
+            const data = await dataApi.listByType(DB_TYPES.CLIENT);
             setClientsList(data || []);
         } catch (error) {
             console.error('Error fetching clients:', error);
@@ -69,7 +69,7 @@ const MaterialInwardManager = () => {
     const fetchUsers = async () => {
         if (!idToken) return;
         try {
-            const data = await dynamoGenericApi.listByType(DB_TYPES.USER, idToken);
+            const data = await dataApi.listByType(DB_TYPES.USER);
             setAppUsers(data || []);
         } catch (error) {
             console.error('Error fetching users:', error);
@@ -80,7 +80,7 @@ const MaterialInwardManager = () => {
         if (!idToken) return;
         setLoading(true);
         try {
-            const data = await dynamoGenericApi.listByType(DB_TYPES.JOB, idToken);
+            const data = await dataApi.listByType(DB_TYPES.JOB);
 
             let filteredData = (data || []).map(item => ({
                 ...item,
@@ -194,7 +194,7 @@ const MaterialInwardManager = () => {
                 updated_at: new Date().toISOString()
             };
 
-            await dynamoGenericApi.save(DB_TYPES.JOB, recordData, idToken);
+            await dataApi.save(DB_TYPES.JOB, recordData);
 
             toast({
                 title: "Success",
@@ -234,7 +234,7 @@ const MaterialInwardManager = () => {
         if (!deleteConfirmation.recordId) return;
 
         try {
-            await dynamoGenericApi.delete(deleteConfirmation.recordId, idToken);
+            await dataApi.delete(deleteConfirmation.recordId, DB_TYPES.JOB);
 
             toast({ title: "Record Deleted", description: "The inward record has been removed.", variant: "destructive" });
 

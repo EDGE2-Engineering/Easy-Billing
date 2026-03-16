@@ -1,6 +1,6 @@
 
 import React, { createContext, useState, useContext, useEffect, useCallback, useMemo } from 'react';
-import { dynamoGenericApi } from '@/lib/dynamoGenericApi';
+import { dataApi } from '@/lib/dataApi';
 import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/components/ui/use-toast';
 import { DB_TYPES } from '@/config';
@@ -17,10 +17,10 @@ const TermsAndConditionsProvider = ({ children }) => {
         if (!idToken) return;
         setLoading(true);
         try {
-            const data = await dynamoGenericApi.listByType(DB_TYPES.TERM_AND_CONDITION, idToken);
+            const data = await dataApi.listByType(DB_TYPES.TERM_AND_CONDITION);
             setTerms(data || []);
         } catch (error) {
-            console.error('Error fetching terms from DynamoDB:', error);
+            console.error('Error fetching terms from Firebase Data Connect:', error);
         } finally {
             setLoading(false);
         }
@@ -30,11 +30,11 @@ const TermsAndConditionsProvider = ({ children }) => {
         if (!idToken) throw new Error("User not authenticated");
         try {
             const payload = { text, term_type };
-            const savedItem = await dynamoGenericApi.save(DB_TYPES.TERM_AND_CONDITION, payload, idToken);
+            const savedItem = await dataApi.save(DB_TYPES.TERM_AND_CONDITION, payload);
             setTerms(prev => [...prev.filter(t => t.id !== savedItem.id), savedItem]);
             return [savedItem];
         } catch (error) {
-            console.error('Error adding term to DynamoDB:', error);
+            console.error('Error adding term to Firebase Data Connect:', error);
             throw error;
         }
     }, [idToken]);
@@ -43,11 +43,11 @@ const TermsAndConditionsProvider = ({ children }) => {
         if (!idToken) throw new Error("User not authenticated");
         try {
             const payload = { id, text, term_type };
-            const savedItem = await dynamoGenericApi.save(DB_TYPES.TERM_AND_CONDITION, payload, idToken);
+            const savedItem = await dataApi.save(DB_TYPES.TERM_AND_CONDITION, payload);
             setTerms(prev => prev.map(term => term.id === id ? savedItem : term));
             return [savedItem];
         } catch (error) {
-            console.error('Error updating term in DynamoDB:', error);
+            console.error('Error updating term in Firebase Data Connect:', error);
             throw error;
         }
     }, [idToken]);
@@ -55,10 +55,10 @@ const TermsAndConditionsProvider = ({ children }) => {
     const deleteTerm = useCallback(async (id) => {
         if (!idToken) throw new Error("User not authenticated");
         try {
-            await dynamoGenericApi.delete(id, idToken);
+            await dataApi.delete(id, DB_TYPES.TERM_AND_CONDITION);
             setTerms(prev => prev.filter(term => term.id !== id));
         } catch (error) {
-            console.error('Error deleting term from DynamoDB:', error);
+            console.error('Error deleting term from Firebase Data Connect:', error);
             throw error;
         }
     }, [idToken]);

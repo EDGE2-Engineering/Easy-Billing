@@ -1,0 +1,698 @@
+extend type Query {
+  """
+  ✨ Look up a single `AppSetting` based on `id`, `key` or `first` and return selected fields (or `null` if not found).
+  """
+  appSetting(
+    """
+    The unique ID of the object.
+    """
+    id: String
+
+    """
+    ✨ `_expr` server value variant of `id` (The unique ID of the object.)
+    """
+    id_expr: String_Expr
+
+    """
+    The key used to identify the object.
+    """
+    key: AppSetting_Key
+
+    """
+    Fetch the first row based on the filters and ordering.
+    """
+    first: AppSetting_FirstRow
+  ): AppSetting @fdc_generated(from: "AppSetting", purpose: QUERY_SINGLE)
+  """
+  ✨ Look up a single `Client` based on `id`, `key` or `first` and return selected fields (or `null` if not found).
+  """
+  client(
+    """
+    The unique ID of the object.
+    """
+    id: String
+
+    """
+    ✨ `_expr` server value variant of `id` (The unique ID of the object.)
+    """
+    id_expr: String_Expr
+
+    """
+    The key used to identify the object.
+    """
+    key: Client_Key
+
+    """
+    Fetch the first row based on the filters and ordering.
+    """
+    first: Client_FirstRow
+  ): Client @fdc_generated(from: "Client", purpose: QUERY_SINGLE)
+  """
+  ✨ Look up a single `ClientServicePrice` based on `id`, `key` or `first` and return selected fields (or `null` if not found).
+  """
+  clientServicePrice(
+    """
+    The unique ID of the object.
+    """
+    id: String
+
+    """
+    ✨ `_expr` server value variant of `id` (The unique ID of the object.)
+    """
+    id_expr: String_Expr
+
+    """
+    The key used to identify the object.
+    """
+    key: ClientServicePrice_Key
+
+    """
+    Fetch the first row based on the filters and ordering.
+    """
+    first: ClientServicePrice_FirstRow
+  ): ClientServicePrice @fdc_generated(from: "ClientServicePrice", purpose: QUERY_SINGLE)
+  """
+  ✨ Look up a single `ClientTestPrice` based on `id`, `key` or `first` and return selected fields (or `null` if not found).
+  """
+  clientTestPrice(
+    """
+    The unique ID of the object.
+    """
+    id: String
+
+    """
+    ✨ `_expr` server value variant of `id` (The unique ID of the object.)
+    """
+    id_expr: String_Expr
+
+    """
+    The key used to identify the object.
+    """
+    key: ClientTestPrice_Key
+
+    """
+    Fetch the first row based on the filters and ordering.
+    """
+    first: ClientTestPrice_FirstRow
+  ): ClientTestPrice @fdc_generated(from: "ClientTestPrice", purpose: QUERY_SINGLE)
+  """
+  ✨ Look up a single `HSNSACCode` based on `id`, `key` or `first` and return selected fields (or `null` if not found).
+  """
+  hSNSACCode(
+    """
+    The unique ID of the object.
+    """
+    id: String
+
+    """
+    ✨ `_expr` server value variant of `id` (The unique ID of the object.)
+    """
+    id_expr: String_Expr
+
+    """
+    The key used to identify the object.
+    """
+    key: HSNSACCode_Key
+
+    """
+    Fetch the first row based on the filters and ordering.
+    """
+    first: HSNSACCode_FirstRow
+  ): HSNSACCode @fdc_generated(from: "HSNSACCode", purpose: QUERY_SINGLE)
+  """
+  ✨ Look up a single `Job` based on `id`, `key` or `first` and return selected fields (or `null` if not found).
+  """
+  job(
+    """
+    The unique ID of the object.
+    """
+    id: String
+
+    """
+    ✨ `_expr` server value variant of `id` (The unique ID of the object.)
+    """
+    id_expr: String_Expr
+
+    """
+    The key used to identify the object.
+    """
+    key: Job_Key
+
+    """
+    Fetch the first row based on the filters and ordering.
+    """
+    first: Job_FirstRow
+  ): Job @fdc_generated(from: "Job", purpose: QUERY_SINGLE)
+  """
+  ✨ Look up a single `Service` based on `id`, `key` or `first` and return selected fields (or `null` if not found).
+  """
+  service(
+    """
+    The unique ID of the object.
+    """
+    id: String
+
+    """
+    ✨ `_expr` server value variant of `id` (The unique ID of the object.)
+    """
+    id_expr: String_Expr
+
+    """
+    The key used to identify the object.
+    """
+    key: Service_Key
+
+    """
+    Fetch the first row based on the filters and ordering.
+    """
+    first: Service_FirstRow
+  ): Service @fdc_generated(from: "Service", purpose: QUERY_SINGLE)
+  """
+  ✨ Look up a single `ServiceUnitType` based on `id`, `key` or `first` and return selected fields (or `null` if not found).
+  """
+  serviceUnitType(
+    """
+    The unique ID of the object.
+    """
+    id: String
+
+    """
+    ✨ `_expr` server value variant of `id` (The unique ID of the object.)
+    """
+    id_expr: String_Expr
+
+    """
+    The key used to identify the object.
+    """
+    key: ServiceUnitType_Key
+
+    """
+    Fetch the first row based on the filters and ordering.
+    """
+    first: ServiceUnitType_FirstRow
+  ): ServiceUnitType @fdc_generated(from: "ServiceUnitType", purpose: QUERY_SINGLE)
+  """
+  ✨ Look up a single `Technical` based on `id`, `key` or `first` and return selected fields (or `null` if not found).
+  """
+  technical(
+    """
+    The unique ID of the object.
+    """
+    id: String
+
+    """
+    ✨ `_expr` server value variant of `id` (The unique ID of the object.)
+    """
+    id_expr: String_Expr
+
+    """
+    The key used to identify the object.
+    """
+    key: Technical_Key
+
+    """
+    Fetch the first row based on the filters and ordering.
+    """
+    first: Technical_FirstRow
+  ): Technical @fdc_generated(from: "Technical", purpose: QUERY_SINGLE)
+  """
+  ✨ Look up a single `TermAndCondition` based on `id`, `key` or `first` and return selected fields (or `null` if not found).
+  """
+  termAndCondition(
+    """
+    The unique ID of the object.
+    """
+    id: String
+
+    """
+    ✨ `_expr` server value variant of `id` (The unique ID of the object.)
+    """
+    id_expr: String_Expr
+
+    """
+    The key used to identify the object.
+    """
+    key: TermAndCondition_Key
+
+    """
+    Fetch the first row based on the filters and ordering.
+    """
+    first: TermAndCondition_FirstRow
+  ): TermAndCondition @fdc_generated(from: "TermAndCondition", purpose: QUERY_SINGLE)
+  """
+  ✨ Look up a single `Test` based on `id`, `key` or `first` and return selected fields (or `null` if not found).
+  """
+  test(
+    """
+    The unique ID of the object.
+    """
+    id: String
+
+    """
+    ✨ `_expr` server value variant of `id` (The unique ID of the object.)
+    """
+    id_expr: String_Expr
+
+    """
+    The key used to identify the object.
+    """
+    key: Test_Key
+
+    """
+    Fetch the first row based on the filters and ordering.
+    """
+    first: Test_FirstRow
+  ): Test @fdc_generated(from: "Test", purpose: QUERY_SINGLE)
+  """
+  ✨ Look up a single `User` based on `id`, `key` or `first` and return selected fields (or `null` if not found).
+  """
+  user(
+    """
+    The unique ID of the object.
+    """
+    id: String
+
+    """
+    ✨ `_expr` server value variant of `id` (The unique ID of the object.)
+    """
+    id_expr: String_Expr
+
+    """
+    The key used to identify the object.
+    """
+    key: User_Key
+
+    """
+    Fetch the first row based on the filters and ordering.
+    """
+    first: User_FirstRow
+  ): User @fdc_generated(from: "User", purpose: QUERY_SINGLE)
+  """
+  ✨ List `AppSetting` objects in the table and return selected fields, optionally filtered by `where` conditions
+  """
+  appSettings(
+    """
+    Filter condition to narrow down the query results.
+    """
+    where: AppSetting_Filter
+
+    """
+    Order the query results by specific fields.
+    """
+    orderBy: [AppSetting_Order!]
+
+    """
+    Number of rows to skip before starting to return the results.
+    """
+    offset: Int
+
+    """
+    Maximum number of rows to return (defaults to 100 rows).
+    """
+    limit: Int = 100
+
+    """
+    Set to true to return distinct results.
+    """
+    distinct: Boolean = false
+
+    """
+    Filter condition to apply to the groups of aggregate queries.
+    """
+    having: AppSetting_Having
+  ): [AppSetting!]! @fdc_generated(from: "AppSetting", purpose: QUERY_MULTIPLE)
+  """
+  ✨ List `Client` objects in the table and return selected fields, optionally filtered by `where` conditions
+  """
+  clients(
+    """
+    Filter condition to narrow down the query results.
+    """
+    where: Client_Filter
+
+    """
+    Order the query results by specific fields.
+    """
+    orderBy: [Client_Order!]
+
+    """
+    Number of rows to skip before starting to return the results.
+    """
+    offset: Int
+
+    """
+    Maximum number of rows to return (defaults to 100 rows).
+    """
+    limit: Int = 100
+
+    """
+    Set to true to return distinct results.
+    """
+    distinct: Boolean = false
+
+    """
+    Filter condition to apply to the groups of aggregate queries.
+    """
+    having: Client_Having
+  ): [Client!]! @fdc_generated(from: "Client", purpose: QUERY_MULTIPLE)
+  """
+  ✨ List `ClientServicePrice` objects in the table and return selected fields, optionally filtered by `where` conditions
+  """
+  clientServicePrices(
+    """
+    Filter condition to narrow down the query results.
+    """
+    where: ClientServicePrice_Filter
+
+    """
+    Order the query results by specific fields.
+    """
+    orderBy: [ClientServicePrice_Order!]
+
+    """
+    Number of rows to skip before starting to return the results.
+    """
+    offset: Int
+
+    """
+    Maximum number of rows to return (defaults to 100 rows).
+    """
+    limit: Int = 100
+
+    """
+    Set to true to return distinct results.
+    """
+    distinct: Boolean = false
+
+    """
+    Filter condition to apply to the groups of aggregate queries.
+    """
+    having: ClientServicePrice_Having
+  ): [ClientServicePrice!]! @fdc_generated(from: "ClientServicePrice", purpose: QUERY_MULTIPLE)
+  """
+  ✨ List `ClientTestPrice` objects in the table and return selected fields, optionally filtered by `where` conditions
+  """
+  clientTestPrices(
+    """
+    Filter condition to narrow down the query results.
+    """
+    where: ClientTestPrice_Filter
+
+    """
+    Order the query results by specific fields.
+    """
+    orderBy: [ClientTestPrice_Order!]
+
+    """
+    Number of rows to skip before starting to return the results.
+    """
+    offset: Int
+
+    """
+    Maximum number of rows to return (defaults to 100 rows).
+    """
+    limit: Int = 100
+
+    """
+    Set to true to return distinct results.
+    """
+    distinct: Boolean = false
+
+    """
+    Filter condition to apply to the groups of aggregate queries.
+    """
+    having: ClientTestPrice_Having
+  ): [ClientTestPrice!]! @fdc_generated(from: "ClientTestPrice", purpose: QUERY_MULTIPLE)
+  """
+  ✨ List `HSNSACCode` objects in the table and return selected fields, optionally filtered by `where` conditions
+  """
+  hSNSACCodes(
+    """
+    Filter condition to narrow down the query results.
+    """
+    where: HSNSACCode_Filter
+
+    """
+    Order the query results by specific fields.
+    """
+    orderBy: [HSNSACCode_Order!]
+
+    """
+    Number of rows to skip before starting to return the results.
+    """
+    offset: Int
+
+    """
+    Maximum number of rows to return (defaults to 100 rows).
+    """
+    limit: Int = 100
+
+    """
+    Set to true to return distinct results.
+    """
+    distinct: Boolean = false
+
+    """
+    Filter condition to apply to the groups of aggregate queries.
+    """
+    having: HSNSACCode_Having
+  ): [HSNSACCode!]! @fdc_generated(from: "HSNSACCode", purpose: QUERY_MULTIPLE)
+  """
+  ✨ List `Job` objects in the table and return selected fields, optionally filtered by `where` conditions
+  """
+  jobs(
+    """
+    Filter condition to narrow down the query results.
+    """
+    where: Job_Filter
+
+    """
+    Order the query results by specific fields.
+    """
+    orderBy: [Job_Order!]
+
+    """
+    Number of rows to skip before starting to return the results.
+    """
+    offset: Int
+
+    """
+    Maximum number of rows to return (defaults to 100 rows).
+    """
+    limit: Int = 100
+
+    """
+    Set to true to return distinct results.
+    """
+    distinct: Boolean = false
+
+    """
+    Filter condition to apply to the groups of aggregate queries.
+    """
+    having: Job_Having
+  ): [Job!]! @fdc_generated(from: "Job", purpose: QUERY_MULTIPLE)
+  """
+  ✨ List `Service` objects in the table and return selected fields, optionally filtered by `where` conditions
+  """
+  services(
+    """
+    Filter condition to narrow down the query results.
+    """
+    where: Service_Filter
+
+    """
+    Order the query results by specific fields.
+    """
+    orderBy: [Service_Order!]
+
+    """
+    Number of rows to skip before starting to return the results.
+    """
+    offset: Int
+
+    """
+    Maximum number of rows to return (defaults to 100 rows).
+    """
+    limit: Int = 100
+
+    """
+    Set to true to return distinct results.
+    """
+    distinct: Boolean = false
+
+    """
+    Filter condition to apply to the groups of aggregate queries.
+    """
+    having: Service_Having
+  ): [Service!]! @fdc_generated(from: "Service", purpose: QUERY_MULTIPLE)
+  """
+  ✨ List `ServiceUnitType` objects in the table and return selected fields, optionally filtered by `where` conditions
+  """
+  serviceUnitTypes(
+    """
+    Filter condition to narrow down the query results.
+    """
+    where: ServiceUnitType_Filter
+
+    """
+    Order the query results by specific fields.
+    """
+    orderBy: [ServiceUnitType_Order!]
+
+    """
+    Number of rows to skip before starting to return the results.
+    """
+    offset: Int
+
+    """
+    Maximum number of rows to return (defaults to 100 rows).
+    """
+    limit: Int = 100
+
+    """
+    Set to true to return distinct results.
+    """
+    distinct: Boolean = false
+
+    """
+    Filter condition to apply to the groups of aggregate queries.
+    """
+    having: ServiceUnitType_Having
+  ): [ServiceUnitType!]! @fdc_generated(from: "ServiceUnitType", purpose: QUERY_MULTIPLE)
+  """
+  ✨ List `Technical` objects in the table and return selected fields, optionally filtered by `where` conditions
+  """
+  technicals(
+    """
+    Filter condition to narrow down the query results.
+    """
+    where: Technical_Filter
+
+    """
+    Order the query results by specific fields.
+    """
+    orderBy: [Technical_Order!]
+
+    """
+    Number of rows to skip before starting to return the results.
+    """
+    offset: Int
+
+    """
+    Maximum number of rows to return (defaults to 100 rows).
+    """
+    limit: Int = 100
+
+    """
+    Set to true to return distinct results.
+    """
+    distinct: Boolean = false
+
+    """
+    Filter condition to apply to the groups of aggregate queries.
+    """
+    having: Technical_Having
+  ): [Technical!]! @fdc_generated(from: "Technical", purpose: QUERY_MULTIPLE)
+  """
+  ✨ List `TermAndCondition` objects in the table and return selected fields, optionally filtered by `where` conditions
+  """
+  termAndConditions(
+    """
+    Filter condition to narrow down the query results.
+    """
+    where: TermAndCondition_Filter
+
+    """
+    Order the query results by specific fields.
+    """
+    orderBy: [TermAndCondition_Order!]
+
+    """
+    Number of rows to skip before starting to return the results.
+    """
+    offset: Int
+
+    """
+    Maximum number of rows to return (defaults to 100 rows).
+    """
+    limit: Int = 100
+
+    """
+    Set to true to return distinct results.
+    """
+    distinct: Boolean = false
+
+    """
+    Filter condition to apply to the groups of aggregate queries.
+    """
+    having: TermAndCondition_Having
+  ): [TermAndCondition!]! @fdc_generated(from: "TermAndCondition", purpose: QUERY_MULTIPLE)
+  """
+  ✨ List `Test` objects in the table and return selected fields, optionally filtered by `where` conditions
+  """
+  tests(
+    """
+    Filter condition to narrow down the query results.
+    """
+    where: Test_Filter
+
+    """
+    Order the query results by specific fields.
+    """
+    orderBy: [Test_Order!]
+
+    """
+    Number of rows to skip before starting to return the results.
+    """
+    offset: Int
+
+    """
+    Maximum number of rows to return (defaults to 100 rows).
+    """
+    limit: Int = 100
+
+    """
+    Set to true to return distinct results.
+    """
+    distinct: Boolean = false
+
+    """
+    Filter condition to apply to the groups of aggregate queries.
+    """
+    having: Test_Having
+  ): [Test!]! @fdc_generated(from: "Test", purpose: QUERY_MULTIPLE)
+  """
+  ✨ List `User` objects in the table and return selected fields, optionally filtered by `where` conditions
+  """
+  users(
+    """
+    Filter condition to narrow down the query results.
+    """
+    where: User_Filter
+
+    """
+    Order the query results by specific fields.
+    """
+    orderBy: [User_Order!]
+
+    """
+    Number of rows to skip before starting to return the results.
+    """
+    offset: Int
+
+    """
+    Maximum number of rows to return (defaults to 100 rows).
+    """
+    limit: Int = 100
+
+    """
+    Set to true to return distinct results.
+    """
+    distinct: Boolean = false
+
+    """
+    Filter condition to apply to the groups of aggregate queries.
+    """
+    having: User_Having
+  ): [User!]! @fdc_generated(from: "User", purpose: QUERY_MULTIPLE)
+}

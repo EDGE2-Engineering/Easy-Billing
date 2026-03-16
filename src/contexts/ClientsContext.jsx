@@ -1,6 +1,6 @@
 
 import React, { createContext, useState, useEffect, useCallback, useMemo } from 'react';
-import { dynamoGenericApi } from '@/lib/dynamoGenericApi';
+import { dataApi } from '@/lib/dataApi';
 import { useAuth } from '@/contexts/AuthContext';
 import { DB_TYPES } from '@/config';
 
@@ -55,7 +55,7 @@ const ClientsProvider = ({ children }) => {
         }
 
         try {
-            const data = await dynamoGenericApi.listByType(DB_TYPES.CLIENT, idToken);
+            const data = await dataApi.listByType(DB_TYPES.CLIENT);
 
             if (data && data.length > 0) {
                 const mappedData = data.map(mapFromDb);
@@ -64,7 +64,7 @@ const ClientsProvider = ({ children }) => {
                 setClients([]);
             }
         } catch (error) {
-            console.error("Error loading clients from DynamoDB:", error);
+            console.error("Error loading clients from Firebase Data Connect:", error);
             if (clients.length === 0) setClients([]);
         } finally {
             setLoading(false);
@@ -99,7 +99,7 @@ const ClientsProvider = ({ children }) => {
 
         try {
             const dbPayload = mapToDb(updatedClient);
-            const savedItem = await dynamoGenericApi.save(DB_TYPES.CLIENT, dbPayload, idToken);
+            const savedItem = await dataApi.save(DB_TYPES.CLIENT, dbPayload);
             const updated = mapFromDb(savedItem);
             setClients(prev => prev.map(c => c.id === updated.id ? updated : c));
         } catch (err) {
@@ -130,7 +130,7 @@ const ClientsProvider = ({ children }) => {
 
         try {
             const dbPayload = mapToDb(clientWithId);
-            const savedItem = await dynamoGenericApi.save(DB_TYPES.CLIENT, dbPayload, idToken);
+            const savedItem = await dataApi.save(DB_TYPES.CLIENT, dbPayload);
             const added = mapFromDb(savedItem);
             setClients(prev => prev.map(c => c.id === tempId ? added : c));
         } catch (err) {
@@ -147,7 +147,7 @@ const ClientsProvider = ({ children }) => {
         setClients(prev => prev.filter(c => c.id !== id));
 
         try {
-            await dynamoGenericApi.delete(id, idToken);
+            await dataApi.delete(id, DB_TYPES.CLIENT);
         } catch (err) {
             console.error("Delete Client Exception:", err);
             setClients(previousClients);

@@ -30,7 +30,7 @@ import { useToast } from '@/components/ui/use-toast';
 import ReportPreview from '@/components/ReportPreview';
 import reportTemplateHtml from '@/templates/report-template.html?raw'
 import { useAuth } from '@/contexts/AuthContext';
-import { dynamoGenericApi } from '@/lib/dynamoGenericApi';
+import { dataApi } from '@/lib/dataApi';
 import { sendTelegramNotification } from '@/lib/notifier';
 import { getSiteContent, DB_TYPES } from '@/config';
 
@@ -104,7 +104,7 @@ const NewReportForm = ({ editReport, onCancel, onSuccess }) => {
         const fetchClients = async () => {
             if (!idToken) return;
             try {
-                const data = await dynamoGenericApi.listByType(DB_TYPES.CLIENT, idToken);
+                const data = await dataApi.listByType(DB_TYPES.CLIENT);
                 if (data) setClients(data);
             } catch (error) {
                 console.error('Error fetching clients:', error);
@@ -119,7 +119,7 @@ const NewReportForm = ({ editReport, onCancel, onSuccess }) => {
         const fetchJobOrders = async () => {
             if (!idToken) return;
             try {
-                const data = await dynamoGenericApi.listByType(DB_TYPES.JOB, idToken);
+                const data = await dataApi.listByType(DB_TYPES.JOB);
                 // Map to match expected structure jo.clients?.client_name
                 const mappedData = data.map(jo => ({
                     ...jo,
@@ -1691,7 +1691,7 @@ const NewReportForm = ({ editReport, onCancel, onSuccess }) => {
         try {
             if (!idToken) throw new Error('Authentication required');
 
-            const results = await dynamoGenericApi.findByAttribute('report', 'report_number', formData.reportId, idToken);
+            const results = await dataApi.findByAttribute(DB_TYPES.REPORT, 'report_number', formData.reportId);
             const existing = results[0];
 
             if (existing && existing.id !== formData.id) {
@@ -1720,7 +1720,7 @@ const NewReportForm = ({ editReport, onCancel, onSuccess }) => {
         try {
             if (!idToken) throw new Error('Authentication required');
 
-            const results = await dynamoGenericApi.findByAttribute('report', 'report_number', formData.reportId, idToken);
+            const results = await dataApi.findByAttribute(DB_TYPES.REPORT, 'report_number', formData.reportId);
             const existing = results[0];
 
             if (existing && existing.id !== formData.id) {
@@ -1751,7 +1751,7 @@ const NewReportForm = ({ editReport, onCancel, onSuccess }) => {
                 updated_at: new Date().toISOString()
             };
 
-            await dynamoGenericApi.save('report', payload, idToken);
+            await dataApi.save(DB_TYPES.REPORT, payload);
 
             toast({
                 title: isGenerating ? "Report Generated" : "Report Saved",

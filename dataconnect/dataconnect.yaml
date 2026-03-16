@@ -1,0 +1,13 @@
+specVersion: v1beta
+serviceId: test-62e9b
+location: us-central1
+schema:
+  source: ./schema
+  datasource:
+    postgresql:
+      cloudSql:
+        instanceId: edge2-lims-db
+connectorDirs:
+  - ./connector
+connectors:
+  - path: ./connector

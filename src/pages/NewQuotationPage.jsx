@@ -44,7 +44,7 @@ import {
 } from "@/components/ui/alert-dialog";
 import { cn } from '@/lib/utils';
 import { getSiteContent, DB_TYPES } from '@/config';
-import { dynamoGenericApi } from '@/lib/dynamoGenericApi';
+import { dataApi } from '@/lib/dataApi';
 import { sendTelegramNotification } from '@/lib/notifier';
 import { getNextDocNumber } from '@/utils/docUtils';
 
@@ -249,10 +249,10 @@ const NewQuotationPage = () => {
     }, [clients, quoteDetails.client_name, clientNameSelection, contactSelectionIdx]);
 
     useEffect(() => {
-        const loadFromDynamo = async (id) => {
+        const loadFromDataConnect = async (id) => {
             if (!idToken) return;
             try {
-                const data = await dynamoGenericApi.get(id, idToken);
+                const data = await dataApi.get(id, DB_TYPES.JOB);
                 if (data) {
                     const content = data.quotation || {};
                     const loadedQuoteDetails = content.quoteDetails || content || {};
@@ -299,15 +299,15 @@ const NewQuotationPage = () => {
                     };
                     setLastSavedData(JSON.stringify(snapshot));
                 }
-            } catch (err) {
-                console.error('Error loading record:', err);
-                toast({ title: "Error", description: "Failed to load record.", variant: "destructive" });
+            } catch (error) {
+                console.error('Error loading data from Data Connect:', error);
+                toast({ title: 'Error', description: 'Failed to load document.', variant: 'destructive' });
             }
         };
 
         const id = pathId || searchParams.get('id');
-        if (id && !isSavingRecord) {
-            loadFromDynamo(id);
+        if (id && !savedRecordId && !existingRecord) {
+            loadFromDataConnect(id);
         }
     }, [searchParams, pathId, isSavingRecord, idToken, defaultQuoteDetails, toast]);
 
@@ -342,7 +342,7 @@ const NewQuotationPage = () => {
             const isTypeChanged = savedRecordId && loadedDocumentType && documentType !== loadedDocumentType;
             let docNumber = quoteDetails.quote_number;
             if ((!savedRecordId || isTypeChanged) && (!docNumber || isTypeChanged)) {
-                docNumber = await getNextDocNumber(dynamoGenericApi, documentType, idToken);
+                docNumber = await getNextDocNumber(dataApi, documentType);
             }
 
             const updatedQuoteDetails = { ...quoteDetails, quote_number: docNumber };
@@ -371,7 +371,7 @@ const NewQuotationPage = () => {
                 updated_at: new Date().toISOString()
             };
 
-            await dynamoGenericApi.save(DB_TYPES.JOB, recordData, idToken);
+            await dataApi.save(DB_TYPES.JOB, recordData);
 
             setSavedRecordId(recordData.id);
             setLoadedDocumentType(documentType);

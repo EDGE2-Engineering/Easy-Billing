@@ -15,7 +15,7 @@ import {
 } from "@/components/ui/card";
 import { Badge } from '@/components/ui/badge';
 import { useAuth } from '@/contexts/AuthContext';
-import { dynamoGenericApi } from '@/lib/dynamoGenericApi';
+import { dataApi } from '@/lib/dataApi';
 import { format } from 'date-fns';
 import { MermaidDiagram } from '@lightenna/react-mermaid-diagram';
 import { ScrollArea } from "@/components/ui/scroll-area";
@@ -55,9 +55,9 @@ const AdminJobsManager = () => {
         setLoading(true);
         try {
             const [jobsData, usersData, clientsData] = await Promise.all([
-                dynamoGenericApi.listByType(DB_TYPES.JOB, idToken),
-                dynamoGenericApi.listByType(DB_TYPES.USER, idToken),
-                dynamoGenericApi.listByType(DB_TYPES.CLIENT, idToken)
+                dataApi.listByType(DB_TYPES.JOB),
+                dataApi.listByType(DB_TYPES.USER),
+                dataApi.listByType(DB_TYPES.CLIENT)
             ]);
             setJobs(jobsData || []);
             setAppUsers(usersData || []);
@@ -117,7 +117,7 @@ const AdminJobsManager = () => {
                 updated_by: user.id || user.username
             };
 
-            await dynamoGenericApi.save(DB_TYPES.JOB, updatedJob, idToken);
+            await dataApi.save(DB_TYPES.JOB, updatedJob);
 
             setJobs(prev => prev.map(j => j.id === updatedJob.id ? updatedJob : j));
             setSelectedJob(updatedJob);
@@ -153,7 +153,7 @@ const AdminJobsManager = () => {
                 updated_by: user.id || user.username
             };
 
-            await dynamoGenericApi.save(DB_TYPES.JOB, updatedJob, idToken);
+            await dataApi.save(DB_TYPES.JOB, updatedJob);
 
             setJobs(prev => prev.map(j => j.id === updatedJob.id ? updatedJob : j));
             setSelectedJob(updatedJob);
@@ -185,7 +185,7 @@ const AdminJobsManager = () => {
                 updated_by: user.id || user.username
             };
 
-            await dynamoGenericApi.save(DB_TYPES.JOB, updatedJob, idToken);
+            await dataApi.save(DB_TYPES.JOB, updatedJob);
 
             setJobs(prev => prev.map(j => j.id === updatedJob.id ? updatedJob : j));
             setSelectedJob(updatedJob);
@@ -507,7 +507,7 @@ const AdminJobsManager = () => {
                                         <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider">PO/WO #</p>
                                         <p className="text-sm font-medium">{selectedJob.material_inward?.po_wo_number || selectedJob.po_wo_number || '-'}</p>
                                     </div>
-                                     <div className="space-y-1">
+                                    <div className="space-y-1">
                                         <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider">Created On</p>
                                         <p className="text-sm font-medium">{format(new Date(selectedJob.created_at), 'dd MMM yyyy')}</p>
                                     </div>

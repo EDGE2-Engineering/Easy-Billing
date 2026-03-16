@@ -1,0 +1,3980 @@
+"""
+✨ `AppSetting_KeyOutput` returns the primary key fields of table type `AppSetting`.
+
+It has the same format as `AppSetting_Key`, but is only used as mutation return value.
+"""
+scalar AppSetting_KeyOutput
+"""
+✨ `Client_KeyOutput` returns the primary key fields of table type `Client`.
+
+It has the same format as `Client_Key`, but is only used as mutation return value.
+"""
+scalar Client_KeyOutput
+"""
+✨ `ClientServicePrice_KeyOutput` returns the primary key fields of table type `ClientServicePrice`.
+
+It has the same format as `ClientServicePrice_Key`, but is only used as mutation return value.
+"""
+scalar ClientServicePrice_KeyOutput
+"""
+✨ `ClientTestPrice_KeyOutput` returns the primary key fields of table type `ClientTestPrice`.
+
+It has the same format as `ClientTestPrice_Key`, but is only used as mutation return value.
+"""
+scalar ClientTestPrice_KeyOutput
+"""
+✨ `HSNSACCode_KeyOutput` returns the primary key fields of table type `HSNSACCode`.
+
+It has the same format as `HSNSACCode_Key`, but is only used as mutation return value.
+"""
+scalar HSNSACCode_KeyOutput
+"""
+✨ `Job_KeyOutput` returns the primary key fields of table type `Job`.
+
+It has the same format as `Job_Key`, but is only used as mutation return value.
+"""
+scalar Job_KeyOutput
+"""
+✨ `Service_KeyOutput` returns the primary key fields of table type `Service`.
+
+It has the same format as `Service_Key`, but is only used as mutation return value.
+"""
+scalar Service_KeyOutput
+"""
+✨ `ServiceUnitType_KeyOutput` returns the primary key fields of table type `ServiceUnitType`.
+
+It has the same format as `ServiceUnitType_Key`, but is only used as mutation return value.
+"""
+scalar ServiceUnitType_KeyOutput
+"""
+✨ `Technical_KeyOutput` returns the primary key fields of table type `Technical`.
+
+It has the same format as `Technical_Key`, but is only used as mutation return value.
+"""
+scalar Technical_KeyOutput
+"""
+✨ `TermAndCondition_KeyOutput` returns the primary key fields of table type `TermAndCondition`.
+
+It has the same format as `TermAndCondition_Key`, but is only used as mutation return value.
+"""
+scalar TermAndCondition_KeyOutput
+"""
+✨ `Test_KeyOutput` returns the primary key fields of table type `Test`.
+
+It has the same format as `Test_Key`, but is only used as mutation return value.
+"""
+scalar Test_KeyOutput
+"""
+✨ `User_KeyOutput` returns the primary key fields of table type `User`.
+
+It has the same format as `User_Key`, but is only used as mutation return value.
+"""
+scalar User_KeyOutput
+"""
+✨ Generated data input type for table 'AppSetting'. It includes all necessary fields for creating or upserting rows into table.
+"""
+input AppSetting_Data {
+  """
+  ✨ Generated from Field `AppSetting`.`id` of type `String!`
+  """
+  id: String
+  """
+  ✨ `_expr` server value variant of `id` (✨ Generated from Field `AppSetting`.`id` of type `String!`)
+  """
+  id_expr: String_Expr
+  """
+  ✨ Generated from Field `AppSetting`.`createdAt` of type `String`
+  """
+  createdAt: String
+  """
+  ✨ `_expr` server value variant of `createdAt` (✨ Generated from Field `AppSetting`.`createdAt` of type `String`)
+  """
+  createdAt_expr: String_Expr
+  """
+  ✨ Generated from Field `AppSetting`.`key` of type `String!`
+  """
+  key: String
+  """
+  ✨ `_expr` server value variant of `key` (✨ Generated from Field `AppSetting`.`key` of type `String!`)
+  """
+  key_expr: String_Expr
+  """
+  ✨ Generated from Field `AppSetting`.`updatedAt` of type `String`
+  """
+  updatedAt: String
+  """
+  ✨ `_expr` server value variant of `updatedAt` (✨ Generated from Field `AppSetting`.`updatedAt` of type `String`)
+  """
+  updatedAt_expr: String_Expr
+  """
+  ✨ Generated from Field `AppSetting`.`value` of type `Any`
+  """
+  value: Any
+  """
+  ✨ `_expr` server value variant of `value` (✨ Generated from Field `AppSetting`.`value` of type `Any`)
+  """
+  value_expr: Any_Expr
+}
+"""
+✨ Generated filter input type for table 'AppSetting'. This input allows filtering objects using various conditions. Use `_or`, `_and`, and `_not` to compose complex filters.
+"""
+input AppSetting_Filter {
+  """
+  Apply multiple filter conditions using `AND` logic.
+  """
+  _and: [AppSetting_Filter!]
+  """
+  Negate the result of the provided filter condition.
+  """
+  _not: AppSetting_Filter
+  """
+  Apply multiple filter conditions using `OR` logic.
+  """
+  _or: [AppSetting_Filter!]
+  """
+  ✨ Generated from Field `AppSetting`.`id` of type `String!`
+  """
+  id: String_Filter
+  """
+  ✨ Generated from Field `AppSetting`.`createdAt` of type `String`
+  """
+  createdAt: String_Filter
+  """
+  ✨ Generated from Field `AppSetting`.`key` of type `String!`
+  """
+  key: String_Filter
+  """
+  ✨ Generated from Field `AppSetting`.`updatedAt` of type `String`
+  """
+  updatedAt: String_Filter
+  """
+  ✨ Generated from Field `AppSetting`.`value` of type `Any`
+  """
+  value: Any_Filter
+}
+"""
+✨ Generated first-row input type for table 'AppSetting'. This input selects the first row matching the filter criteria, ordered according to the specified conditions.
+"""
+input AppSetting_FirstRow {
+  """
+  Order the result by the specified fields.
+  """
+  orderBy: [AppSetting_Order!]
+  """
+  Filters rows based on the specified conditions.
+  """
+  where: AppSetting_Filter
+}
+"""
+✨ Generated having input type for table 'AppSetting'. This input allows you to filter groups during aggregate queries using various conditions. Use `_or`, `_and`, and `_not` to compose complex filters.
+"""
+input AppSetting_Having {
+  """
+  Apply multiple Having conditions using `AND` logic.
+  """
+  _and: [AppSetting_Having!]
+  """
+  Whether to apply DISTINCT to the aggregate function.
+  """
+  _distinct: Boolean
+  """
+  Negate the result of the provided Having condition.
+  """
+  _not: AppSetting_Having
+  """
+  Apply multiple Having conditions using `OR` logic.
+  """
+  _or: [AppSetting_Having!]
+  """
+  ✨ Generated from Field `AppSetting`.`_count` of type `Int!`
+  """
+  _count: Int_Filter
+  """
+  ✨ Generated from Field `AppSetting`.`createdAt_count` of type `Int!`
+  """
+  createdAt_count: Int_Filter
+  """
+  ✨ Generated from Field `AppSetting`.`id_count` of type `Int!`
+  """
+  id_count: Int_Filter
+  """
+  ✨ Generated from Field `AppSetting`.`key_count` of type `Int!`
+  """
+  key_count: Int_Filter
+  """
+  ✨ Generated from Field `AppSetting`.`updatedAt_count` of type `Int!`
+  """
+  updatedAt_count: Int_Filter
+  """
+  ✨ Generated from Field `AppSetting`.`value_count` of type `Int!`
+  """
+  value_count: Int_Filter
+  """
+  ✨ Generated from Field `AppSetting`.`value_min` of type `Any`
+  """
+  value_min: Any_Filter
+  """
+  ✨ Generated from Field `AppSetting`.`value_max` of type `Any`
+  """
+  value_max: Any_Filter
+}
+"""
+✨ Generated key input type for table 'AppSetting'. It represents the primary key fields used to uniquely identify a row in the table.
+"""
+input AppSetting_Key {
+  """
+  ✨ Generated from Field `AppSetting`.`id` of type `String!`
+  """
+  id: String
+  """
+  ✨ `_expr` server value variant of `id` (✨ Generated from Field `AppSetting`.`id` of type `String!`)
+  """
+  id_expr: String_Expr
+}
+"""
+✨ Generated list filter input type for table 'AppSetting'. This input applies filtering logic based on the count or existence of related objects that matches certain criteria.
+"""
+input AppSetting_ListFilter {
+  """
+  The desired number of objects that match the condition (defaults to at least one).
+  """
+  count: Int_Filter = {gt:0}
+  """
+  Condition of the related objects to filter for.
+  """
+  exist: AppSetting_Filter
+}
+"""
+✨ Generated order input type for table 'AppSetting'. This input defines the sorting order of rows in query results based on one or more fields.
+"""
+input AppSetting_Order {
+  """
+  ✨ Generated from Field `AppSetting`.`id` of type `String!`
+  """
+  id: OrderDirection
+  """
+  ✨ Generated from Field `AppSetting`.`createdAt` of type `String`
+  """
+  createdAt: OrderDirection
+  """
+  ✨ Generated from Field `AppSetting`.`key` of type `String!`
+  """
+  key: OrderDirection
+  """
+  ✨ Generated from Field `AppSetting`.`updatedAt` of type `String`
+  """
+  updatedAt: OrderDirection
+  """
+  ✨ Generated from Field `AppSetting`.`value` of type `Any`
+  """
+  value: OrderDirection
+  """
+  ✨ Generated from Field `AppSetting`.`_count` of type `Int!`
+  """
+  _count: OrderDirection
+  """
+  ✨ Generated from Field `AppSetting`.`createdAt_count` of type `Int!`
+  """
+  createdAt_count: OrderDirection
+  """
+  ✨ Generated from Field `AppSetting`.`id_count` of type `Int!`
+  """
+  id_count: OrderDirection
+  """
+  ✨ Generated from Field `AppSetting`.`key_count` of type `Int!`
+  """
+  key_count: OrderDirection
+  """
+  ✨ Generated from Field `AppSetting`.`updatedAt_count` of type `Int!`
+  """
+  updatedAt_count: OrderDirection
+  """
+  ✨ Generated from Field `AppSetting`.`value_count` of type `Int!`
+  """
+  value_count: OrderDirection
+  """
+  ✨ Generated from Field `AppSetting`.`value_min` of type `Any`
+  """
+  value_min: OrderDirection
+  """
+  ✨ Generated from Field `AppSetting`.`value_max` of type `Any`
+  """
+  value_max: OrderDirection
+}
+"""
+✨ Generated data input type for table 'Client'. It includes all necessary fields for creating or upserting rows into table.
+"""
+input Client_Data {
+  """
+  ✨ Generated from Field `Client`.`id` of type `String!`
+  """
+  id: String
+  """
+  ✨ `_expr` server value variant of `id` (✨ Generated from Field `Client`.`id` of type `String!`)
+  """
+  id_expr: String_Expr
+  """
+  ✨ Generated from Field `Client`.`clientAddress` of type `String`
+  """
+  clientAddress: String
+  """
+  ✨ `_expr` server value variant of `clientAddress` (✨ Generated from Field `Client`.`clientAddress` of type `String`)
+  """
+  clientAddress_expr: String_Expr
+  """
+  ✨ Generated from Field `Client`.`clientName` of type `String!`
+  """
+  clientName: String
+  """
+  ✨ `_expr` server value variant of `clientName` (✨ Generated from Field `Client`.`clientName` of type `String!`)
+  """
+  clientName_expr: String_Expr
+  """
+  ✨ Generated from Field `Client`.`contacts` of type `Any`
+  """
+  contacts: Any
+  """
+  ✨ `_expr` server value variant of `contacts` (✨ Generated from Field `Client`.`contacts` of type `Any`)
+  """
+  contacts_expr: Any_Expr
+  """
+  ✨ Generated from Field `Client`.`createdAt` of type `String`
+  """
+  createdAt: String
+  """
+  ✨ `_expr` server value variant of `createdAt` (✨ Generated from Field `Client`.`createdAt` of type `String`)
+  """
+  createdAt_expr: String_Expr
+  """
+  ✨ Generated from Field `Client`.`updatedAt` of type `String`
+  """
+  updatedAt: String
+  """
+  ✨ `_expr` server value variant of `updatedAt` (✨ Generated from Field `Client`.`updatedAt` of type `String`)
+  """
+  updatedAt_expr: String_Expr
+}
+"""
+✨ Generated filter input type for table 'Client'. This input allows filtering objects using various conditions. Use `_or`, `_and`, and `_not` to compose complex filters.
+"""
+input Client_Filter {
+  """
+  Apply multiple filter conditions using `AND` logic.
+  """
+  _and: [Client_Filter!]
+  """
+  Negate the result of the provided filter condition.
+  """
+  _not: Client_Filter
+  """
+  Apply multiple filter conditions using `OR` logic.
+  """
+  _or: [Client_Filter!]
+  """
+  ✨ Generated from Field `Client`.`id` of type `String!`
+  """
+  id: String_Filter
+  """
+  ✨ Generated from Field `Client`.`clientAddress` of type `String`
+  """
+  clientAddress: String_Filter
+  """
+  ✨ Generated from Field `Client`.`clientName` of type `String!`
+  """
+  clientName: String_Filter
+  """
+  ✨ Generated from Field `Client`.`contacts` of type `Any`
+  """
+  contacts: Any_Filter
+  """
+  ✨ Generated from Field `Client`.`createdAt` of type `String`
+  """
+  createdAt: String_Filter
+  """
+  ✨ Generated from Field `Client`.`updatedAt` of type `String`
+  """
+  updatedAt: String_Filter
+}
+"""
+✨ Generated first-row input type for table 'Client'. This input selects the first row matching the filter criteria, ordered according to the specified conditions.
+"""
+input Client_FirstRow {
+  """
+  Order the result by the specified fields.
+  """
+  orderBy: [Client_Order!]
+  """
+  Filters rows based on the specified conditions.
+  """
+  where: Client_Filter
+}
+"""
+✨ Generated having input type for table 'Client'. This input allows you to filter groups during aggregate queries using various conditions. Use `_or`, `_and`, and `_not` to compose complex filters.
+"""
+input Client_Having {
+  """
+  Apply multiple Having conditions using `AND` logic.
+  """
+  _and: [Client_Having!]
+  """
+  Whether to apply DISTINCT to the aggregate function.
+  """
+  _distinct: Boolean
+  """
+  Negate the result of the provided Having condition.
+  """
+  _not: Client_Having
+  """
+  Apply multiple Having conditions using `OR` logic.
+  """
+  _or: [Client_Having!]
+  """
+  ✨ Generated from Field `Client`.`_count` of type `Int!`
+  """
+  _count: Int_Filter
+  """
+  ✨ Generated from Field `Client`.`clientAddress_count` of type `Int!`
+  """
+  clientAddress_count: Int_Filter
+  """
+  ✨ Generated from Field `Client`.`clientName_count` of type `Int!`
+  """
+  clientName_count: Int_Filter
+  """
+  ✨ Generated from Field `Client`.`contacts_count` of type `Int!`
+  """
+  contacts_count: Int_Filter
+  """
+  ✨ Generated from Field `Client`.`createdAt_count` of type `Int!`
+  """
+  createdAt_count: Int_Filter
+  """
+  ✨ Generated from Field `Client`.`id_count` of type `Int!`
+  """
+  id_count: Int_Filter
+  """
+  ✨ Generated from Field `Client`.`updatedAt_count` of type `Int!`
+  """
+  updatedAt_count: Int_Filter
+  """
+  ✨ Generated from Field `Client`.`contacts_min` of type `Any`
+  """
+  contacts_min: Any_Filter
+  """
+  ✨ Generated from Field `Client`.`contacts_max` of type `Any`
+  """
+  contacts_max: Any_Filter
+}
+"""
+✨ Generated key input type for table 'Client'. It represents the primary key fields used to uniquely identify a row in the table.
+"""
+input Client_Key {
+  """
+  ✨ Generated from Field `Client`.`id` of type `String!`
+  """
+  id: String
+  """
+  ✨ `_expr` server value variant of `id` (✨ Generated from Field `Client`.`id` of type `String!`)
+  """
+  id_expr: String_Expr
+}
+"""
+✨ Generated list filter input type for table 'Client'. This input applies filtering logic based on the count or existence of related objects that matches certain criteria.
+"""
+input Client_ListFilter {
+  """
+  The desired number of objects that match the condition (defaults to at least one).
+  """
+  count: Int_Filter = {gt:0}
+  """
+  Condition of the related objects to filter for.
+  """
+  exist: Client_Filter
+}
+"""
+✨ Generated order input type for table 'Client'. This input defines the sorting order of rows in query results based on one or more fields.
+"""
+input Client_Order {
+  """
+  ✨ Generated from Field `Client`.`id` of type `String!`
+  """
+  id: OrderDirection
+  """
+  ✨ Generated from Field `Client`.`clientAddress` of type `String`
+  """
+  clientAddress: OrderDirection
+  """
+  ✨ Generated from Field `Client`.`clientName` of type `String!`
+  """
+  clientName: OrderDirection
+  """
+  ✨ Generated from Field `Client`.`contacts` of type `Any`
+  """
+  contacts: OrderDirection
+  """
+  ✨ Generated from Field `Client`.`createdAt` of type `String`
+  """
+  createdAt: OrderDirection
+  """
+  ✨ Generated from Field `Client`.`updatedAt` of type `String`
+  """
+  updatedAt: OrderDirection
+  """
+  ✨ Generated from Field `Client`.`_count` of type `Int!`
+  """
+  _count: OrderDirection
+  """
+  ✨ Generated from Field `Client`.`clientAddress_count` of type `Int!`
+  """
+  clientAddress_count: OrderDirection
+  """
+  ✨ Generated from Field `Client`.`clientName_count` of type `Int!`
+  """
+  clientName_count: OrderDirection
+  """
+  ✨ Generated from Field `Client`.`contacts_count` of type `Int!`
+  """
+  contacts_count: OrderDirection
+  """
+  ✨ Generated from Field `Client`.`createdAt_count` of type `Int!`
+  """
+  createdAt_count: OrderDirection
+  """
+  ✨ Generated from Field `Client`.`id_count` of type `Int!`
+  """
+  id_count: OrderDirection
+  """
+  ✨ Generated from Field `Client`.`updatedAt_count` of type `Int!`
+  """
+  updatedAt_count: OrderDirection
+  """
+  ✨ Generated from Field `Client`.`contacts_min` of type `Any`
+  """
+  contacts_min: OrderDirection
+  """
+  ✨ Generated from Field `Client`.`contacts_max` of type `Any`
+  """
+  contacts_max: OrderDirection
+}
+"""
+✨ Generated data input type for table 'ClientServicePrice'. It includes all necessary fields for creating or upserting rows into table.
+"""
+input ClientServicePrice_Data {
+  """
+  ✨ Generated from Field `ClientServicePrice`.`id` of type `String!`
+  """
+  id: String
+  """
+  ✨ `_expr` server value variant of `id` (✨ Generated from Field `ClientServicePrice`.`id` of type `String!`)
+  """
+  id_expr: String_Expr
+  """
+  ✨ Generated from Field `ClientServicePrice`.`clientId` of type `String!`
+  """
+  clientId: String
+  """
+  ✨ `_expr` server value variant of `clientId` (✨ Generated from Field `ClientServicePrice`.`clientId` of type `String!`)
+  """
+  clientId_expr: String_Expr
+  """
+  ✨ Generated from Field `ClientServicePrice`.`createdAt` of type `String`
+  """
+  createdAt: String
+  """
+  ✨ `_expr` server value variant of `createdAt` (✨ Generated from Field `ClientServicePrice`.`createdAt` of type `String`)
+  """
+  createdAt_expr: String_Expr
+  """
+  ✨ Generated from Field `ClientServicePrice`.`price` of type `Float!`
+  """
+  price: Float
+  """
+  ✨ `_expr` server value variant of `price` (✨ Generated from Field `ClientServicePrice`.`price` of type `Float!`)
+  """
+  price_expr: Float_Expr
+  """
+  ✨ `_update` server value variant of `price` (✨ Generated from Field `ClientServicePrice`.`price` of type `Float!`)
+  """
+  price_update: [Float_Update!]
+  """
+  ✨ Generated from Field `ClientServicePrice`.`serviceId` of type `String!`
+  """
+  serviceId: String
+  """
+  ✨ `_expr` server value variant of `serviceId` (✨ Generated from Field `ClientServicePrice`.`serviceId` of type `String!`)
+  """
+  serviceId_expr: String_Expr
+  """
+  ✨ Generated from Field `ClientServicePrice`.`updatedAt` of type `String`
+  """
+  updatedAt: String
+  """
+  ✨ `_expr` server value variant of `updatedAt` (✨ Generated from Field `ClientServicePrice`.`updatedAt` of type `String`)
+  """
+  updatedAt_expr: String_Expr
+}
+"""
+✨ Generated filter input type for table 'ClientServicePrice'. This input allows filtering objects using various conditions. Use `_or`, `_and`, and `_not` to compose complex filters.
+"""
+input ClientServicePrice_Filter {
+  """
+  Apply multiple filter conditions using `AND` logic.
+  """
+  _and: [ClientServicePrice_Filter!]
+  """
+  Negate the result of the provided filter condition.
+  """
+  _not: ClientServicePrice_Filter
+  """
+  Apply multiple filter conditions using `OR` logic.
+  """
+  _or: [ClientServicePrice_Filter!]
+  """
+  ✨ Generated from Field `ClientServicePrice`.`id` of type `String!`
+  """
+  id: String_Filter
+  """
+  ✨ Generated from Field `ClientServicePrice`.`clientId` of type `String!`
+  """
+  clientId: String_Filter
+  """
+  ✨ Generated from Field `ClientServicePrice`.`createdAt` of type `String`
+  """
+  createdAt: String_Filter
+  """
+  ✨ Generated from Field `ClientServicePrice`.`price` of type `Float!`
+  """
+  price: Float_Filter
+  """
+  ✨ Generated from Field `ClientServicePrice`.`serviceId` of type `String!`
+  """
+  serviceId: String_Filter
+  """
+  ✨ Generated from Field `ClientServicePrice`.`updatedAt` of type `String`
+  """
+  updatedAt: String_Filter
+}
+"""
+✨ Generated first-row input type for table 'ClientServicePrice'. This input selects the first row matching the filter criteria, ordered according to the specified conditions.
+"""
+input ClientServicePrice_FirstRow {
+  """
+  Order the result by the specified fields.
+  """
+  orderBy: [ClientServicePrice_Order!]
+  """
+  Filters rows based on the specified conditions.
+  """
+  where: ClientServicePrice_Filter
+}
+"""
+✨ Generated having input type for table 'ClientServicePrice'. This input allows you to filter groups during aggregate queries using various conditions. Use `_or`, `_and`, and `_not` to compose complex filters.
+"""
+input ClientServicePrice_Having {
+  """
+  Apply multiple Having conditions using `AND` logic.
+  """
+  _and: [ClientServicePrice_Having!]
+  """
+  Whether to apply DISTINCT to the aggregate function.
+  """
+  _distinct: Boolean
+  """
+  Negate the result of the provided Having condition.
+  """
+  _not: ClientServicePrice_Having
+  """
+  Apply multiple Having conditions using `OR` logic.
+  """
+  _or: [ClientServicePrice_Having!]
+  """
+  ✨ Generated from Field `ClientServicePrice`.`_count` of type `Int!`
+  """
+  _count: Int_Filter
+  """
+  ✨ Generated from Field `ClientServicePrice`.`clientId_count` of type `Int!`
+  """
+  clientId_count: Int_Filter
+  """
+  ✨ Generated from Field `ClientServicePrice`.`createdAt_count` of type `Int!`
+  """
+  createdAt_count: Int_Filter
+  """
+  ✨ Generated from Field `ClientServicePrice`.`id_count` of type `Int!`
+  """
+  id_count: Int_Filter
+  """
+  ✨ Generated from Field `ClientServicePrice`.`price_count` of type `Int!`
+  """
+  price_count: Int_Filter
+  """
+  ✨ Generated from Field `ClientServicePrice`.`serviceId_count` of type `Int!`
+  """
+  serviceId_count: Int_Filter
+  """
+  ✨ Generated from Field `ClientServicePrice`.`updatedAt_count` of type `Int!`
+  """
+  updatedAt_count: Int_Filter
+  """
+  ✨ Generated from Field `ClientServicePrice`.`price_sum` of type `Float`
+  """
+  price_sum: Float_Filter
+  """
+  ✨ Generated from Field `ClientServicePrice`.`price_avg` of type `Float`
+  """
+  price_avg: Float_Filter
+  """
+  ✨ Generated from Field `ClientServicePrice`.`price_min` of type `Float`
+  """
+  price_min: Float_Filter
+  """
+  ✨ Generated from Field `ClientServicePrice`.`price_max` of type `Float`
+  """
+  price_max: Float_Filter
+}
+"""
+✨ Generated key input type for table 'ClientServicePrice'. It represents the primary key fields used to uniquely identify a row in the table.
+"""
+input ClientServicePrice_Key {
+  """
+  ✨ Generated from Field `ClientServicePrice`.`id` of type `String!`
+  """
+  id: String
+  """
+  ✨ `_expr` server value variant of `id` (✨ Generated from Field `ClientServicePrice`.`id` of type `String!`)
+  """
+  id_expr: String_Expr
+}
+"""
+✨ Generated list filter input type for table 'ClientServicePrice'. This input applies filtering logic based on the count or existence of related objects that matches certain criteria.
+"""
+input ClientServicePrice_ListFilter {
+  """
+  The desired number of objects that match the condition (defaults to at least one).
+  """
+  count: Int_Filter = {gt:0}
+  """
+  Condition of the related objects to filter for.
+  """
+  exist: ClientServicePrice_Filter
+}
+"""
+✨ Generated order input type for table 'ClientServicePrice'. This input defines the sorting order of rows in query results based on one or more fields.
+"""
+input ClientServicePrice_Order {
+  """
+  ✨ Generated from Field `ClientServicePrice`.`id` of type `String!`
+  """
+  id: OrderDirection
+  """
+  ✨ Generated from Field `ClientServicePrice`.`clientId` of type `String!`
+  """
+  clientId: OrderDirection
+  """
+  ✨ Generated from Field `ClientServicePrice`.`createdAt` of type `String`
+  """
+  createdAt: OrderDirection
+  """
+  ✨ Generated from Field `ClientServicePrice`.`price` of type `Float!`
+  """
+  price: OrderDirection
+  """
+  ✨ Generated from Field `ClientServicePrice`.`serviceId` of type `String!`
+  """
+  serviceId: OrderDirection
+  """
+  ✨ Generated from Field `ClientServicePrice`.`updatedAt` of type `String`
+  """
+  updatedAt: OrderDirection
+  """
+  ✨ Generated from Field `ClientServicePrice`.`_count` of type `Int!`
+  """
+  _count: OrderDirection
+  """
+  ✨ Generated from Field `ClientServicePrice`.`clientId_count` of type `Int!`
+  """
+  clientId_count: OrderDirection
+  """
+  ✨ Generated from Field `ClientServicePrice`.`createdAt_count` of type `Int!`
+  """
+  createdAt_count: OrderDirection
+  """
+  ✨ Generated from Field `ClientServicePrice`.`id_count` of type `Int!`
+  """
+  id_count: OrderDirection
+  """
+  ✨ Generated from Field `ClientServicePrice`.`price_count` of type `Int!`
+  """
+  price_count: OrderDirection
+  """
+  ✨ Generated from Field `ClientServicePrice`.`serviceId_count` of type `Int!`
+  """
+  serviceId_count: OrderDirection
+  """
+  ✨ Generated from Field `ClientServicePrice`.`updatedAt_count` of type `Int!`
+  """
+  updatedAt_count: OrderDirection
+  """
+  ✨ Generated from Field `ClientServicePrice`.`price_sum` of type `Float`
+  """
+  price_sum: OrderDirection
+  """
+  ✨ Generated from Field `ClientServicePrice`.`price_avg` of type `Float`
+  """
+  price_avg: OrderDirection
+  """
+  ✨ Generated from Field `ClientServicePrice`.`price_min` of type `Float`
+  """
+  price_min: OrderDirection
+  """
+  ✨ Generated from Field `ClientServicePrice`.`price_max` of type `Float`
+  """
+  price_max: OrderDirection
+}
+"""
+✨ Generated data input type for table 'ClientTestPrice'. It includes all necessary fields for creating or upserting rows into table.
+"""
+input ClientTestPrice_Data {
+  """
+  ✨ Generated from Field `ClientTestPrice`.`id` of type `String!`
+  """
+  id: String
+  """
+  ✨ `_expr` server value variant of `id` (✨ Generated from Field `ClientTestPrice`.`id` of type `String!`)
+  """
+  id_expr: String_Expr
+  """
+  ✨ Generated from Field `ClientTestPrice`.`clientId` of type `String!`
+  """
+  clientId: String
+  """
+  ✨ `_expr` server value variant of `clientId` (✨ Generated from Field `ClientTestPrice`.`clientId` of type `String!`)
+  """
+  clientId_expr: String_Expr
+  """
+  ✨ Generated from Field `ClientTestPrice`.`createdAt` of type `String`
+  """
+  createdAt: String
+  """
+  ✨ `_expr` server value variant of `createdAt` (✨ Generated from Field `ClientTestPrice`.`createdAt` of type `String`)
+  """
+  createdAt_expr: String_Expr
+  """
+  ✨ Generated from Field `ClientTestPrice`.`price` of type `Float!`
+  """
+  price: Float
+  """
+  ✨ `_expr` server value variant of `price` (✨ Generated from Field `ClientTestPrice`.`price` of type `Float!`)
+  """
+  price_expr: Float_Expr
+  """
+  ✨ `_update` server value variant of `price` (✨ Generated from Field `ClientTestPrice`.`price` of type `Float!`)
+  """
+  price_update: [Float_Update!]
+  """
+  ✨ Generated from Field `ClientTestPrice`.`testId` of type `String!`
+  """
+  testId: String
+  """
+  ✨ `_expr` server value variant of `testId` (✨ Generated from Field `ClientTestPrice`.`testId` of type `String!`)
+  """
+  testId_expr: String_Expr
+  """
+  ✨ Generated from Field `ClientTestPrice`.`updatedAt` of type `String`
+  """
+  updatedAt: String
+  """
+  ✨ `_expr` server value variant of `updatedAt` (✨ Generated from Field `ClientTestPrice`.`updatedAt` of type `String`)
+  """
+  updatedAt_expr: String_Expr
+}
+"""
+✨ Generated filter input type for table 'ClientTestPrice'. This input allows filtering objects using various conditions. Use `_or`, `_and`, and `_not` to compose complex filters.
+"""
+input ClientTestPrice_Filter {
+  """
+  Apply multiple filter conditions using `AND` logic.
+  """
+  _and: [ClientTestPrice_Filter!]
+  """
+  Negate the result of the provided filter condition.
+  """
+  _not: ClientTestPrice_Filter
+  """
+  Apply multiple filter conditions using `OR` logic.
+  """
+  _or: [ClientTestPrice_Filter!]
+  """
+  ✨ Generated from Field `ClientTestPrice`.`id` of type `String!`
+  """
+  id: String_Filter
+  """
+  ✨ Generated from Field `ClientTestPrice`.`clientId` of type `String!`
+  """
+  clientId: String_Filter
+  """
+  ✨ Generated from Field `ClientTestPrice`.`createdAt` of type `String`
+  """
+  createdAt: String_Filter
+  """
+  ✨ Generated from Field `ClientTestPrice`.`price` of type `Float!`
+  """
+  price: Float_Filter
+  """
+  ✨ Generated from Field `ClientTestPrice`.`testId` of type `String!`
+  """
+  testId: String_Filter
+  """
+  ✨ Generated from Field `ClientTestPrice`.`updatedAt` of type `String`
+  """
+  updatedAt: String_Filter
+}
+"""
+✨ Generated first-row input type for table 'ClientTestPrice'. This input selects the first row matching the filter criteria, ordered according to the specified conditions.
+"""
+input ClientTestPrice_FirstRow {
+  """
+  Order the result by the specified fields.
+  """
+  orderBy: [ClientTestPrice_Order!]
+  """
+  Filters rows based on the specified conditions.
+  """
+  where: ClientTestPrice_Filter
+}
+"""
+✨ Generated having input type for table 'ClientTestPrice'. This input allows you to filter groups during aggregate queries using various conditions. Use `_or`, `_and`, and `_not` to compose complex filters.
+"""
+input ClientTestPrice_Having {
+  """
+  Apply multiple Having conditions using `AND` logic.
+  """
+  _and: [ClientTestPrice_Having!]
+  """
+  Whether to apply DISTINCT to the aggregate function.
+  """
+  _distinct: Boolean
+  """
+  Negate the result of the provided Having condition.
+  """
+  _not: ClientTestPrice_Having
+  """
+  Apply multiple Having conditions using `OR` logic.
+  """
+  _or: [ClientTestPrice_Having!]
+  """
+  ✨ Generated from Field `ClientTestPrice`.`_count` of type `Int!`
+  """
+  _count: Int_Filter
+  """
+  ✨ Generated from Field `ClientTestPrice`.`clientId_count` of type `Int!`
+  """
+  clientId_count: Int_Filter
+  """
+  ✨ Generated from Field `ClientTestPrice`.`createdAt_count` of type `Int!`
+  """
+  createdAt_count: Int_Filter
+  """
+  ✨ Generated from Field `ClientTestPrice`.`id_count` of type `Int!`
+  """
+  id_count: Int_Filter
+  """
+  ✨ Generated from Field `ClientTestPrice`.`price_count` of type `Int!`
+  """
+  price_count: Int_Filter
+  """
+  ✨ Generated from Field `ClientTestPrice`.`testId_count` of type `Int!`
+  """
+  testId_count: Int_Filter
+  """
+  ✨ Generated from Field `ClientTestPrice`.`updatedAt_count` of type `Int!`
+  """
+  updatedAt_count: Int_Filter
+  """
+  ✨ Generated from Field `ClientTestPrice`.`price_sum` of type `Float`
+  """
+  price_sum: Float_Filter
+  """
+  ✨ Generated from Field `ClientTestPrice`.`price_avg` of type `Float`
+  """
+  price_avg: Float_Filter
+  """
+  ✨ Generated from Field `ClientTestPrice`.`price_min` of type `Float`
+  """
+  price_min: Float_Filter
+  """
+  ✨ Generated from Field `ClientTestPrice`.`price_max` of type `Float`
+  """
+  price_max: Float_Filter
+}
+"""
+✨ Generated key input type for table 'ClientTestPrice'. It represents the primary key fields used to uniquely identify a row in the table.
+"""
+input ClientTestPrice_Key {
+  """
+  ✨ Generated from Field `ClientTestPrice`.`id` of type `String!`
+  """
+  id: String
+  """
+  ✨ `_expr` server value variant of `id` (✨ Generated from Field `ClientTestPrice`.`id` of type `String!`)
+  """
+  id_expr: String_Expr
+}
+"""
+✨ Generated list filter input type for table 'ClientTestPrice'. This input applies filtering logic based on the count or existence of related objects that matches certain criteria.
+"""
+input ClientTestPrice_ListFilter {
+  """
+  The desired number of objects that match the condition (defaults to at least one).
+  """
+  count: Int_Filter = {gt:0}
+  """
+  Condition of the related objects to filter for.
+  """
+  exist: ClientTestPrice_Filter
+}
+"""
+✨ Generated order input type for table 'ClientTestPrice'. This input defines the sorting order of rows in query results based on one or more fields.
+"""
+input ClientTestPrice_Order {
+  """
+  ✨ Generated from Field `ClientTestPrice`.`id` of type `String!`
+  """
+  id: OrderDirection
+  """
+  ✨ Generated from Field `ClientTestPrice`.`clientId` of type `String!`
+  """
+  clientId: OrderDirection
+  """
+  ✨ Generated from Field `ClientTestPrice`.`createdAt` of type `String`
+  """
+  createdAt: OrderDirection
+  """
+  ✨ Generated from Field `ClientTestPrice`.`price` of type `Float!`
+  """
+  price: OrderDirection
+  """
+  ✨ Generated from Field `ClientTestPrice`.`testId` of type `String!`
+  """
+  testId: OrderDirection
+  """
+  ✨ Generated from Field `ClientTestPrice`.`updatedAt` of type `String`
+  """
+  updatedAt: OrderDirection
+  """
+  ✨ Generated from Field `ClientTestPrice`.`_count` of type `Int!`
+  """
+  _count: OrderDirection
+  """
+  ✨ Generated from Field `ClientTestPrice`.`clientId_count` of type `Int!`
+  """
+  clientId_count: OrderDirection
+  """
+  ✨ Generated from Field `ClientTestPrice`.`createdAt_count` of type `Int!`
+  """
+  createdAt_count: OrderDirection
+  """
+  ✨ Generated from Field `ClientTestPrice`.`id_count` of type `Int!`
+  """
+  id_count: OrderDirection
+  """
+  ✨ Generated from Field `ClientTestPrice`.`price_count` of type `Int!`
+  """
+  price_count: OrderDirection
+  """
+  ✨ Generated from Field `ClientTestPrice`.`testId_count` of type `Int!`
+  """
+  testId_count: OrderDirection
+  """
+  ✨ Generated from Field `ClientTestPrice`.`updatedAt_count` of type `Int!`
+  """
+  updatedAt_count: OrderDirection
+  """
+  ✨ Generated from Field `ClientTestPrice`.`price_sum` of type `Float`
+  """
+  price_sum: OrderDirection
+  """
+  ✨ Generated from Field `ClientTestPrice`.`price_avg` of type `Float`
+  """
+  price_avg: OrderDirection
+  """
+  ✨ Generated from Field `ClientTestPrice`.`price_min` of type `Float`
+  """
+  price_min: OrderDirection
+  """
+  ✨ Generated from Field `ClientTestPrice`.`price_max` of type `Float`
+  """
+  price_max: OrderDirection
+}
+"""
+✨ Generated data input type for table 'HSNSACCode'. It includes all necessary fields for creating or upserting rows into table.
+"""
+input HSNSACCode_Data {
+  """
+  ✨ Generated from Field `HSNSACCode`.`id` of type `String!`
+  """
+  id: String
+  """
+  ✨ `_expr` server value variant of `id` (✨ Generated from Field `HSNSACCode`.`id` of type `String!`)
+  """
+  id_expr: String_Expr
+  """
+  ✨ Generated from Field `HSNSACCode`.`code` of type `String!`
+  """
+  code: String
+  """
+  ✨ `_expr` server value variant of `code` (✨ Generated from Field `HSNSACCode`.`code` of type `String!`)
+  """
+  code_expr: String_Expr
+  """
+  ✨ Generated from Field `HSNSACCode`.`createdAt` of type `String`
+  """
+  createdAt: String
+  """
+  ✨ `_expr` server value variant of `createdAt` (✨ Generated from Field `HSNSACCode`.`createdAt` of type `String`)
+  """
+  createdAt_expr: String_Expr
+  """
+  ✨ Generated from Field `HSNSACCode`.`description` of type `String`
+  """
+  description: String
+  """
+  ✨ `_expr` server value variant of `description` (✨ Generated from Field `HSNSACCode`.`description` of type `String`)
+  """
+  description_expr: String_Expr
+  """
+  ✨ Generated from Field `HSNSACCode`.`taxRate` of type `Float`
+  """
+  taxRate: Float
+  """
+  ✨ `_expr` server value variant of `taxRate` (✨ Generated from Field `HSNSACCode`.`taxRate` of type `Float`)
+  """
+  taxRate_expr: Float_Expr
+  """
+  ✨ `_update` server value variant of `taxRate` (✨ Generated from Field `HSNSACCode`.`taxRate` of type `Float`)
+  """
+  taxRate_update: [Float_Update!]
+  """
+  ✨ Generated from Field `HSNSACCode`.`updatedAt` of type `String`
+  """
+  updatedAt: String
+  """
+  ✨ `_expr` server value variant of `updatedAt` (✨ Generated from Field `HSNSACCode`.`updatedAt` of type `String`)
+  """
+  updatedAt_expr: String_Expr
+}
+"""
+✨ Generated filter input type for table 'HSNSACCode'. This input allows filtering objects using various conditions. Use `_or`, `_and`, and `_not` to compose complex filters.
+"""
+input HSNSACCode_Filter {
+  """
+  Apply multiple filter conditions using `AND` logic.
+  """
+  _and: [HSNSACCode_Filter!]
+  """
+  Negate the result of the provided filter condition.
+  """
+  _not: HSNSACCode_Filter
+  """
+  Apply multiple filter conditions using `OR` logic.
+  """
+  _or: [HSNSACCode_Filter!]
+  """
+  ✨ Generated from Field `HSNSACCode`.`id` of type `String!`
+  """
+  id: String_Filter
+  """
+  ✨ Generated from Field `HSNSACCode`.`code` of type `String!`
+  """
+  code: String_Filter
+  """
+  ✨ Generated from Field `HSNSACCode`.`createdAt` of type `String`
+  """
+  createdAt: String_Filter
+  """
+  ✨ Generated from Field `HSNSACCode`.`description` of type `String`
+  """
+  description: String_Filter
+  """
+  ✨ Generated from Field `HSNSACCode`.`taxRate` of type `Float`
+  """
+  taxRate: Float_Filter
+  """
+  ✨ Generated from Field `HSNSACCode`.`updatedAt` of type `String`
+  """
+  updatedAt: String_Filter
+}
+"""
+✨ Generated first-row input type for table 'HSNSACCode'. This input selects the first row matching the filter criteria, ordered according to the specified conditions.
+"""
+input HSNSACCode_FirstRow {
+  """
+  Order the result by the specified fields.
+  """
+  orderBy: [HSNSACCode_Order!]
+  """
+  Filters rows based on the specified conditions.
+  """
+  where: HSNSACCode_Filter
+}
+"""
+✨ Generated having input type for table 'HSNSACCode'. This input allows you to filter groups during aggregate queries using various conditions. Use `_or`, `_and`, and `_not` to compose complex filters.
+"""
+input HSNSACCode_Having {
+  """
+  Apply multiple Having conditions using `AND` logic.
+  """
+  _and: [HSNSACCode_Having!]
+  """
+  Whether to apply DISTINCT to the aggregate function.
+  """
+  _distinct: Boolean
+  """
+  Negate the result of the provided Having condition.
+  """
+  _not: HSNSACCode_Having
+  """
+  Apply multiple Having conditions using `OR` logic.
+  """
+  _or: [HSNSACCode_Having!]
+  """
+  ✨ Generated from Field `HSNSACCode`.`_count` of type `Int!`
+  """
+  _count: Int_Filter
+  """
+  ✨ Generated from Field `HSNSACCode`.`code_count` of type `Int!`
+  """
+  code_count: Int_Filter
+  """
+  ✨ Generated from Field `HSNSACCode`.`createdAt_count` of type `Int!`
+  """
+  createdAt_count: Int_Filter
+  """
+  ✨ Generated from Field `HSNSACCode`.`description_count` of type `Int!`
+  """
+  description_count: Int_Filter
+  """
+  ✨ Generated from Field `HSNSACCode`.`id_count` of type `Int!`
+  """
+  id_count: Int_Filter
+  """
+  ✨ Generated from Field `HSNSACCode`.`taxRate_count` of type `Int!`
+  """
+  taxRate_count: Int_Filter
+  """
+  ✨ Generated from Field `HSNSACCode`.`updatedAt_count` of type `Int!`
+  """
+  updatedAt_count: Int_Filter
+  """
+  ✨ Generated from Field `HSNSACCode`.`taxRate_sum` of type `Float`
+  """
+  taxRate_sum: Float_Filter
+  """
+  ✨ Generated from Field `HSNSACCode`.`taxRate_avg` of type `Float`
+  """
+  taxRate_avg: Float_Filter
+  """
+  ✨ Generated from Field `HSNSACCode`.`taxRate_min` of type `Float`
+  """
+  taxRate_min: Float_Filter
+  """
+  ✨ Generated from Field `HSNSACCode`.`taxRate_max` of type `Float`
+  """
+  taxRate_max: Float_Filter
+}
+"""
+✨ Generated key input type for table 'HSNSACCode'. It represents the primary key fields used to uniquely identify a row in the table.
+"""
+input HSNSACCode_Key {
+  """
+  ✨ Generated from Field `HSNSACCode`.`id` of type `String!`
+  """
+  id: String
+  """
+  ✨ `_expr` server value variant of `id` (✨ Generated from Field `HSNSACCode`.`id` of type `String!`)
+  """
+  id_expr: String_Expr
+}
+"""
+✨ Generated list filter input type for table 'HSNSACCode'. This input applies filtering logic based on the count or existence of related objects that matches certain criteria.
+"""
+input HSNSACCode_ListFilter {
+  """
+  The desired number of objects that match the condition (defaults to at least one).
+  """
+  count: Int_Filter = {gt:0}
+  """
+  Condition of the related objects to filter for.
+  """
+  exist: HSNSACCode_Filter
+}
+"""
+✨ Generated order input type for table 'HSNSACCode'. This input defines the sorting order of rows in query results based on one or more fields.
+"""
+input HSNSACCode_Order {
+  """
+  ✨ Generated from Field `HSNSACCode`.`id` of type `String!`
+  """
+  id: OrderDirection
+  """
+  ✨ Generated from Field `HSNSACCode`.`code` of type `String!`
+  """
+  code: OrderDirection
+  """
+  ✨ Generated from Field `HSNSACCode`.`createdAt` of type `String`
+  """
+  createdAt: OrderDirection
+  """
+  ✨ Generated from Field `HSNSACCode`.`description` of type `String`
+  """
+  description: OrderDirection
+  """
+  ✨ Generated from Field `HSNSACCode`.`taxRate` of type `Float`
+  """
+  taxRate: OrderDirection
+  """
+  ✨ Generated from Field `HSNSACCode`.`updatedAt` of type `String`
+  """
+  updatedAt: OrderDirection
+  """
+  ✨ Generated from Field `HSNSACCode`.`_count` of type `Int!`
+  """
+  _count: OrderDirection
+  """
+  ✨ Generated from Field `HSNSACCode`.`code_count` of type `Int!`
+  """
+  code_count: OrderDirection
+  """
+  ✨ Generated from Field `HSNSACCode`.`createdAt_count` of type `Int!`
+  """
+  createdAt_count: OrderDirection
+  """
+  ✨ Generated from Field `HSNSACCode`.`description_count` of type `Int!`
+  """
+  description_count: OrderDirection
+  """
+  ✨ Generated from Field `HSNSACCode`.`id_count` of type `Int!`
+  """
+  id_count: OrderDirection
+  """
+  ✨ Generated from Field `HSNSACCode`.`taxRate_count` of type `Int!`
+  """
+  taxRate_count: OrderDirection
+  """
+  ✨ Generated from Field `HSNSACCode`.`updatedAt_count` of type `Int!`
+  """
+  updatedAt_count: OrderDirection
+  """
+  ✨ Generated from Field `HSNSACCode`.`taxRate_sum` of type `Float`
+  """
+  taxRate_sum: OrderDirection
+  """
+  ✨ Generated from Field `HSNSACCode`.`taxRate_avg` of type `Float`
+  """
+  taxRate_avg: OrderDirection
+  """
+  ✨ Generated from Field `HSNSACCode`.`taxRate_min` of type `Float`
+  """
+  taxRate_min: OrderDirection
+  """
+  ✨ Generated from Field `HSNSACCode`.`taxRate_max` of type `Float`
+  """
+  taxRate_max: OrderDirection
+}
+"""
+✨ Generated data input type for table 'Job'. It includes all necessary fields for creating or upserting rows into table.
+"""
+input Job_Data {
+  """
+  ✨ Generated from Field `Job`.`id` of type `String!`
+  """
+  id: String
+  """
+  ✨ `_expr` server value variant of `id` (✨ Generated from Field `Job`.`id` of type `String!`)
+  """
+  id_expr: String_Expr
+  """
+  ✨ Generated from Field `Job`.`chemicalAnalysis` of type `Any`
+  """
+  chemicalAnalysis: Any
+  """
+  ✨ `_expr` server value variant of `chemicalAnalysis` (✨ Generated from Field `Job`.`chemicalAnalysis` of type `Any`)
+  """
+  chemicalAnalysis_expr: Any_Expr
+  """
+  ✨ Generated from Field `Job`.`clientId` of type `String`
+  """
+  clientId: String
+  """
+  ✨ `_expr` server value variant of `clientId` (✨ Generated from Field `Job`.`clientId` of type `String`)
+  """
+  clientId_expr: String_Expr
+  """
+  ✨ Generated from Field `Job`.`clientName` of type `String`
+  """
+  clientName: String
+  """
+  ✨ `_expr` server value variant of `clientName` (✨ Generated from Field `Job`.`clientName` of type `String`)
+  """
+  clientName_expr: String_Expr
+  """
+  ✨ Generated from Field `Job`.`content` of type `Any`
+  """
+  content: Any
+  """
+  ✨ `_expr` server value variant of `content` (✨ Generated from Field `Job`.`content` of type `Any`)
+  """
+  content_expr: Any_Expr
+  """
+  ✨ Generated from Field `Job`.`createdAt` of type `String`
+  """
+  createdAt: String
+  """
+  ✨ `_expr` server value variant of `createdAt` (✨ Generated from Field `Job`.`createdAt` of type `String`)
+  """
+  createdAt_expr: String_Expr
+  """
+  ✨ Generated from Field `Job`.`createdBy` of type `String`
+  """
+  createdBy: String
+  """
+  ✨ `_expr` server value variant of `createdBy` (✨ Generated from Field `Job`.`createdBy` of type `String`)
+  """
+  createdBy_expr: String_Expr
+  """
+  ✨ Generated from Field `Job`.`grainSizeAnalysis` of type `Any`
+  """
+  grainSizeAnalysis: Any
+  """
+  ✨ `_expr` server value variant of `grainSizeAnalysis` (✨ Generated from Field `Job`.`grainSizeAnalysis` of type `Any`)
+  """
+  grainSizeAnalysis_expr: Any_Expr
+  """
+  ✨ Generated from Field `Job`.`jobOrderNo` of type `String`
+  """
+  jobOrderNo: String
+  """
+  ✨ `_expr` server value variant of `jobOrderNo` (✨ Generated from Field `Job`.`jobOrderNo` of type `String`)
+  """
+  jobOrderNo_expr: String_Expr
+  """
+  ✨ Generated from Field `Job`.`labTestResults` of type `Any`
+  """
+  labTestResults: Any
+  """
+  ✨ `_expr` server value variant of `labTestResults` (✨ Generated from Field `Job`.`labTestResults` of type `Any`)
+  """
+  labTestResults_expr: Any_Expr
+  """
+  ✨ Generated from Field `Job`.`materialInward` of type `Any`
+  """
+  materialInward: Any
+  """
+  ✨ `_expr` server value variant of `materialInward` (✨ Generated from Field `Job`.`materialInward` of type `Any`)
+  """
+  materialInward_expr: Any_Expr
+  """
+  ✨ Generated from Field `Job`.`poWoNumber` of type `String`
+  """
+  poWoNumber: String
+  """
+  ✨ `_expr` server value variant of `poWoNumber` (✨ Generated from Field `Job`.`poWoNumber` of type `String`)
+  """
+  poWoNumber_expr: String_Expr
+  """
+  ✨ Generated from Field `Job`.`projectName` of type `String`
+  """
+  projectName: String
+  """
+  ✨ `_expr` server value variant of `projectName` (✨ Generated from Field `Job`.`projectName` of type `String`)
+  """
+  projectName_expr: String_Expr
+  """
+  ✨ Generated from Field `Job`.`status` of type `String!`
+  """
+  status: String
+  """
+  ✨ `_expr` server value variant of `status` (✨ Generated from Field `Job`.`status` of type `String!`)
+  """
+  status_expr: String_Expr
+  """
+  ✨ Generated from Field `Job`.`type` of type `String!`
+  """
+  type: String
+  """
+  ✨ `_expr` server value variant of `type` (✨ Generated from Field `Job`.`type` of type `String!`)
+  """
+  type_expr: String_Expr
+  """
+  ✨ Generated from Field `Job`.`updatedAt` of type `String`
+  """
+  updatedAt: String
+  """
+  ✨ `_expr` server value variant of `updatedAt` (✨ Generated from Field `Job`.`updatedAt` of type `String`)
+  """
+  updatedAt_expr: String_Expr
+  """
+  ✨ Generated from Field `Job`.`updatedBy` of type `String`
+  """
+  updatedBy: String
+  """
+  ✨ `_expr` server value variant of `updatedBy` (✨ Generated from Field `Job`.`updatedBy` of type `String`)
+  """
+  updatedBy_expr: String_Expr
+}
+"""
+✨ Generated filter input type for table 'Job'. This input allows filtering objects using various conditions. Use `_or`, `_and`, and `_not` to compose complex filters.
+"""
+input Job_Filter {
+  """
+  Apply multiple filter conditions using `AND` logic.
+  """
+  _and: [Job_Filter!]
+  """
+  Negate the result of the provided filter condition.
+  """
+  _not: Job_Filter
+  """
+  Apply multiple filter conditions using `OR` logic.
+  """
+  _or: [Job_Filter!]
+  """
+  ✨ Generated from Field `Job`.`id` of type `String!`
+  """
+  id: String_Filter
+  """
+  ✨ Generated from Field `Job`.`chemicalAnalysis` of type `Any`
+  """
+  chemicalAnalysis: Any_Filter
+  """
+  ✨ Generated from Field `Job`.`clientId` of type `String`
+  """
+  clientId: String_Filter
+  """
+  ✨ Generated from Field `Job`.`clientName` of type `String`
+  """
+  clientName: String_Filter
+  """
+  ✨ Generated from Field `Job`.`content` of type `Any`
+  """
+  content: Any_Filter
+  """
+  ✨ Generated from Field `Job`.`createdAt` of type `String`
+  """
+  createdAt: String_Filter
+  """
+  ✨ Generated from Field `Job`.`createdBy` of type `String`
+  """
+  createdBy: String_Filter
+  """
+  ✨ Generated from Field `Job`.`grainSizeAnalysis` of type `Any`
+  """
+  grainSizeAnalysis: Any_Filter
+  """
+  ✨ Generated from Field `Job`.`jobOrderNo` of type `String`
+  """
+  jobOrderNo: String_Filter
+  """
+  ✨ Generated from Field `Job`.`labTestResults` of type `Any`
+  """
+  labTestResults: Any_Filter
+  """
+  ✨ Generated from Field `Job`.`materialInward` of type `Any`
+  """
+  materialInward: Any_Filter
+  """
+  ✨ Generated from Field `Job`.`poWoNumber` of type `String`
+  """
+  poWoNumber: String_Filter
+  """
+  ✨ Generated from Field `Job`.`projectName` of type `String`
+  """
+  projectName: String_Filter
+  """
+  ✨ Generated from Field `Job`.`status` of type `String!`
+  """
+  status: String_Filter
+  """
+  ✨ Generated from Field `Job`.`type` of type `String!`
+  """
+  type: String_Filter
+  """
+  ✨ Generated from Field `Job`.`updatedAt` of type `String`
+  """
+  updatedAt: String_Filter
+  """
+  ✨ Generated from Field `Job`.`updatedBy` of type `String`
+  """
+  updatedBy: String_Filter
+}
+"""
+✨ Generated first-row input type for table 'Job'. This input selects the first row matching the filter criteria, ordered according to the specified conditions.
+"""
+input Job_FirstRow {
+  """
+  Order the result by the specified fields.
+  """
+  orderBy: [Job_Order!]
+  """
+  Filters rows based on the specified conditions.
+  """
+  where: Job_Filter
+}
+"""
+✨ Generated having input type for table 'Job'. This input allows you to filter groups during aggregate queries using various conditions. Use `_or`, `_and`, and `_not` to compose complex filters.
+"""
+input Job_Having {
+  """
+  Apply multiple Having conditions using `AND` logic.
+  """
+  _and: [Job_Having!]
+  """
+  Whether to apply DISTINCT to the aggregate function.
+  """
+  _distinct: Boolean
+  """
+  Negate the result of the provided Having condition.
+  """
+  _not: Job_Having
+  """
+  Apply multiple Having conditions using `OR` logic.
+  """
+  _or: [Job_Having!]
+  """
+  ✨ Generated from Field `Job`.`_count` of type `Int!`
+  """
+  _count: Int_Filter
+  """
+  ✨ Generated from Field `Job`.`chemicalAnalysis_count` of type `Int!`
+  """
+  chemicalAnalysis_count: Int_Filter
+  """
+  ✨ Generated from Field `Job`.`clientId_count` of type `Int!`
+  """
+  clientId_count: Int_Filter
+  """
+  ✨ Generated from Field `Job`.`clientName_count` of type `Int!`
+  """
+  clientName_count: Int_Filter
+  """
+  ✨ Generated from Field `Job`.`content_count` of type `Int!`
+  """
+  content_count: Int_Filter
+  """
+  ✨ Generated from Field `Job`.`createdAt_count` of type `Int!`
+  """
+  createdAt_count: Int_Filter
+  """
+  ✨ Generated from Field `Job`.`createdBy_count` of type `Int!`
+  """
+  createdBy_count: Int_Filter
+  """
+  ✨ Generated from Field `Job`.`grainSizeAnalysis_count` of type `Int!`
+  """
+  grainSizeAnalysis_count: Int_Filter
+  """
+  ✨ Generated from Field `Job`.`id_count` of type `Int!`
+  """
+  id_count: Int_Filter
+  """
+  ✨ Generated from Field `Job`.`jobOrderNo_count` of type `Int!`
+  """
+  jobOrderNo_count: Int_Filter
+  """
+  ✨ Generated from Field `Job`.`labTestResults_count` of type `Int!`
+  """
+  labTestResults_count: Int_Filter
+  """
+  ✨ Generated from Field `Job`.`materialInward_count` of type `Int!`
+  """
+  materialInward_count: Int_Filter
+  """
+  ✨ Generated from Field `Job`.`poWoNumber_count` of type `Int!`
+  """
+  poWoNumber_count: Int_Filter
+  """
+  ✨ Generated from Field `Job`.`projectName_count` of type `Int!`
+  """
+  projectName_count: Int_Filter
+  """
+  ✨ Generated from Field `Job`.`status_count` of type `Int!`
+  """
+  status_count: Int_Filter
+  """
+  ✨ Generated from Field `Job`.`type_count` of type `Int!`
+  """
+  type_count: Int_Filter
+  """
+  ✨ Generated from Field `Job`.`updatedAt_count` of type `Int!`
+  """
+  updatedAt_count: Int_Filter
+  """
+  ✨ Generated from Field `Job`.`updatedBy_count` of type `Int!`
+  """
+  updatedBy_count: Int_Filter
+  """
+  ✨ Generated from Field `Job`.`chemicalAnalysis_min` of type `Any`
+  """
+  chemicalAnalysis_min: Any_Filter
+  """
+  ✨ Generated from Field `Job`.`content_min` of type `Any`
+  """
+  content_min: Any_Filter
+  """
+  ✨ Generated from Field `Job`.`grainSizeAnalysis_min` of type `Any`
+  """
+  grainSizeAnalysis_min: Any_Filter
+  """
+  ✨ Generated from Field `Job`.`labTestResults_min` of type `Any`
+  """
+  labTestResults_min: Any_Filter
+  """
+  ✨ Generated from Field `Job`.`materialInward_min` of type `Any`
+  """
+  materialInward_min: Any_Filter
+  """
+  ✨ Generated from Field `Job`.`chemicalAnalysis_max` of type `Any`
+  """
+  chemicalAnalysis_max: Any_Filter
+  """
+  ✨ Generated from Field `Job`.`content_max` of type `Any`
+  """
+  content_max: Any_Filter
+  """
+  ✨ Generated from Field `Job`.`grainSizeAnalysis_max` of type `Any`
+  """
+  grainSizeAnalysis_max: Any_Filter
+  """
+  ✨ Generated from Field `Job`.`labTestResults_max` of type `Any`
+  """
+  labTestResults_max: Any_Filter
+  """
+  ✨ Generated from Field `Job`.`materialInward_max` of type `Any`
+  """
+  materialInward_max: Any_Filter
+}
+"""
+✨ Generated key input type for table 'Job'. It represents the primary key fields used to uniquely identify a row in the table.
+"""
+input Job_Key {
+  """
+  ✨ Generated from Field `Job`.`id` of type `String!`
+  """
+  id: String
+  """
+  ✨ `_expr` server value variant of `id` (✨ Generated from Field `Job`.`id` of type `String!`)
+  """
+  id_expr: String_Expr
+}
+"""
+✨ Generated list filter input type for table 'Job'. This input applies filtering logic based on the count or existence of related objects that matches certain criteria.
+"""
+input Job_ListFilter {
+  """
+  The desired number of objects that match the condition (defaults to at least one).
+  """
+  count: Int_Filter = {gt:0}
+  """
+  Condition of the related objects to filter for.
+  """
+  exist: Job_Filter
+}
+"""
+✨ Generated order input type for table 'Job'. This input defines the sorting order of rows in query results based on one or more fields.
+"""
+input Job_Order {
+  """
+  ✨ Generated from Field `Job`.`id` of type `String!`
+  """
+  id: OrderDirection
+  """
+  ✨ Generated from Field `Job`.`chemicalAnalysis` of type `Any`
+  """
+  chemicalAnalysis: OrderDirection
+  """
+  ✨ Generated from Field `Job`.`clientId` of type `String`
+  """
+  clientId: OrderDirection
+  """
+  ✨ Generated from Field `Job`.`clientName` of type `String`
+  """
+  clientName: OrderDirection
+  """
+  ✨ Generated from Field `Job`.`content` of type `Any`
+  """
+  content: OrderDirection
+  """
+  ✨ Generated from Field `Job`.`createdAt` of type `String`
+  """
+  createdAt: OrderDirection
+  """
+  ✨ Generated from Field `Job`.`createdBy` of type `String`
+  """
+  createdBy: OrderDirection
+  """
+  ✨ Generated from Field `Job`.`grainSizeAnalysis` of type `Any`
+  """
+  grainSizeAnalysis: OrderDirection
+  """
+  ✨ Generated from Field `Job`.`jobOrderNo` of type `String`
+  """
+  jobOrderNo: OrderDirection
+  """
+  ✨ Generated from Field `Job`.`labTestResults` of type `Any`
+  """
+  labTestResults: OrderDirection
+  """
+  ✨ Generated from Field `Job`.`materialInward` of type `Any`
+  """
+  materialInward: OrderDirection
+  """
+  ✨ Generated from Field `Job`.`poWoNumber` of type `String`
+  """
+  poWoNumber: OrderDirection
+  """
+  ✨ Generated from Field `Job`.`projectName` of type `String`
+  """
+  projectName: OrderDirection
+  """
+  ✨ Generated from Field `Job`.`status` of type `String!`
+  """
+  status: OrderDirection
+  """
+  ✨ Generated from Field `Job`.`type` of type `String!`
+  """
+  type: OrderDirection
+  """
+  ✨ Generated from Field `Job`.`updatedAt` of type `String`
+  """
+  updatedAt: OrderDirection
+  """
+  ✨ Generated from Field `Job`.`updatedBy` of type `String`
+  """
+  updatedBy: OrderDirection
+  """
+  ✨ Generated from Field `Job`.`_count` of type `Int!`
+  """
+  _count: OrderDirection
+  """
+  ✨ Generated from Field `Job`.`chemicalAnalysis_count` of type `Int!`
+  """
+  chemicalAnalysis_count: OrderDirection
+  """
+  ✨ Generated from Field `Job`.`clientId_count` of type `Int!`
+  """
+  clientId_count: OrderDirection
+  """
+  ✨ Generated from Field `Job`.`clientName_count` of type `Int!`
+  """
+  clientName_count: OrderDirection
+  """
+  ✨ Generated from Field `Job`.`content_count` of type `Int!`
+  """
+  content_count: OrderDirection
+  """
+  ✨ Generated from Field `Job`.`createdAt_count` of type `Int!`
+  """
+  createdAt_count: OrderDirection
+  """
+  ✨ Generated from Field `Job`.`createdBy_count` of type `Int!`
+  """
+  createdBy_count: OrderDirection
+  """
+  ✨ Generated from Field `Job`.`grainSizeAnalysis_count` of type `Int!`
+  """
+  grainSizeAnalysis_count: OrderDirection
+  """
+  ✨ Generated from Field `Job`.`id_count` of type `Int!`
+  """
+  id_count: OrderDirection
+  """
+  ✨ Generated from Field `Job`.`jobOrderNo_count` of type `Int!`
+  """
+  jobOrderNo_count: OrderDirection
+  """
+  ✨ Generated from Field `Job`.`labTestResults_count` of type `Int!`
+  """
+  labTestResults_count: OrderDirection
+  """
+  ✨ Generated from Field `Job`.`materialInward_count` of type `Int!`
+  """
+  materialInward_count: OrderDirection
+  """
+  ✨ Generated from Field `Job`.`poWoNumber_count` of type `Int!`
+  """
+  poWoNumber_count: OrderDirection
+  """
+  ✨ Generated from Field `Job`.`projectName_count` of type `Int!`
+  """
+  projectName_count: OrderDirection
+  """
+  ✨ Generated from Field `Job`.`status_count` of type `Int!`
+  """
+  status_count: OrderDirection
+  """
+  ✨ Generated from Field `Job`.`type_count` of type `Int!`
+  """
+  type_count: OrderDirection
+  """
+  ✨ Generated from Field `Job`.`updatedAt_count` of type `Int!`
+  """
+  updatedAt_count: OrderDirection
+  """
+  ✨ Generated from Field `Job`.`updatedBy_count` of type `Int!`
+  """
+  updatedBy_count: OrderDirection
+  """
+  ✨ Generated from Field `Job`.`chemicalAnalysis_min` of type `Any`
+  """
+  chemicalAnalysis_min: OrderDirection
+  """
+  ✨ Generated from Field `Job`.`content_min` of type `Any`
+  """
+  content_min: OrderDirection
+  """
+  ✨ Generated from Field `Job`.`grainSizeAnalysis_min` of type `Any`
+  """
+  grainSizeAnalysis_min: OrderDirection
+  """
+  ✨ Generated from Field `Job`.`labTestResults_min` of type `Any`
+  """
+  labTestResults_min: OrderDirection
+  """
+  ✨ Generated from Field `Job`.`materialInward_min` of type `Any`
+  """
+  materialInward_min: OrderDirection
+  """
+  ✨ Generated from Field `Job`.`chemicalAnalysis_max` of type `Any`
+  """
+  chemicalAnalysis_max: OrderDirection
+  """
+  ✨ Generated from Field `Job`.`content_max` of type `Any`
+  """
+  content_max: OrderDirection
+  """
+  ✨ Generated from Field `Job`.`grainSizeAnalysis_max` of type `Any`
+  """
+  grainSizeAnalysis_max: OrderDirection
+  """
+  ✨ Generated from Field `Job`.`labTestResults_max` of type `Any`
+  """
+  labTestResults_max: OrderDirection
+  """
+  ✨ Generated from Field `Job`.`materialInward_max` of type `Any`
+  """
+  materialInward_max: OrderDirection
+}
+"""
+✨ Generated data input type for table 'Service'. It includes all necessary fields for creating or upserting rows into table.
+"""
+input Service_Data {
+  """
+  ✨ Generated from Field `Service`.`id` of type `String!`
+  """
+  id: String
+  """
+  ✨ `_expr` server value variant of `id` (✨ Generated from Field `Service`.`id` of type `String!`)
+  """
+  id_expr: String_Expr
+  """
+  ✨ Generated from Field `Service`.`createdAt` of type `String`
+  """
+  createdAt: String
+  """
+  ✨ `_expr` server value variant of `createdAt` (✨ Generated from Field `Service`.`createdAt` of type `String`)
+  """
+  createdAt_expr: String_Expr
+  """
+  ✨ Generated from Field `Service`.`hsnCode` of type `String`
+  """
+  hsnCode: String
+  """
+  ✨ `_expr` server value variant of `hsnCode` (✨ Generated from Field `Service`.`hsnCode` of type `String`)
+  """
+  hsnCode_expr: String_Expr
+  """
+  ✨ Generated from Field `Service`.`measure` of type `String`
+  """
+  measure: String
+  """
+  ✨ `_expr` server value variant of `measure` (✨ Generated from Field `Service`.`measure` of type `String`)
+  """
+  measure_expr: String_Expr
+  """
+  ✨ Generated from Field `Service`.`methodOfSampling` of type `String`
+  """
+  methodOfSampling: String
+  """
+  ✨ `_expr` server value variant of `methodOfSampling` (✨ Generated from Field `Service`.`methodOfSampling` of type `String`)
+  """
+  methodOfSampling_expr: String_Expr
+  """
+  ✨ Generated from Field `Service`.`numBhs` of type `Int`
+  """
+  numBhs: Int
+  """
+  ✨ `_expr` server value variant of `numBhs` (✨ Generated from Field `Service`.`numBhs` of type `Int`)
+  """
+  numBhs_expr: Int_Expr
+  """
+  ✨ `_update` server value variant of `numBhs` (✨ Generated from Field `Service`.`numBhs` of type `Int`)
+  """
+  numBhs_update: [Int_Update!]
+  """
+  ✨ Generated from Field `Service`.`price` of type `Float`
+  """
+  price: Float
+  """
+  ✨ `_expr` server value variant of `price` (✨ Generated from Field `Service`.`price` of type `Float`)
+  """
+  price_expr: Float_Expr
+  """
+  ✨ `_update` server value variant of `price` (✨ Generated from Field `Service`.`price` of type `Float`)
+  """
+  price_update: [Float_Update!]
+  """
+  ✨ Generated from Field `Service`.`qty` of type `Float`
+  """
+  qty: Float
+  """
+  ✨ `_expr` server value variant of `qty` (✨ Generated from Field `Service`.`qty` of type `Float`)
+  """
+  qty_expr: Float_Expr
+  """
+  ✨ `_update` server value variant of `qty` (✨ Generated from Field `Service`.`qty` of type `Float`)
+  """
+  qty_update: [Float_Update!]
+  """
+  ✨ Generated from Field `Service`.`serviceType` of type `String!`
+  """
+  serviceType: String
+  """
+  ✨ `_expr` server value variant of `serviceType` (✨ Generated from Field `Service`.`serviceType` of type `String!`)
+  """
+  serviceType_expr: String_Expr
+  """
+  ✨ Generated from Field `Service`.`tcList` of type `Any`
+  """
+  tcList: Any
+  """
+  ✨ `_expr` server value variant of `tcList` (✨ Generated from Field `Service`.`tcList` of type `Any`)
+  """
+  tcList_expr: Any_Expr
+  """
+  ✨ Generated from Field `Service`.`techList` of type `Any`
+  """
+  techList: Any
+  """
+  ✨ `_expr` server value variant of `techList` (✨ Generated from Field `Service`.`techList` of type `Any`)
+  """
+  techList_expr: Any_Expr
+  """
+  ✨ Generated from Field `Service`.`unit` of type `String`
+  """
+  unit: String
+  """
+  ✨ `_expr` server value variant of `unit` (✨ Generated from Field `Service`.`unit` of type `String`)
+  """
+  unit_expr: String_Expr
+  """
+  ✨ Generated from Field `Service`.`updatedAt` of type `String`
+  """
+  updatedAt: String
+  """
+  ✨ `_expr` server value variant of `updatedAt` (✨ Generated from Field `Service`.`updatedAt` of type `String`)
+  """
+  updatedAt_expr: String_Expr
+}
+"""
+✨ Generated filter input type for table 'Service'. This input allows filtering objects using various conditions. Use `_or`, `_and`, and `_not` to compose complex filters.
+"""
+input Service_Filter {
+  """
+  Apply multiple filter conditions using `AND` logic.
+  """
+  _and: [Service_Filter!]
+  """
+  Negate the result of the provided filter condition.
+  """
+  _not: Service_Filter
+  """
+  Apply multiple filter conditions using `OR` logic.
+  """
+  _or: [Service_Filter!]
+  """
+  ✨ Generated from Field `Service`.`id` of type `String!`
+  """
+  id: String_Filter
+  """
+  ✨ Generated from Field `Service`.`createdAt` of type `String`
+  """
+  createdAt: String_Filter
+  """
+  ✨ Generated from Field `Service`.`hsnCode` of type `String`
+  """
+  hsnCode: String_Filter
+  """
+  ✨ Generated from Field `Service`.`measure` of type `String`
+  """
+  measure: String_Filter
+  """
+  ✨ Generated from Field `Service`.`methodOfSampling` of type `String`
+  """
+  methodOfSampling: String_Filter
+  """
+  ✨ Generated from Field `Service`.`numBhs` of type `Int`
+  """
+  numBhs: Int_Filter
+  """
+  ✨ Generated from Field `Service`.`price` of type `Float`
+  """
+  price: Float_Filter
+  """
+  ✨ Generated from Field `Service`.`qty` of type `Float`
+  """
+  qty: Float_Filter
+  """
+  ✨ Generated from Field `Service`.`serviceType` of type `String!`
+  """
+  serviceType: String_Filter
+  """
+  ✨ Generated from Field `Service`.`tcList` of type `Any`
+  """
+  tcList: Any_Filter
+  """
+  ✨ Generated from Field `Service`.`techList` of type `Any`
+  """
+  techList: Any_Filter
+  """
+  ✨ Generated from Field `Service`.`unit` of type `String`
+  """
+  unit: String_Filter
+  """
+  ✨ Generated from Field `Service`.`updatedAt` of type `String`
+  """
+  updatedAt: String_Filter
+}
+"""
+✨ Generated first-row input type for table 'Service'. This input selects the first row matching the filter criteria, ordered according to the specified conditions.
+"""
+input Service_FirstRow {
+  """
+  Order the result by the specified fields.
+  """
+  orderBy: [Service_Order!]
+  """
+  Filters rows based on the specified conditions.
+  """
+  where: Service_Filter
+}
+"""
+✨ Generated having input type for table 'Service'. This input allows you to filter groups during aggregate queries using various conditions. Use `_or`, `_and`, and `_not` to compose complex filters.
+"""
+input Service_Having {
+  """
+  Apply multiple Having conditions using `AND` logic.
+  """
+  _and: [Service_Having!]
+  """
+  Whether to apply DISTINCT to the aggregate function.
+  """
+  _distinct: Boolean
+  """
+  Negate the result of the provided Having condition.
+  """
+  _not: Service_Having
+  """
+  Apply multiple Having conditions using `OR` logic.
+  """
+  _or: [Service_Having!]
+  """
+  ✨ Generated from Field `Service`.`_count` of type `Int!`
+  """
+  _count: Int_Filter
+  """
+  ✨ Generated from Field `Service`.`createdAt_count` of type `Int!`
+  """
+  createdAt_count: Int_Filter
+  """
+  ✨ Generated from Field `Service`.`hsnCode_count` of type `Int!`
+  """
+  hsnCode_count: Int_Filter
+  """
+  ✨ Generated from Field `Service`.`id_count` of type `Int!`
+  """
+  id_count: Int_Filter
+  """
+  ✨ Generated from Field `Service`.`measure_count` of type `Int!`
+  """
+  measure_count: Int_Filter
+  """
+  ✨ Generated from Field `Service`.`methodOfSampling_count` of type `Int!`
+  """
+  methodOfSampling_count: Int_Filter
+  """
+  ✨ Generated from Field `Service`.`numBhs_count` of type `Int!`
+  """
+  numBhs_count: Int_Filter
+  """
+  ✨ Generated from Field `Service`.`price_count` of type `Int!`
+  """
+  price_count: Int_Filter
+  """
+  ✨ Generated from Field `Service`.`qty_count` of type `Int!`
+  """
+  qty_count: Int_Filter
+  """
+  ✨ Generated from Field `Service`.`serviceType_count` of type `Int!`
+  """
+  serviceType_count: Int_Filter
+  """
+  ✨ Generated from Field `Service`.`tcList_count` of type `Int!`
+  """
+  tcList_count: Int_Filter
+  """
+  ✨ Generated from Field `Service`.`techList_count` of type `Int!`
+  """
+  techList_count: Int_Filter
+  """
+  ✨ Generated from Field `Service`.`unit_count` of type `Int!`
+  """
+  unit_count: Int_Filter
+  """
+  ✨ Generated from Field `Service`.`updatedAt_count` of type `Int!`
+  """
+  updatedAt_count: Int_Filter
+  """
+  ✨ Generated from Field `Service`.`numBhs_sum` of type `Int`
+  """
+  numBhs_sum: Int_Filter
+  """
+  ✨ Generated from Field `Service`.`price_sum` of type `Float`
+  """
+  price_sum: Float_Filter
+  """
+  ✨ Generated from Field `Service`.`qty_sum` of type `Float`
+  """
+  qty_sum: Float_Filter
+  """
+  ✨ Generated from Field `Service`.`numBhs_avg` of type `Float`
+  """
+  numBhs_avg: Float_Filter
+  """
+  ✨ Generated from Field `Service`.`price_avg` of type `Float`
+  """
+  price_avg: Float_Filter
+  """
+  ✨ Generated from Field `Service`.`qty_avg` of type `Float`
+  """
+  qty_avg: Float_Filter
+  """
+  ✨ Generated from Field `Service`.`numBhs_min` of type `Int`
+  """
+  numBhs_min: Int_Filter
+  """
+  ✨ Generated from Field `Service`.`price_min` of type `Float`
+  """
+  price_min: Float_Filter
+  """
+  ✨ Generated from Field `Service`.`qty_min` of type `Float`
+  """
+  qty_min: Float_Filter
+  """
+  ✨ Generated from Field `Service`.`tcList_min` of type `Any`
+  """
+  tcList_min: Any_Filter
+  """
+  ✨ Generated from Field `Service`.`techList_min` of type `Any`
+  """
+  techList_min: Any_Filter
+  """
+  ✨ Generated from Field `Service`.`numBhs_max` of type `Int`
+  """
+  numBhs_max: Int_Filter
+  """
+  ✨ Generated from Field `Service`.`price_max` of type `Float`
+  """
+  price_max: Float_Filter
+  """
+  ✨ Generated from Field `Service`.`qty_max` of type `Float`
+  """
+  qty_max: Float_Filter
+  """
+  ✨ Generated from Field `Service`.`tcList_max` of type `Any`
+  """
+  tcList_max: Any_Filter
+  """
+  ✨ Generated from Field `Service`.`techList_max` of type `Any`
+  """
+  techList_max: Any_Filter
+}
+"""
+✨ Generated key input type for table 'Service'. It represents the primary key fields used to uniquely identify a row in the table.
+"""
+input Service_Key {
+  """
+  ✨ Generated from Field `Service`.`id` of type `String!`
+  """
+  id: String
+  """
+  ✨ `_expr` server value variant of `id` (✨ Generated from Field `Service`.`id` of type `String!`)
+  """
+  id_expr: String_Expr
+}
+"""
+✨ Generated list filter input type for table 'Service'. This input applies filtering logic based on the count or existence of related objects that matches certain criteria.
+"""
+input Service_ListFilter {
+  """
+  The desired number of objects that match the condition (defaults to at least one).
+  """
+  count: Int_Filter = {gt:0}
+  """
+  Condition of the related objects to filter for.
+  """
+  exist: Service_Filter
+}
+"""
+✨ Generated order input type for table 'Service'. This input defines the sorting order of rows in query results based on one or more fields.
+"""
+input Service_Order {
+  """
+  ✨ Generated from Field `Service`.`id` of type `String!`
+  """
+  id: OrderDirection
+  """
+  ✨ Generated from Field `Service`.`createdAt` of type `String`
+  """
+  createdAt: OrderDirection
+  """
+  ✨ Generated from Field `Service`.`hsnCode` of type `String`
+  """
+  hsnCode: OrderDirection
+  """
+  ✨ Generated from Field `Service`.`measure` of type `String`
+  """
+  measure: OrderDirection
+  """
+  ✨ Generated from Field `Service`.`methodOfSampling` of type `String`
+  """
+  methodOfSampling: OrderDirection
+  """
+  ✨ Generated from Field `Service`.`numBhs` of type `Int`
+  """
+  numBhs: OrderDirection
+  """
+  ✨ Generated from Field `Service`.`price` of type `Float`
+  """
+  price: OrderDirection
+  """
+  ✨ Generated from Field `Service`.`qty` of type `Float`
+  """
+  qty: OrderDirection
+  """
+  ✨ Generated from Field `Service`.`serviceType` of type `String!`
+  """
+  serviceType: OrderDirection
+  """
+  ✨ Generated from Field `Service`.`tcList` of type `Any`
+  """
+  tcList: OrderDirection
+  """
+  ✨ Generated from Field `Service`.`techList` of type `Any`
+  """
+  techList: OrderDirection
+  """
+  ✨ Generated from Field `Service`.`unit` of type `String`
+  """
+  unit: OrderDirection
+  """
+  ✨ Generated from Field `Service`.`updatedAt` of type `String`
+  """
+  updatedAt: OrderDirection
+  """
+  ✨ Generated from Field `Service`.`_count` of type `Int!`
+  """
+  _count: OrderDirection
+  """
+  ✨ Generated from Field `Service`.`createdAt_count` of type `Int!`
+  """
+  createdAt_count: OrderDirection
+  """
+  ✨ Generated from Field `Service`.`hsnCode_count` of type `Int!`
+  """
+  hsnCode_count: OrderDirection
+  """
+  ✨ Generated from Field `Service`.`id_count` of type `Int!`
+  """
+  id_count: OrderDirection
+  """
+  ✨ Generated from Field `Service`.`measure_count` of type `Int!`
+  """
+  measure_count: OrderDirection
+  """
+  ✨ Generated from Field `Service`.`methodOfSampling_count` of type `Int!`
+  """
+  methodOfSampling_count: OrderDirection
+  """
+  ✨ Generated from Field `Service`.`numBhs_count` of type `Int!`
+  """
+  numBhs_count: OrderDirection
+  """
+  ✨ Generated from Field `Service`.`price_count` of type `Int!`
+  """
+  price_count: OrderDirection
+  """
+  ✨ Generated from Field `Service`.`qty_count` of type `Int!`
+  """
+  qty_count: OrderDirection
+  """
+  ✨ Generated from Field `Service`.`serviceType_count` of type `Int!`
+  """
+  serviceType_count: OrderDirection
+  """
+  ✨ Generated from Field `Service`.`tcList_count` of type `Int!`
+  """
+  tcList_count: OrderDirection
+  """
+  ✨ Generated from Field `Service`.`techList_count` of type `Int!`
+  """
+  techList_count: OrderDirection
+  """
+  ✨ Generated from Field `Service`.`unit_count` of type `Int!`
+  """
+  unit_count: OrderDirection
+  """
+  ✨ Generated from Field `Service`.`updatedAt_count` of type `Int!`
+  """
+  updatedAt_count: OrderDirection
+  """
+  ✨ Generated from Field `Service`.`numBhs_sum` of type `Int`
+  """
+  numBhs_sum: OrderDirection
+  """
+  ✨ Generated from Field `Service`.`price_sum` of type `Float`
+  """
+  price_sum: OrderDirection
+  """
+  ✨ Generated from Field `Service`.`qty_sum` of type `Float`
+  """
+  qty_sum: OrderDirection
+  """
+  ✨ Generated from Field `Service`.`numBhs_avg` of type `Float`
+  """
+  numBhs_avg: OrderDirection
+  """
+  ✨ Generated from Field `Service`.`price_avg` of type `Float`
+  """
+  price_avg: OrderDirection
+  """
+  ✨ Generated from Field `Service`.`qty_avg` of type `Float`
+  """
+  qty_avg: OrderDirection
+  """
+  ✨ Generated from Field `Service`.`numBhs_min` of type `Int`
+  """
+  numBhs_min: OrderDirection
+  """
+  ✨ Generated from Field `Service`.`price_min` of type `Float`
+  """
+  price_min: OrderDirection
+  """
+  ✨ Generated from Field `Service`.`qty_min` of type `Float`
+  """
+  qty_min: OrderDirection
+  """
+  ✨ Generated from Field `Service`.`tcList_min` of type `Any`
+  """
+  tcList_min: OrderDirection
+  """
+  ✨ Generated from Field `Service`.`techList_min` of type `Any`
+  """
+  techList_min: OrderDirection
+  """
+  ✨ Generated from Field `Service`.`numBhs_max` of type `Int`
+  """
+  numBhs_max: OrderDirection
+  """
+  ✨ Generated from Field `Service`.`price_max` of type `Float`
+  """
+  price_max: OrderDirection
+  """
+  ✨ Generated from Field `Service`.`qty_max` of type `Float`
+  """
+  qty_max: OrderDirection
+  """
+  ✨ Generated from Field `Service`.`tcList_max` of type `Any`
+  """
+  tcList_max: OrderDirection
+  """
+  ✨ Generated from Field `Service`.`techList_max` of type `Any`
+  """
+  techList_max: OrderDirection
+}
+"""
+✨ Generated data input type for table 'ServiceUnitType'. It includes all necessary fields for creating or upserting rows into table.
+"""
+input ServiceUnitType_Data {
+  """
+  ✨ Generated from Field `ServiceUnitType`.`id` of type `String!`
+  """
+  id: String
+  """
+  ✨ `_expr` server value variant of `id` (✨ Generated from Field `ServiceUnitType`.`id` of type `String!`)
+  """
+  id_expr: String_Expr
+  """
+  ✨ Generated from Field `ServiceUnitType`.`createdAt` of type `String`
+  """
+  createdAt: String
+  """
+  ✨ `_expr` server value variant of `createdAt` (✨ Generated from Field `ServiceUnitType`.`createdAt` of type `String`)
+  """
+  createdAt_expr: String_Expr
+  """
+  ✨ Generated from Field `ServiceUnitType`.`unit` of type `String!`
+  """
+  unit: String
+  """
+  ✨ `_expr` server value variant of `unit` (✨ Generated from Field `ServiceUnitType`.`unit` of type `String!`)
+  """
+  unit_expr: String_Expr
+  """
+  ✨ Generated from Field `ServiceUnitType`.`updatedAt` of type `String`
+  """
+  updatedAt: String
+  """
+  ✨ `_expr` server value variant of `updatedAt` (✨ Generated from Field `ServiceUnitType`.`updatedAt` of type `String`)
+  """
+  updatedAt_expr: String_Expr
+}
+"""
+✨ Generated filter input type for table 'ServiceUnitType'. This input allows filtering objects using various conditions. Use `_or`, `_and`, and `_not` to compose complex filters.
+"""
+input ServiceUnitType_Filter {
+  """
+  Apply multiple filter conditions using `AND` logic.
+  """
+  _and: [ServiceUnitType_Filter!]
+  """
+  Negate the result of the provided filter condition.
+  """
+  _not: ServiceUnitType_Filter
+  """
+  Apply multiple filter conditions using `OR` logic.
+  """
+  _or: [ServiceUnitType_Filter!]
+  """
+  ✨ Generated from Field `ServiceUnitType`.`id` of type `String!`
+  """
+  id: String_Filter
+  """
+  ✨ Generated from Field `ServiceUnitType`.`createdAt` of type `String`
+  """
+  createdAt: String_Filter
+  """
+  ✨ Generated from Field `ServiceUnitType`.`unit` of type `String!`
+  """
+  unit: String_Filter
+  """
+  ✨ Generated from Field `ServiceUnitType`.`updatedAt` of type `String`
+  """
+  updatedAt: String_Filter
+}
+"""
+✨ Generated first-row input type for table 'ServiceUnitType'. This input selects the first row matching the filter criteria, ordered according to the specified conditions.
+"""
+input ServiceUnitType_FirstRow {
+  """
+  Order the result by the specified fields.
+  """
+  orderBy: [ServiceUnitType_Order!]
+  """
+  Filters rows based on the specified conditions.
+  """
+  where: ServiceUnitType_Filter
+}
+"""
+✨ Generated having input type for table 'ServiceUnitType'. This input allows you to filter groups during aggregate queries using various conditions. Use `_or`, `_and`, and `_not` to compose complex filters.
+"""
+input ServiceUnitType_Having {
+  """
+  Apply multiple Having conditions using `AND` logic.
+  """
+  _and: [ServiceUnitType_Having!]
+  """
+  Whether to apply DISTINCT to the aggregate function.
+  """
+  _distinct: Boolean
+  """
+  Negate the result of the provided Having condition.
+  """
+  _not: ServiceUnitType_Having
+  """
+  Apply multiple Having conditions using `OR` logic.
+  """
+  _or: [ServiceUnitType_Having!]
+  """
+  ✨ Generated from Field `ServiceUnitType`.`_count` of type `Int!`
+  """
+  _count: Int_Filter
+  """
+  ✨ Generated from Field `ServiceUnitType`.`createdAt_count` of type `Int!`
+  """
+  createdAt_count: Int_Filter
+  """
+  ✨ Generated from Field `ServiceUnitType`.`id_count` of type `Int!`
+  """
+  id_count: Int_Filter
+  """
+  ✨ Generated from Field `ServiceUnitType`.`unit_count` of type `Int!`
+  """
+  unit_count: Int_Filter
+  """
+  ✨ Generated from Field `ServiceUnitType`.`updatedAt_count` of type `Int!`
+  """
+  updatedAt_count: Int_Filter
+}
+"""
+✨ Generated key input type for table 'ServiceUnitType'. It represents the primary key fields used to uniquely identify a row in the table.
+"""
+input ServiceUnitType_Key {
+  """
+  ✨ Generated from Field `ServiceUnitType`.`id` of type `String!`
+  """
+  id: String
+  """
+  ✨ `_expr` server value variant of `id` (✨ Generated from Field `ServiceUnitType`.`id` of type `String!`)
+  """
+  id_expr: String_Expr
+}
+"""
+✨ Generated list filter input type for table 'ServiceUnitType'. This input applies filtering logic based on the count or existence of related objects that matches certain criteria.
+"""
+input ServiceUnitType_ListFilter {
+  """
+  The desired number of objects that match the condition (defaults to at least one).
+  """
+  count: Int_Filter = {gt:0}
+  """
+  Condition of the related objects to filter for.
+  """
+  exist: ServiceUnitType_Filter
+}
+"""
+✨ Generated order input type for table 'ServiceUnitType'. This input defines the sorting order of rows in query results based on one or more fields.
+"""
+input ServiceUnitType_Order {
+  """
+  ✨ Generated from Field `ServiceUnitType`.`id` of type `String!`
+  """
+  id: OrderDirection
+  """
+  ✨ Generated from Field `ServiceUnitType`.`createdAt` of type `String`
+  """
+  createdAt: OrderDirection
+  """
+  ✨ Generated from Field `ServiceUnitType`.`unit` of type `String!`
+  """
+  unit: OrderDirection
+  """
+  ✨ Generated from Field `ServiceUnitType`.`updatedAt` of type `String`
+  """
+  updatedAt: OrderDirection
+  """
+  ✨ Generated from Field `ServiceUnitType`.`_count` of type `Int!`
+  """
+  _count: OrderDirection
+  """
+  ✨ Generated from Field `ServiceUnitType`.`createdAt_count` of type `Int!`
+  """
+  createdAt_count: OrderDirection
+  """
+  ✨ Generated from Field `ServiceUnitType`.`id_count` of type `Int!`
+  """
+  id_count: OrderDirection
+  """
+  ✨ Generated from Field `ServiceUnitType`.`unit_count` of type `Int!`
+  """
+  unit_count: OrderDirection
+  """
+  ✨ Generated from Field `ServiceUnitType`.`updatedAt_count` of type `Int!`
+  """
+  updatedAt_count: OrderDirection
+}
+"""
+✨ Generated data input type for table 'Technical'. It includes all necessary fields for creating or upserting rows into table.
+"""
+input Technical_Data {
+  """
+  ✨ Generated from Field `Technical`.`id` of type `String!`
+  """
+  id: String
+  """
+  ✨ `_expr` server value variant of `id` (✨ Generated from Field `Technical`.`id` of type `String!`)
+  """
+  id_expr: String_Expr
+  """
+  ✨ Generated from Field `Technical`.`createdAt` of type `String`
+  """
+  createdAt: String
+  """
+  ✨ `_expr` server value variant of `createdAt` (✨ Generated from Field `Technical`.`createdAt` of type `String`)
+  """
+  createdAt_expr: String_Expr
+  """
+  ✨ Generated from Field `Technical`.`department` of type `String`
+  """
+  department: String
+  """
+  ✨ `_expr` server value variant of `department` (✨ Generated from Field `Technical`.`department` of type `String`)
+  """
+  department_expr: String_Expr
+  """
+  ✨ Generated from Field `Technical`.`designation` of type `String`
+  """
+  designation: String
+  """
+  ✨ `_expr` server value variant of `designation` (✨ Generated from Field `Technical`.`designation` of type `String`)
+  """
+  designation_expr: String_Expr
+  """
+  ✨ Generated from Field `Technical`.`name` of type `String!`
+  """
+  name: String
+  """
+  ✨ `_expr` server value variant of `name` (✨ Generated from Field `Technical`.`name` of type `String!`)
+  """
+  name_expr: String_Expr
+  """
+  ✨ Generated from Field `Technical`.`updatedAt` of type `String`
+  """
+  updatedAt: String
+  """
+  ✨ `_expr` server value variant of `updatedAt` (✨ Generated from Field `Technical`.`updatedAt` of type `String`)
+  """
+  updatedAt_expr: String_Expr
+}
+"""
+✨ Generated filter input type for table 'Technical'. This input allows filtering objects using various conditions. Use `_or`, `_and`, and `_not` to compose complex filters.
+"""
+input Technical_Filter {
+  """
+  Apply multiple filter conditions using `AND` logic.
+  """
+  _and: [Technical_Filter!]
+  """
+  Negate the result of the provided filter condition.
+  """
+  _not: Technical_Filter
+  """
+  Apply multiple filter conditions using `OR` logic.
+  """
+  _or: [Technical_Filter!]
+  """
+  ✨ Generated from Field `Technical`.`id` of type `String!`
+  """
+  id: String_Filter
+  """
+  ✨ Generated from Field `Technical`.`createdAt` of type `String`
+  """
+  createdAt: String_Filter
+  """
+  ✨ Generated from Field `Technical`.`department` of type `String`
+  """
+  department: String_Filter
+  """
+  ✨ Generated from Field `Technical`.`designation` of type `String`
+  """
+  designation: String_Filter
+  """
+  ✨ Generated from Field `Technical`.`name` of type `String!`
+  """
+  name: String_Filter
+  """
+  ✨ Generated from Field `Technical`.`updatedAt` of type `String`
+  """
+  updatedAt: String_Filter
+}
+"""
+✨ Generated first-row input type for table 'Technical'. This input selects the first row matching the filter criteria, ordered according to the specified conditions.
+"""
+input Technical_FirstRow {
+  """
+  Order the result by the specified fields.
+  """
+  orderBy: [Technical_Order!]
+  """
+  Filters rows based on the specified conditions.
+  """
+  where: Technical_Filter
+}
+"""
+✨ Generated having input type for table 'Technical'. This input allows you to filter groups during aggregate queries using various conditions. Use `_or`, `_and`, and `_not` to compose complex filters.
+"""
+input Technical_Having {
+  """
+  Apply multiple Having conditions using `AND` logic.
+  """
+  _and: [Technical_Having!]
+  """
+  Whether to apply DISTINCT to the aggregate function.
+  """
+  _distinct: Boolean
+  """
+  Negate the result of the provided Having condition.
+  """
+  _not: Technical_Having
+  """
+  Apply multiple Having conditions using `OR` logic.
+  """
+  _or: [Technical_Having!]
+  """
+  ✨ Generated from Field `Technical`.`_count` of type `Int!`
+  """
+  _count: Int_Filter
+  """
+  ✨ Generated from Field `Technical`.`createdAt_count` of type `Int!`
+  """
+  createdAt_count: Int_Filter
+  """
+  ✨ Generated from Field `Technical`.`department_count` of type `Int!`
+  """
+  department_count: Int_Filter
+  """
+  ✨ Generated from Field `Technical`.`designation_count` of type `Int!`
+  """
+  designation_count: Int_Filter
+  """
+  ✨ Generated from Field `Technical`.`id_count` of type `Int!`
+  """
+  id_count: Int_Filter
+  """
+  ✨ Generated from Field `Technical`.`name_count` of type `Int!`
+  """
+  name_count: Int_Filter
+  """
+  ✨ Generated from Field `Technical`.`updatedAt_count` of type `Int!`
+  """
+  updatedAt_count: Int_Filter
+}
+"""
+✨ Generated key input type for table 'Technical'. It represents the primary key fields used to uniquely identify a row in the table.
+"""
+input Technical_Key {
+  """
+  ✨ Generated from Field `Technical`.`id` of type `String!`
+  """
+  id: String
+  """
+  ✨ `_expr` server value variant of `id` (✨ Generated from Field `Technical`.`id` of type `String!`)
+  """
+  id_expr: String_Expr
+}
+"""
+✨ Generated list filter input type for table 'Technical'. This input applies filtering logic based on the count or existence of related objects that matches certain criteria.
+"""
+input Technical_ListFilter {
+  """
+  The desired number of objects that match the condition (defaults to at least one).
+  """
+  count: Int_Filter = {gt:0}
+  """
+  Condition of the related objects to filter for.
+  """
+  exist: Technical_Filter
+}
+"""
+✨ Generated order input type for table 'Technical'. This input defines the sorting order of rows in query results based on one or more fields.
+"""
+input Technical_Order {
+  """
+  ✨ Generated from Field `Technical`.`id` of type `String!`
+  """
+  id: OrderDirection
+  """
+  ✨ Generated from Field `Technical`.`createdAt` of type `String`
+  """
+  createdAt: OrderDirection
+  """
+  ✨ Generated from Field `Technical`.`department` of type `String`
+  """
+  department: OrderDirection
+  """
+  ✨ Generated from Field `Technical`.`designation` of type `String`
+  """
+  designation: OrderDirection
+  """
+  ✨ Generated from Field `Technical`.`name` of type `String!`
+  """
+  name: OrderDirection
+  """
+  ✨ Generated from Field `Technical`.`updatedAt` of type `String`
+  """
+  updatedAt: OrderDirection
+  """
+  ✨ Generated from Field `Technical`.`_count` of type `Int!`
+  """
+  _count: OrderDirection
+  """
+  ✨ Generated from Field `Technical`.`createdAt_count` of type `Int!`
+  """
+  createdAt_count: OrderDirection
+  """
+  ✨ Generated from Field `Technical`.`department_count` of type `Int!`
+  """
+  department_count: OrderDirection
+  """
+  ✨ Generated from Field `Technical`.`designation_count` of type `Int!`
+  """
+  designation_count: OrderDirection
+  """
+  ✨ Generated from Field `Technical`.`id_count` of type `Int!`
+  """
+  id_count: OrderDirection
+  """
+  ✨ Generated from Field `Technical`.`name_count` of type `Int!`
+  """
+  name_count: OrderDirection
+  """
+  ✨ Generated from Field `Technical`.`updatedAt_count` of type `Int!`
+  """
+  updatedAt_count: OrderDirection
+}
+"""
+✨ Generated data input type for table 'TermAndCondition'. It includes all necessary fields for creating or upserting rows into table.
+"""
+input TermAndCondition_Data {
+  """
+  ✨ Generated from Field `TermAndCondition`.`id` of type `String!`
+  """
+  id: String
+  """
+  ✨ `_expr` server value variant of `id` (✨ Generated from Field `TermAndCondition`.`id` of type `String!`)
+  """
+  id_expr: String_Expr
+  """
+  ✨ Generated from Field `TermAndCondition`.`content` of type `String!`
+  """
+  content: String
+  """
+  ✨ `_expr` server value variant of `content` (✨ Generated from Field `TermAndCondition`.`content` of type `String!`)
+  """
+  content_expr: String_Expr
+  """
+  ✨ Generated from Field `TermAndCondition`.`createdAt` of type `String`
+  """
+  createdAt: String
+  """
+  ✨ `_expr` server value variant of `createdAt` (✨ Generated from Field `TermAndCondition`.`createdAt` of type `String`)
+  """
+  createdAt_expr: String_Expr
+  """
+  ✨ Generated from Field `TermAndCondition`.`department` of type `String`
+  """
+  department: String
+  """
+  ✨ `_expr` server value variant of `department` (✨ Generated from Field `TermAndCondition`.`department` of type `String`)
+  """
+  department_expr: String_Expr
+  """
+  ✨ Generated from Field `TermAndCondition`.`updatedAt` of type `String`
+  """
+  updatedAt: String
+  """
+  ✨ `_expr` server value variant of `updatedAt` (✨ Generated from Field `TermAndCondition`.`updatedAt` of type `String`)
+  """
+  updatedAt_expr: String_Expr
+}
+"""
+✨ Generated filter input type for table 'TermAndCondition'. This input allows filtering objects using various conditions. Use `_or`, `_and`, and `_not` to compose complex filters.
+"""
+input TermAndCondition_Filter {
+  """
+  Apply multiple filter conditions using `AND` logic.
+  """
+  _and: [TermAndCondition_Filter!]
+  """
+  Negate the result of the provided filter condition.
+  """
+  _not: TermAndCondition_Filter
+  """
+  Apply multiple filter conditions using `OR` logic.
+  """
+  _or: [TermAndCondition_Filter!]
+  """
+  ✨ Generated from Field `TermAndCondition`.`id` of type `String!`
+  """
+  id: String_Filter
+  """
+  ✨ Generated from Field `TermAndCondition`.`content` of type `String!`
+  """
+  content: String_Filter
+  """
+  ✨ Generated from Field `TermAndCondition`.`createdAt` of type `String`
+  """
+  createdAt: String_Filter
+  """
+  ✨ Generated from Field `TermAndCondition`.`department` of type `String`
+  """
+  department: String_Filter
+  """
+  ✨ Generated from Field `TermAndCondition`.`updatedAt` of type `String`
+  """
+  updatedAt: String_Filter
+}
+"""
+✨ Generated first-row input type for table 'TermAndCondition'. This input selects the first row matching the filter criteria, ordered according to the specified conditions.
+"""
+input TermAndCondition_FirstRow {
+  """
+  Order the result by the specified fields.
+  """
+  orderBy: [TermAndCondition_Order!]
+  """
+  Filters rows based on the specified conditions.
+  """
+  where: TermAndCondition_Filter
+}
+"""
+✨ Generated having input type for table 'TermAndCondition'. This input allows you to filter groups during aggregate queries using various conditions. Use `_or`, `_and`, and `_not` to compose complex filters.
+"""
+input TermAndCondition_Having {
+  """
+  Apply multiple Having conditions using `AND` logic.
+  """
+  _and: [TermAndCondition_Having!]
+  """
+  Whether to apply DISTINCT to the aggregate function.
+  """
+  _distinct: Boolean
+  """
+  Negate the result of the provided Having condition.
+  """
+  _not: TermAndCondition_Having
+  """
+  Apply multiple Having conditions using `OR` logic.
+  """
+  _or: [TermAndCondition_Having!]
+  """
+  ✨ Generated from Field `TermAndCondition`.`_count` of type `Int!`
+  """
+  _count: Int_Filter
+  """
+  ✨ Generated from Field `TermAndCondition`.`content_count` of type `Int!`
+  """
+  content_count: Int_Filter
+  """
+  ✨ Generated from Field `TermAndCondition`.`createdAt_count` of type `Int!`
+  """
+  createdAt_count: Int_Filter
+  """
+  ✨ Generated from Field `TermAndCondition`.`department_count` of type `Int!`
+  """
+  department_count: Int_Filter
+  """
+  ✨ Generated from Field `TermAndCondition`.`id_count` of type `Int!`
+  """
+  id_count: Int_Filter
+  """
+  ✨ Generated from Field `TermAndCondition`.`updatedAt_count` of type `Int!`
+  """
+  updatedAt_count: Int_Filter
+}
+"""
+✨ Generated key input type for table 'TermAndCondition'. It represents the primary key fields used to uniquely identify a row in the table.
+"""
+input TermAndCondition_Key {
+  """
+  ✨ Generated from Field `TermAndCondition`.`id` of type `String!`
+  """
+  id: String
+  """
+  ✨ `_expr` server value variant of `id` (✨ Generated from Field `TermAndCondition`.`id` of type `String!`)
+  """
+  id_expr: String_Expr
+}
+"""
+✨ Generated list filter input type for table 'TermAndCondition'. This input applies filtering logic based on the count or existence of related objects that matches certain criteria.
+"""
+input TermAndCondition_ListFilter {
+  """
+  The desired number of objects that match the condition (defaults to at least one).
+  """
+  count: Int_Filter = {gt:0}
+  """
+  Condition of the related objects to filter for.
+  """
+  exist: TermAndCondition_Filter
+}
+"""
+✨ Generated order input type for table 'TermAndCondition'. This input defines the sorting order of rows in query results based on one or more fields.
+"""
+input TermAndCondition_Order {
+  """
+  ✨ Generated from Field `TermAndCondition`.`id` of type `String!`
+  """
+  id: OrderDirection
+  """
+  ✨ Generated from Field `TermAndCondition`.`content` of type `String!`
+  """
+  content: OrderDirection
+  """
+  ✨ Generated from Field `TermAndCondition`.`createdAt` of type `String`
+  """
+  createdAt: OrderDirection
+  """
+  ✨ Generated from Field `TermAndCondition`.`department` of type `String`
+  """
+  department: OrderDirection
+  """
+  ✨ Generated from Field `TermAndCondition`.`updatedAt` of type `String`
+  """
+  updatedAt: OrderDirection
+  """
+  ✨ Generated from Field `TermAndCondition`.`_count` of type `Int!`
+  """
+  _count: OrderDirection
+  """
+  ✨ Generated from Field `TermAndCondition`.`content_count` of type `Int!`
+  """
+  content_count: OrderDirection
+  """
+  ✨ Generated from Field `TermAndCondition`.`createdAt_count` of type `Int!`
+  """
+  createdAt_count: OrderDirection
+  """
+  ✨ Generated from Field `TermAndCondition`.`department_count` of type `Int!`
+  """
+  department_count: OrderDirection
+  """
+  ✨ Generated from Field `TermAndCondition`.`id_count` of type `Int!`
+  """
+  id_count: OrderDirection
+  """
+  ✨ Generated from Field `TermAndCondition`.`updatedAt_count` of type `Int!`
+  """
+  updatedAt_count: OrderDirection
+}
+"""
+✨ Generated data input type for table 'Test'. It includes all necessary fields for creating or upserting rows into table.
+"""
+input Test_Data {
+  """
+  ✨ Generated from Field `Test`.`id` of type `String!`
+  """
+  id: String
+  """
+  ✨ `_expr` server value variant of `id` (✨ Generated from Field `Test`.`id` of type `String!`)
+  """
+  id_expr: String_Expr
+  """
+  ✨ Generated from Field `Test`.`createdAt` of type `String`
+  """
+  createdAt: String
+  """
+  ✨ `_expr` server value variant of `createdAt` (✨ Generated from Field `Test`.`createdAt` of type `String`)
+  """
+  createdAt_expr: String_Expr
+  """
+  ✨ Generated from Field `Test`.`group` of type `String`
+  """
+  group: String
+  """
+  ✨ `_expr` server value variant of `group` (✨ Generated from Field `Test`.`group` of type `String`)
+  """
+  group_expr: String_Expr
+  """
+  ✨ Generated from Field `Test`.`hsnCode` of type `String`
+  """
+  hsnCode: String
+  """
+  ✨ `_expr` server value variant of `hsnCode` (✨ Generated from Field `Test`.`hsnCode` of type `String`)
+  """
+  hsnCode_expr: String_Expr
+  """
+  ✨ Generated from Field `Test`.`materials` of type `String`
+  """
+  materials: String
+  """
+  ✨ `_expr` server value variant of `materials` (✨ Generated from Field `Test`.`materials` of type `String`)
+  """
+  materials_expr: String_Expr
+  """
+  ✨ Generated from Field `Test`.`numDays` of type `Int`
+  """
+  numDays: Int
+  """
+  ✨ `_expr` server value variant of `numDays` (✨ Generated from Field `Test`.`numDays` of type `Int`)
+  """
+  numDays_expr: Int_Expr
+  """
+  ✨ `_update` server value variant of `numDays` (✨ Generated from Field `Test`.`numDays` of type `Int`)
+  """
+  numDays_update: [Int_Update!]
+  """
+  ✨ Generated from Field `Test`.`price` of type `Float`
+  """
+  price: Float
+  """
+  ✨ `_expr` server value variant of `price` (✨ Generated from Field `Test`.`price` of type `Float`)
+  """
+  price_expr: Float_Expr
+  """
+  ✨ `_update` server value variant of `price` (✨ Generated from Field `Test`.`price` of type `Float`)
+  """
+  price_update: [Float_Update!]
+  """
+  ✨ Generated from Field `Test`.`tcList` of type `Any`
+  """
+  tcList: Any
+  """
+  ✨ `_expr` server value variant of `tcList` (✨ Generated from Field `Test`.`tcList` of type `Any`)
+  """
+  tcList_expr: Any_Expr
+  """
+  ✨ Generated from Field `Test`.`techList` of type `Any`
+  """
+  techList: Any
+  """
+  ✨ `_expr` server value variant of `techList` (✨ Generated from Field `Test`.`techList` of type `Any`)
+  """
+  techList_expr: Any_Expr
+  """
+  ✨ Generated from Field `Test`.`testMethodSpecification` of type `String`
+  """
+  testMethodSpecification: String
+  """
+  ✨ `_expr` server value variant of `testMethodSpecification` (✨ Generated from Field `Test`.`testMethodSpecification` of type `String`)
+  """
+  testMethodSpecification_expr: String_Expr
+  """
+  ✨ Generated from Field `Test`.`testType` of type `String!`
+  """
+  testType: String
+  """
+  ✨ `_expr` server value variant of `testType` (✨ Generated from Field `Test`.`testType` of type `String!`)
+  """
+  testType_expr: String_Expr
+  """
+  ✨ Generated from Field `Test`.`updatedAt` of type `String`
+  """
+  updatedAt: String
+  """
+  ✨ `_expr` server value variant of `updatedAt` (✨ Generated from Field `Test`.`updatedAt` of type `String`)
+  """
+  updatedAt_expr: String_Expr
+}
+"""
+✨ Generated filter input type for table 'Test'. This input allows filtering objects using various conditions. Use `_or`, `_and`, and `_not` to compose complex filters.
+"""
+input Test_Filter {
+  """
+  Apply multiple filter conditions using `AND` logic.
+  """
+  _and: [Test_Filter!]
+  """
+  Negate the result of the provided filter condition.
+  """
+  _not: Test_Filter
+  """
+  Apply multiple filter conditions using `OR` logic.
+  """
+  _or: [Test_Filter!]
+  """
+  ✨ Generated from Field `Test`.`id` of type `String!`
+  """
+  id: String_Filter
+  """
+  ✨ Generated from Field `Test`.`createdAt` of type `String`
+  """
+  createdAt: String_Filter
+  """
+  ✨ Generated from Field `Test`.`group` of type `String`
+  """
+  group: String_Filter
+  """
+  ✨ Generated from Field `Test`.`hsnCode` of type `String`
+  """
+  hsnCode: String_Filter
+  """
+  ✨ Generated from Field `Test`.`materials` of type `String`
+  """
+  materials: String_Filter
+  """
+  ✨ Generated from Field `Test`.`numDays` of type `Int`
+  """
+  numDays: Int_Filter
+  """
+  ✨ Generated from Field `Test`.`price` of type `Float`
+  """
+  price: Float_Filter
+  """
+  ✨ Generated from Field `Test`.`tcList` of type `Any`
+  """
+  tcList: Any_Filter
+  """
+  ✨ Generated from Field `Test`.`techList` of type `Any`
+  """
+  techList: Any_Filter
+  """
+  ✨ Generated from Field `Test`.`testMethodSpecification` of type `String`
+  """
+  testMethodSpecification: String_Filter
+  """
+  ✨ Generated from Field `Test`.`testType` of type `String!`
+  """
+  testType: String_Filter
+  """
+  ✨ Generated from Field `Test`.`updatedAt` of type `String`
+  """
+  updatedAt: String_Filter
+}
+"""
+✨ Generated first-row input type for table 'Test'. This input selects the first row matching the filter criteria, ordered according to the specified conditions.
+"""
+input Test_FirstRow {
+  """
+  Order the result by the specified fields.
+  """
+  orderBy: [Test_Order!]
+  """
+  Filters rows based on the specified conditions.
+  """
+  where: Test_Filter
+}
+"""
+✨ Generated having input type for table 'Test'. This input allows you to filter groups during aggregate queries using various conditions. Use `_or`, `_and`, and `_not` to compose complex filters.
+"""
+input Test_Having {
+  """
+  Apply multiple Having conditions using `AND` logic.
+  """
+  _and: [Test_Having!]
+  """
+  Whether to apply DISTINCT to the aggregate function.
+  """
+  _distinct: Boolean
+  """
+  Negate the result of the provided Having condition.
+  """
+  _not: Test_Having
+  """
+  Apply multiple Having conditions using `OR` logic.
+  """
+  _or: [Test_Having!]
+  """
+  ✨ Generated from Field `Test`.`_count` of type `Int!`
+  """
+  _count: Int_Filter
+  """
+  ✨ Generated from Field `Test`.`createdAt_count` of type `Int!`
+  """
+  createdAt_count: Int_Filter
+  """
+  ✨ Generated from Field `Test`.`group_count` of type `Int!`
+  """
+  group_count: Int_Filter
+  """
+  ✨ Generated from Field `Test`.`hsnCode_count` of type `Int!`
+  """
+  hsnCode_count: Int_Filter
+  """
+  ✨ Generated from Field `Test`.`id_count` of type `Int!`
+  """
+  id_count: Int_Filter
+  """
+  ✨ Generated from Field `Test`.`materials_count` of type `Int!`
+  """
+  materials_count: Int_Filter
+  """
+  ✨ Generated from Field `Test`.`numDays_count` of type `Int!`
+  """
+  numDays_count: Int_Filter
+  """
+  ✨ Generated from Field `Test`.`price_count` of type `Int!`
+  """
+  price_count: Int_Filter
+  """
+  ✨ Generated from Field `Test`.`tcList_count` of type `Int!`
+  """
+  tcList_count: Int_Filter
+  """
+  ✨ Generated from Field `Test`.`techList_count` of type `Int!`
+  """
+  techList_count: Int_Filter
+  """
+  ✨ Generated from Field `Test`.`testMethodSpecification_count` of type `Int!`
+  """
+  testMethodSpecification_count: Int_Filter
+  """
+  ✨ Generated from Field `Test`.`testType_count` of type `Int!`
+  """
+  testType_count: Int_Filter
+  """
+  ✨ Generated from Field `Test`.`updatedAt_count` of type `Int!`
+  """
+  updatedAt_count: Int_Filter
+  """
+  ✨ Generated from Field `Test`.`numDays_sum` of type `Int`
+  """
+  numDays_sum: Int_Filter
+  """
+  ✨ Generated from Field `Test`.`price_sum` of type `Float`
+  """
+  price_sum: Float_Filter
+  """
+  ✨ Generated from Field `Test`.`numDays_avg` of type `Float`
+  """
+  numDays_avg: Float_Filter
+  """
+  ✨ Generated from Field `Test`.`price_avg` of type `Float`
+  """
+  price_avg: Float_Filter
+  """
+  ✨ Generated from Field `Test`.`numDays_min` of type `Int`
+  """
+  numDays_min: Int_Filter
+  """
+  ✨ Generated from Field `Test`.`price_min` of type `Float`
+  """
+  price_min: Float_Filter
+  """
+  ✨ Generated from Field `Test`.`tcList_min` of type `Any`
+  """
+  tcList_min: Any_Filter
+  """
+  ✨ Generated from Field `Test`.`techList_min` of type `Any`
+  """
+  techList_min: Any_Filter
+  """
+  ✨ Generated from Field `Test`.`numDays_max` of type `Int`
+  """
+  numDays_max: Int_Filter
+  """
+  ✨ Generated from Field `Test`.`price_max` of type `Float`
+  """
+  price_max: Float_Filter
+  """
+  ✨ Generated from Field `Test`.`tcList_max` of type `Any`
+  """
+  tcList_max: Any_Filter
+  """
+  ✨ Generated from Field `Test`.`techList_max` of type `Any`
+  """
+  techList_max: Any_Filter
+}
+"""
+✨ Generated key input type for table 'Test'. It represents the primary key fields used to uniquely identify a row in the table.
+"""
+input Test_Key {
+  """
+  ✨ Generated from Field `Test`.`id` of type `String!`
+  """
+  id: String
+  """
+  ✨ `_expr` server value variant of `id` (✨ Generated from Field `Test`.`id` of type `String!`)
+  """
+  id_expr: String_Expr
+}
+"""
+✨ Generated list filter input type for table 'Test'. This input applies filtering logic based on the count or existence of related objects that matches certain criteria.
+"""
+input Test_ListFilter {
+  """
+  The desired number of objects that match the condition (defaults to at least one).
+  """
+  count: Int_Filter = {gt:0}
+  """
+  Condition of the related objects to filter for.
+  """
+  exist: Test_Filter
+}
+"""
+✨ Generated order input type for table 'Test'. This input defines the sorting order of rows in query results based on one or more fields.
+"""
+input Test_Order {
+  """
+  ✨ Generated from Field `Test`.`id` of type `String!`
+  """
+  id: OrderDirection
+  """
+  ✨ Generated from Field `Test`.`createdAt` of type `String`
+  """
+  createdAt: OrderDirection
+  """
+  ✨ Generated from Field `Test`.`group` of type `String`
+  """
+  group: OrderDirection
+  """
+  ✨ Generated from Field `Test`.`hsnCode` of type `String`
+  """
+  hsnCode: OrderDirection
+  """
+  ✨ Generated from Field `Test`.`materials` of type `String`
+  """
+  materials: OrderDirection
+  """
+  ✨ Generated from Field `Test`.`numDays` of type `Int`
+  """
+  numDays: OrderDirection
+  """
+  ✨ Generated from Field `Test`.`price` of type `Float`
+  """
+  price: OrderDirection
+  """
+  ✨ Generated from Field `Test`.`tcList` of type `Any`
+  """
+  tcList: OrderDirection
+  """
+  ✨ Generated from Field `Test`.`techList` of type `Any`
+  """
+  techList: OrderDirection
+  """
+  ✨ Generated from Field `Test`.`testMethodSpecification` of type `String`
+  """
+  testMethodSpecification: OrderDirection
+  """
+  ✨ Generated from Field `Test`.`testType` of type `String!`
+  """
+  testType: OrderDirection
+  """
+  ✨ Generated from Field `Test`.`updatedAt` of type `String`
+  """
+  updatedAt: OrderDirection
+  """
+  ✨ Generated from Field `Test`.`_count` of type `Int!`
+  """
+  _count: OrderDirection
+  """
+  ✨ Generated from Field `Test`.`createdAt_count` of type `Int!`
+  """
+  createdAt_count: OrderDirection
+  """
+  ✨ Generated from Field `Test`.`group_count` of type `Int!`
+  """
+  group_count: OrderDirection
+  """
+  ✨ Generated from Field `Test`.`hsnCode_count` of type `Int!`
+  """
+  hsnCode_count: OrderDirection
+  """
+  ✨ Generated from Field `Test`.`id_count` of type `Int!`
+  """
+  id_count: OrderDirection
+  """
+  ✨ Generated from Field `Test`.`materials_count` of type `Int!`
+  """
+  materials_count: OrderDirection
+  """
+  ✨ Generated from Field `Test`.`numDays_count` of type `Int!`
+  """
+  numDays_count: OrderDirection
+  """
+  ✨ Generated from Field `Test`.`price_count` of type `Int!`
+  """
+  price_count: OrderDirection
+  """
+  ✨ Generated from Field `Test`.`tcList_count` of type `Int!`
+  """
+  tcList_count: OrderDirection
+  """
+  ✨ Generated from Field `Test`.`techList_count` of type `Int!`
+  """
+  techList_count: OrderDirection
+  """
+  ✨ Generated from Field `Test`.`testMethodSpecification_count` of type `Int!`
+  """
+  testMethodSpecification_count: OrderDirection
+  """
+  ✨ Generated from Field `Test`.`testType_count` of type `Int!`
+  """
+  testType_count: OrderDirection
+  """
+  ✨ Generated from Field `Test`.`updatedAt_count` of type `Int!`
+  """
+  updatedAt_count: OrderDirection
+  """
+  ✨ Generated from Field `Test`.`numDays_sum` of type `Int`
+  """
+  numDays_sum: OrderDirection
+  """
+  ✨ Generated from Field `Test`.`price_sum` of type `Float`
+  """
+  price_sum: OrderDirection
+  """
+  ✨ Generated from Field `Test`.`numDays_avg` of type `Float`
+  """
+  numDays_avg: OrderDirection
+  """
+  ✨ Generated from Field `Test`.`price_avg` of type `Float`
+  """
+  price_avg: OrderDirection
+  """
+  ✨ Generated from Field `Test`.`numDays_min` of type `Int`
+  """
+  numDays_min: OrderDirection
+  """
+  ✨ Generated from Field `Test`.`price_min` of type `Float`
+  """
+  price_min: OrderDirection
+  """
+  ✨ Generated from Field `Test`.`tcList_min` of type `Any`
+  """
+  tcList_min: OrderDirection
+  """
+  ✨ Generated from Field `Test`.`techList_min` of type `Any`
+  """
+  techList_min: OrderDirection
+  """
+  ✨ Generated from Field `Test`.`numDays_max` of type `Int`
+  """
+  numDays_max: OrderDirection
+  """
+  ✨ Generated from Field `Test`.`price_max` of type `Float`
+  """
+  price_max: OrderDirection
+  """
+  ✨ Generated from Field `Test`.`tcList_max` of type `Any`
+  """
+  tcList_max: OrderDirection
+  """
+  ✨ Generated from Field `Test`.`techList_max` of type `Any`
+  """
+  techList_max: OrderDirection
+}
+"""
+✨ Generated data input type for table 'User'. It includes all necessary fields for creating or upserting rows into table.
+"""
+input User_Data {
+  """
+  ✨ Generated from Field `User`.`id` of type `String!`
+  """
+  id: String
+  """
+  ✨ `_expr` server value variant of `id` (✨ Generated from Field `User`.`id` of type `String!`)
+  """
+  id_expr: String_Expr
+  """
+  ✨ Generated from Field `User`.`createdAt` of type `String`
+  """
+  createdAt: String
+  """
+  ✨ `_expr` server value variant of `createdAt` (✨ Generated from Field `User`.`createdAt` of type `String`)
+  """
+  createdAt_expr: String_Expr
+  """
+  ✨ Generated from Field `User`.`createdBy` of type `String`
+  """
+  createdBy: String
+  """
+  ✨ `_expr` server value variant of `createdBy` (✨ Generated from Field `User`.`createdBy` of type `String`)
+  """
+  createdBy_expr: String_Expr
+  """
+  ✨ Generated from Field `User`.`department` of type `String`
+  """
+  department: String
+  """
+  ✨ `_expr` server value variant of `department` (✨ Generated from Field `User`.`department` of type `String`)
+  """
+  department_expr: String_Expr
+  """
+  ✨ Generated from Field `User`.`fullName` of type `String`
+  """
+  fullName: String
+  """
+  ✨ `_expr` server value variant of `fullName` (✨ Generated from Field `User`.`fullName` of type `String`)
+  """
+  fullName_expr: String_Expr
+  """
+  ✨ Generated from Field `User`.`isActive` of type `Boolean`
+  """
+  isActive: Boolean
+  """
+  ✨ `_expr` server value variant of `isActive` (✨ Generated from Field `User`.`isActive` of type `Boolean`)
+  """
+  isActive_expr: Boolean_Expr
+  """
+  ✨ Generated from Field `User`.`role` of type `String`
+  """
+  role: String
+  """
+  ✨ `_expr` server value variant of `role` (✨ Generated from Field `User`.`role` of type `String`)
+  """
+  role_expr: String_Expr
+  """
+  ✨ Generated from Field `User`.`type` of type `String`
+  """
+  type: String
+  """
+  ✨ `_expr` server value variant of `type` (✨ Generated from Field `User`.`type` of type `String`)
+  """
+  type_expr: String_Expr
+  """
+  ✨ Generated from Field `User`.`updatedAt` of type `String`
+  """
+  updatedAt: String
+  """
+  ✨ `_expr` server value variant of `updatedAt` (✨ Generated from Field `User`.`updatedAt` of type `String`)
+  """
+  updatedAt_expr: String_Expr
+  """
+  ✨ Generated from Field `User`.`username` of type `String!`
+  """
+  username: String
+  """
+  ✨ `_expr` server value variant of `username` (✨ Generated from Field `User`.`username` of type `String!`)
+  """
+  username_expr: String_Expr
+}
+"""
+✨ Generated filter input type for table 'User'. This input allows filtering objects using various conditions. Use `_or`, `_and`, and `_not` to compose complex filters.
+"""
+input User_Filter {
+  """
+  Apply multiple filter conditions using `AND` logic.
+  """
+  _and: [User_Filter!]
+  """
+  Negate the result of the provided filter condition.
+  """
+  _not: User_Filter
+  """
+  Apply multiple filter conditions using `OR` logic.
+  """
+  _or: [User_Filter!]
+  """
+  ✨ Generated from Field `User`.`id` of type `String!`
+  """
+  id: String_Filter
+  """
+  ✨ Generated from Field `User`.`createdAt` of type `String`
+  """
+  createdAt: String_Filter
+  """
+  ✨ Generated from Field `User`.`createdBy` of type `String`
+  """
+  createdBy: String_Filter
+  """
+  ✨ Generated from Field `User`.`department` of type `String`
+  """
+  department: String_Filter
+  """
+  ✨ Generated from Field `User`.`fullName` of type `String`
+  """
+  fullName: String_Filter
+  """
+  ✨ Generated from Field `User`.`isActive` of type `Boolean`
+  """
+  isActive: Boolean_Filter
+  """
+  ✨ Generated from Field `User`.`role` of type `String`
+  """
+  role: String_Filter
+  """
+  ✨ Generated from Field `User`.`type` of type `String`
+  """
+  type: String_Filter
+  """
+  ✨ Generated from Field `User`.`updatedAt` of type `String`
+  """
+  updatedAt: String_Filter
+  """
+  ✨ Generated from Field `User`.`username` of type `String!`
+  """
+  username: String_Filter
+}
+"""
+✨ Generated first-row input type for table 'User'. This input selects the first row matching the filter criteria, ordered according to the specified conditions.
+"""
+input User_FirstRow {
+  """
+  Order the result by the specified fields.
+  """
+  orderBy: [User_Order!]
+  """
+  Filters rows based on the specified conditions.
+  """
+  where: User_Filter
+}
+"""
+✨ Generated having input type for table 'User'. This input allows you to filter groups during aggregate queries using various conditions. Use `_or`, `_and`, and `_not` to compose complex filters.
+"""
+input User_Having {
+  """
+  Apply multiple Having conditions using `AND` logic.
+  """
+  _and: [User_Having!]
+  """
+  Whether to apply DISTINCT to the aggregate function.
+  """
+  _distinct: Boolean
+  """
+  Negate the result of the provided Having condition.
+  """
+  _not: User_Having
+  """
+  Apply multiple Having conditions using `OR` logic.
+  """
+  _or: [User_Having!]
+  """
+  ✨ Generated from Field `User`.`_count` of type `Int!`
+  """
+  _count: Int_Filter
+  """
+  ✨ Generated from Field `User`.`createdAt_count` of type `Int!`
+  """
+  createdAt_count: Int_Filter
+  """
+  ✨ Generated from Field `User`.`createdBy_count` of type `Int!`
+  """
+  createdBy_count: Int_Filter
+  """
+  ✨ Generated from Field `User`.`department_count` of type `Int!`
+  """
+  department_count: Int_Filter
+  """
+  ✨ Generated from Field `User`.`fullName_count` of type `Int!`
+  """
+  fullName_count: Int_Filter
+  """
+  ✨ Generated from Field `User`.`id_count` of type `Int!`
+  """
+  id_count: Int_Filter
+  """
+  ✨ Generated from Field `User`.`isActive_count` of type `Int!`
+  """
+  isActive_count: Int_Filter
+  """
+  ✨ Generated from Field `User`.`role_count` of type `Int!`
+  """
+  role_count: Int_Filter
+  """
+  ✨ Generated from Field `User`.`type_count` of type `Int!`
+  """
+  type_count: Int_Filter
+  """
+  ✨ Generated from Field `User`.`updatedAt_count` of type `Int!`
+  """
+  updatedAt_count: Int_Filter
+  """
+  ✨ Generated from Field `User`.`username_count` of type `Int!`
+  """
+  username_count: Int_Filter
+}
+"""
+✨ Generated key input type for table 'User'. It represents the primary key fields used to uniquely identify a row in the table.
+"""
+input User_Key {
+  """
+  ✨ Generated from Field `User`.`id` of type `String!`
+  """
+  id: String
+  """
+  ✨ `_expr` server value variant of `id` (✨ Generated from Field `User`.`id` of type `String!`)
+  """
+  id_expr: String_Expr
+}
+"""
+✨ Generated list filter input type for table 'User'. This input applies filtering logic based on the count or existence of related objects that matches certain criteria.
+"""
+input User_ListFilter {
+  """
+  The desired number of objects that match the condition (defaults to at least one).
+  """
+  count: Int_Filter = {gt:0}
+  """
+  Condition of the related objects to filter for.
+  """
+  exist: User_Filter
+}
+"""
+✨ Generated order input type for table 'User'. This input defines the sorting order of rows in query results based on one or more fields.
+"""
+input User_Order {
+  """
+  ✨ Generated from Field `User`.`id` of type `String!`
+  """
+  id: OrderDirection
+  """
+  ✨ Generated from Field `User`.`createdAt` of type `String`
+  """
+  createdAt: OrderDirection
+  """
+  ✨ Generated from Field `User`.`createdBy` of type `String`
+  """
+  createdBy: OrderDirection
+  """
+  ✨ Generated from Field `User`.`department` of type `String`
+  """
+  department: OrderDirection
+  """
+  ✨ Generated from Field `User`.`fullName` of type `String`
+  """
+  fullName: OrderDirection
+  """
+  ✨ Generated from Field `User`.`isActive` of type `Boolean`
+  """
+  isActive: OrderDirection
+  """
+  ✨ Generated from Field `User`.`role` of type `String`
+  """
+  role: OrderDirection
+  """
+  ✨ Generated from Field `User`.`type` of type `String`
+  """
+  type: OrderDirection
+  """
+  ✨ Generated from Field `User`.`updatedAt` of type `String`
+  """
+  updatedAt: OrderDirection
+  """
+  ✨ Generated from Field `User`.`username` of type `String!`
+  """
+  username: OrderDirection
+  """
+  ✨ Generated from Field `User`.`_count` of type `Int!`
+  """
+  _count: OrderDirection
+  """
+  ✨ Generated from Field `User`.`createdAt_count` of type `Int!`
+  """
+  createdAt_count: OrderDirection
+  """
+  ✨ Generated from Field `User`.`createdBy_count` of type `Int!`
+  """
+  createdBy_count: OrderDirection
+  """
+  ✨ Generated from Field `User`.`department_count` of type `Int!`
+  """
+  department_count: OrderDirection
+  """
+  ✨ Generated from Field `User`.`fullName_count` of type `Int!`
+  """
+  fullName_count: OrderDirection
+  """
+  ✨ Generated from Field `User`.`id_count` of type `Int!`
+  """
+  id_count: OrderDirection
+  """
+  ✨ Generated from Field `User`.`isActive_count` of type `Int!`
+  """
+  isActive_count: OrderDirection
+  """
+  ✨ Generated from Field `User`.`role_count` of type `Int!`
+  """
+  role_count: OrderDirection
+  """
+  ✨ Generated from Field `User`.`type_count` of type `Int!`
+  """
+  type_count: OrderDirection
+  """
+  ✨ Generated from Field `User`.`updatedAt_count` of type `Int!`
+  """
+  updatedAt_count: OrderDirection
+  """
+  ✨ Generated from Field `User`.`username_count` of type `Int!`
+  """
+  username_count: OrderDirection
+}

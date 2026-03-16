@@ -1,27 +1,27 @@
 import React, { useState, useEffect } from 'react';
-import { 
-    User, Search, Loader2, Calendar, ShieldCheck, 
+import {
+    User, Search, Loader2, Calendar, ShieldCheck,
     Building2, CheckCircle2, XCircle, MoreVertical, Edit2
 } from 'lucide-react';
-import { 
-    Table, TableBody, TableCell, TableHead, 
-    TableHeader, TableRow 
+import {
+    Table, TableBody, TableCell, TableHead,
+    TableHeader, TableRow
 } from "@/components/ui/table";
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { 
-    Dialog, DialogContent, DialogHeader, 
-    DialogTitle, DialogFooter, DialogDescription 
+import {
+    Dialog, DialogContent, DialogHeader,
+    DialogTitle, DialogFooter, DialogDescription
 } from "@/components/ui/dialog";
-import { 
-    Select, SelectContent, SelectItem, 
-    SelectTrigger, SelectValue 
+import {
+    Select, SelectContent, SelectItem,
+    SelectTrigger, SelectValue
 } from "@/components/ui/select";
 import { useToast } from '@/components/ui/use-toast';
 import { useAuth } from '@/contexts/AuthContext';
-import { dynamoGenericApi } from '@/lib/dynamoGenericApi';
+import { dataApi } from '@/lib/dataApi';
 import { DB_TYPES, DEPARTMENTS } from '@/config';
 import { format } from 'date-fns';
 
@@ -39,7 +39,7 @@ const AdminUsersManager = () => {
         if (!idToken) return;
         setLoading(true);
         try {
-            const data = await dynamoGenericApi.listByType(DB_TYPES.USER, idToken);
+            const data = await dataApi.listByType(DB_TYPES.USER);
             setUsers(data || []);
         } catch (error) {
             console.error('Error fetching users:', error);
@@ -66,7 +66,7 @@ const AdminUsersManager = () => {
                 department: newDepartment,
                 updated_at: new Date().toISOString()
             };
-            await dynamoGenericApi.save(DB_TYPES.USER, updatedUser, idToken);
+            await dataApi.save(DB_TYPES.USER, updatedUser);
             toast({
                 title: "Success",
                 description: `User ${editingUser.full_name}'s department updated.`,
@@ -96,7 +96,7 @@ const AdminUsersManager = () => {
             (user.username?.toLowerCase() || '').includes(searchTerm.toLowerCase()) ||
             (user.email?.toLowerCase() || '').includes(searchTerm.toLowerCase()) ||
             (user.department?.toLowerCase() || '').includes(searchTerm.toLowerCase());
-        
+
         return matchesSearch;
     }).sort((a, b) => new Date(b.created_at || 0) - new Date(a.created_at || 0));
 

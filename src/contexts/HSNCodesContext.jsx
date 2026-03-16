@@ -1,6 +1,6 @@
 
 import React, { createContext, useState, useEffect, useCallback, useContext, useMemo } from 'react';
-import { dynamoGenericApi } from '@/lib/dynamoGenericApi';
+import { dataApi } from '@/lib/dataApi';
 import { useAuth } from '@/contexts/AuthContext';
 import { DB_TYPES } from '@/config';
 
@@ -15,32 +15,31 @@ const HSNCodesProvider = ({ children }) => {
         if (!idToken) return;
         setLoading(true);
         try {
-            const data = await dynamoGenericApi.listByType(DB_TYPES.HSN_SAC_CODE, idToken);
+            const data = await dataApi.listByType(DB_TYPES.HSN_SAC_CODE);
             if (data) {
                 setHsnCodes(data.sort((a, b) => (a.code || '').localeCompare(b.code || '')));
             }
         } catch (error) {
-            console.error("Error loading HSN codes from DynamoDB:", error);
+            console.error("Error loading HSN codes from Firebase Data Connect:", error);
         } finally {
             setLoading(false);
         }
     }, [idToken]);
 
     const addHsnCode = useCallback(async (hsnData) => {
-        if (!idToken) throw new Error("User not authenticated");
         try {
-            const savedItem = await dynamoGenericApi.save(DB_TYPES.HSN_SAC_CODE, hsnData, idToken);
+            const savedItem = await dataApi.save(DB_TYPES.HSN_SAC_CODE, hsnData);
             setHsnCodes(prev => [...prev.filter(h => h.id !== savedItem.id), savedItem].sort((a, b) => (a.code || '').localeCompare(b.code || '')));
         } catch (error) {
             console.error("Error adding HSN code:", error);
             throw error;
         }
-    }, [idToken]);
+    }, []);
 
     const updateHsnCode = useCallback(async (id, hsnData) => {
         if (!idToken) throw new Error("User not authenticated");
         try {
-            const savedItem = await dynamoGenericApi.save(DB_TYPES.HSN_SAC_CODE, { ...hsnData, id }, idToken);
+            const savedItem = await dataApi.save(DB_TYPES.HSN_SAC_CODE, { ...hsnData, id });
             setHsnCodes(prev => prev.map(h => h.id === id ? savedItem : h).sort((a, b) => (a.code || '').localeCompare(b.code || '')));
         } catch (error) {
             console.error("Error updating HSN code:", error);
@@ -51,7 +50,7 @@ const HSNCodesProvider = ({ children }) => {
     const deleteHsnCode = useCallback(async (id) => {
         if (!idToken) throw new Error("User not authenticated");
         try {
-            await dynamoGenericApi.delete(id, idToken);
+            await dataApi.delete(id, DB_TYPES.HSN_SAC_CODE);
             setHsnCodes(prev => prev.filter(h => h.id !== id));
         } catch (error) {
             console.error("Error deleting HSN code:", error);

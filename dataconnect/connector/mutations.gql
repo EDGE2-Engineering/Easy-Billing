@@ -1,0 +1,315 @@
+# Mutations for all entities
+
+mutation UpsertUser(
+  $id: String!,
+  $username: String,
+  $fullName: String,
+  $role: String,
+  $department: String,
+  $isActive: Boolean,
+  $type: String,
+  $createdAt: String,
+  $updatedAt: String,
+  $createdBy: String
+) @auth(level: USER, insecureReason: "Record management by any authenticated user for this demo.") {
+  user_upsert(data: {
+    id: $id,
+    username: $username,
+    fullName: $fullName,
+    role: $role,
+    department: $department,
+    isActive: $isActive,
+    type: $type,
+    createdAt: $createdAt,
+    updatedAt: $updatedAt,
+    createdBy: $createdBy
+  })
+}
+
+mutation DeleteUser($id: String!) @auth(level: USER, insecureReason: "Record deletion by any authenticated user for this demo.") {
+  user_delete(id: $id)
+}
+
+mutation UpsertClient(
+  $id: String!,
+  $clientName: String,
+  $clientAddress: String,
+  $contacts: Any,
+  $createdAt: String,
+  $updatedAt: String
+) @auth(level: USER, insecureReason: "Record management by any authenticated user for this demo.") {
+  client_upsert(data: {
+    id: $id,
+    clientName: $clientName,
+    clientAddress: $clientAddress,
+    contacts: $contacts,
+    createdAt: $createdAt,
+    updatedAt: $updatedAt
+  })
+}
+
+mutation DeleteClient($id: String!) @auth(level: USER, insecureReason: "Record deletion by any authenticated user for this demo.") {
+  client_delete(id: $id)
+}
+
+mutation UpsertService(
+  $id: String!,
+  $serviceType: String,
+  $price: Float,
+  $unit: String,
+  $qty: Float,
+  $methodOfSampling: String,
+  $numBhs: Int,
+  $measure: String,
+  $hsnCode: String,
+  $tcList: Any,
+  $techList: Any,
+  $createdAt: String,
+  $updatedAt: String
+) @auth(level: USER, insecureReason: "Record management by any authenticated user for this demo.") {
+  service_upsert(data: {
+    id: $id,
+    serviceType: $serviceType,
+    price: $price,
+    unit: $unit,
+    qty: $qty,
+    methodOfSampling: $methodOfSampling,
+    numBhs: $numBhs,
+    measure: $measure,
+    hsnCode: $hsnCode,
+    tcList: $tcList,
+    techList: $techList,
+    createdAt: $createdAt,
+    updatedAt: $updatedAt
+  })
+}
+
+mutation DeleteService($id: String!) @auth(level: USER, insecureReason: "Record deletion by any authenticated user for this demo.") {
+  service_delete(id: $id)
+}
+
+mutation UpsertTest(
+  $id: String!,
+  $testType: String,
+  $materials: String,
+  $group: String,
+  $testMethodSpecification: String,
+  $numDays: Int,
+  $price: Float,
+  $hsnCode: String,
+  $tcList: Any,
+  $techList: Any,
+  $createdAt: String,
+  $updatedAt: String
+) @auth(level: USER, insecureReason: "Record management by any authenticated user for this demo.") {
+  test_upsert(data: {
+    id: $id,
+    testType: $testType,
+    materials: $materials,
+    group: $group,
+    testMethodSpecification: $testMethodSpecification,
+    numDays: $numDays,
+    price: $price,
+    hsnCode: $hsnCode,
+    tcList: $tcList,
+    techList: $techList,
+    createdAt: $createdAt,
+    updatedAt: $updatedAt
+  })
+}
+
+mutation DeleteTest($id: String!) @auth(level: USER, insecureReason: "Record deletion by any authenticated user for this demo.") {
+  test_delete(id: $id)
+}
+
+mutation UpsertJob(
+  $id: String!,
+  $type: String,
+  $status: String,
+  $jobOrderNo: String,
+  $clientId: String,
+  $clientName: String,
+  $projectName: String,
+  $poWoNumber: String,
+  $materialInward: Any,
+  $labTestResults: Any,
+  $chemicalAnalysis: Any,
+  $grainSizeAnalysis: Any,
+  $content: Any,
+  $createdAt: String,
+  $updatedAt: String,
+  $createdBy: String,
+  $updatedBy: String
+) @auth(level: USER, insecureReason: "Record management by any authenticated user for this demo.") {
+  job_upsert(data: {
+    id: $id,
+    type: $type,
+    status: $status,
+    jobOrderNo: $jobOrderNo,
+    clientId: $clientId,
+    clientName: $clientName,
+    projectName: $projectName,
+    poWoNumber: $poWoNumber,
+    materialInward: $materialInward,
+    labTestResults: $labTestResults,
+    chemicalAnalysis: $chemicalAnalysis,
+    grainSizeAnalysis: $grainSizeAnalysis,
+    content: $content,
+    createdAt: $createdAt,
+    updatedAt: $updatedAt,
+    createdBy: $createdBy,
+    updatedBy: $updatedBy
+  })
+}
+
+mutation DeleteJob($id: String!) @auth(level: USER, insecureReason: "Record deletion by any authenticated user for this demo.") {
+  job_delete(id: $id)
+}
+
+mutation UpsertTechnical(
+  $id: String!,
+  $name: String,
+  $designation: String,
+  $department: String,
+  $createdAt: String,
+  $updatedAt: String
+) @auth(level: USER, insecureReason: "Record management by any authenticated user for this demo.") {
+  technical_upsert(data: {
+    id: $id,
+    name: $name,
+    designation: $designation,
+    department: $department,
+    createdAt: $createdAt,
+    updatedAt: $updatedAt
+  })
+}
+
+mutation DeleteTechnical($id: String!) @auth(level: USER, insecureReason: "Record deletion by any authenticated user for this demo.") {
+  technical_delete(id: $id)
+}
+
+mutation UpsertTermAndCondition(
+  $id: String!,
+  $content: String,
+  $department: String,
+  $createdAt: String,
+  $updatedAt: String
+) @auth(level: USER, insecureReason: "Record management by any authenticated user for this demo.") {
+  termAndCondition_upsert(data: {
+    id: $id,
+    content: $content,
+    department: $department,
+    createdAt: $createdAt,
+    updatedAt: $updatedAt
+  })
+}
+
+mutation DeleteTermAndCondition($id: String!) @auth(level: USER, insecureReason: "Record deletion by any authenticated user for this demo.") {
+  termAndCondition_delete(id: $id)
+}
+
+mutation UpsertHSNSACCode(
+  $id: String!,
+  $code: String,
+  $description: String,
+  $taxRate: Float,
+  $createdAt: String,
+  $updatedAt: String
+) @auth(level: USER, insecureReason: "Record management by any authenticated user for this demo.") {
+  hSNSACCode_upsert(data: {
+    id: $id,
+    code: $code,
+    description: $description,
+    taxRate: $taxRate,
+    createdAt: $createdAt,
+    updatedAt: $updatedAt
+  })
+}
+
+mutation DeleteHSNSACCode($id: String!) @auth(level: USER, insecureReason: "Record deletion by any authenticated user for this demo.") {
+  hSNSACCode_delete(id: $id)
+}
+
+mutation UpsertAppSetting(
+  $id: String!,
+  $key: String,
+  $value: Any,
+  $createdAt: String,
+  $updatedAt: String
+) @auth(level: USER, insecureReason: "Record management by any authenticated user for this demo.") {
+  appSetting_upsert(data: {
+    id: $id,
+    key: $key,
+    value: $value,
+    createdAt: $createdAt,
+    updatedAt: $updatedAt
+  })
+}
+
+mutation DeleteAppSetting($id: String!) @auth(level: USER, insecureReason: "Record deletion by any authenticated user for this demo.") {
+  appSetting_delete(id: $id)
+}
+
+mutation UpsertServiceUnitType(
+  $id: String!,
+  $unit: String,
+  $createdAt: String,
+  $updatedAt: String
+) @auth(level: USER, insecureReason: "Record management by any authenticated user for this demo.") {
+  serviceUnitType_upsert(data: {
+    id: $id,
+    unit: $unit,
+    createdAt: $createdAt,
+    updatedAt: $updatedAt
+  })
+}
+
+mutation DeleteServiceUnitType($id: String!) @auth(level: USER, insecureReason: "Record deletion by any authenticated user for this demo.") {
+  serviceUnitType_delete(id: $id)
+}
+
+mutation UpsertClientServicePrice(
+  $id: String!,
+  $clientId: String!,
+  $serviceId: String!,
+  $price: Float!,
+  $createdAt: String,
+  $updatedAt: String
+) @auth(level: USER, insecureReason: "Record management by any authenticated user for this demo.") {
+  clientServicePrice_upsert(data: {
+    id: $id,
+    clientId: $clientId,
+    serviceId: $serviceId,
+    price: $price,
+    createdAt: $createdAt,
+    updatedAt: $updatedAt
+  })
+}
+
+mutation DeleteClientServicePrice($id: String!) @auth(level: USER, insecureReason: "Record deletion by any authenticated user for this demo.") {
+  clientServicePrice_delete(id: $id)
+}
+
+mutation UpsertClientTestPrice(
+  $id: String!,
+  $clientId: String!,
+  $testId: String!,
+  $price: Float!,
+  $createdAt: String,
+  $updatedAt: String
+) @auth(level: USER, insecureReason: "Record management by any authenticated user for this demo.") {
+  clientTestPrice_upsert(data: {
+    id: $id,
+    clientId: $clientId,
+    testId: $testId,
+    price: $price,
+    createdAt: $createdAt,
+    updatedAt: $updatedAt
+  })
+}
+
+mutation DeleteClientTestPrice($id: String!) @auth(level: USER, insecureReason: "Record deletion by any authenticated user for this demo.") {
+  clientTestPrice_delete(id: $id)
+}
+
+

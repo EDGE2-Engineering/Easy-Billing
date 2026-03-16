@@ -1,155 +1,140 @@
 
 import React, { createContext, useState, useEffect, useContext, useCallback, useMemo } from 'react';
-import { useAuth as useOidcAuth } from "react-oidc-context";
-import { cognitoAuth } from '@/lib/cognitoAuth';
+import {
+    onAuthStateChanged,
+    signInWithEmailAndPassword,
+    signOut as firebaseSignOut
+} from "firebase/auth";
+import { auth } from '@/lib/firebase';
+import { firebaseGenericApi } from '@/lib/firebaseGenericApi';
+import { DB_TYPES, DEPARTMENTS } from '@/config';
 import { sendTelegramNotification } from '@/lib/notifier';
-import { cognitoConfig } from '@/config';
-import { dynamoGenericApi } from '@/lib/dynamoGenericApi';
-import { DB_TYPES } from '@/config';
-import { DEPARTMENTS } from '@/config';
 
 const AuthContext = createContext();
 
-
-const AuthProvider = ({ children }) => {
-    const auth = useOidcAuth();
+export const AuthProvider = ({ children }) => {
     const [user, setUser] = useState(null);
     const [loading, setLoading] = useState(true);
-    const hasSynced = React.useRef(false); // Ref to prevent multiple syncs per login
+    const hasSynced = React.useRef(false);
 
     const notifyLogin = useCallback(async (username, fullName) => {
-        const message = `🔔 *Login Alert*\n\nUser: \`${fullName}\` (@${username})`;
+        const message = `🔔 *Firebase Login Alert*\n\nUser: \`${fullName}\` (@${username})`;
         await sendTelegramNotification(message);
     }, []);
 
-    const syncUserToDb = useCallback(async (userData, token) => {
+    const syncUserToDb = useCallback(async (userData) => {
         try {
-            // Check if user already exists
-            const existingUser = await dynamoGenericApi.getById(userData.id, token);
-            if (existingUser) {
-                console.log('AuthContext: User already exists in database, skipping creation.');
-                return;
-            }
+            const existingUser = await firebaseGenericApi.getById(userData.id, DB_TYPES.USER);
+            if (existingUser) return;
 
-            let department = DEPARTMENTS.ACCOUNTS;
-            if (userData.role === 'admin' || userData.role === 'superadmin' || userData.role === 'super_admin' || userData.role === 'administrator') {
-                department = DEPARTMENTS.ALL;
-            }else{
-                department = userData.department;
-            }
-
-            console.log('AuthContext: Creating new user record in database...');
             const newUser = {
                 id: userData.id,
                 username: userData.username,
                 full_name: userData.full_name,
                 created_at: new Date().toISOString(),
                 created_by: userData.id,
-                role: userData.role,
-                department: department,
+                role: 'standard',
+                department: DEPARTMENTS.ACCOUNTS,
                 is_active: true,
                 type: 'user'
             };
-
-            await dynamoGenericApi.save(DB_TYPES.USER, newUser, token);
-            console.log('AuthContext: User record created successfully.');
+            await firebaseGenericApi.save(DB_TYPES.USER, newUser);
         } catch (error) {
             console.error('Failed to sync user to database:', error);
         }
     }, []);
 
-    // Sync OIDC auth state to our internal user state
-    useEffect(() => {
-        const justLoggedOut = localStorage.getItem('edge2_just_logged_out') === 'true';
-
-        // Skip syncing if we just logged out AND the OIDC lib still thinks we are authenticated
-        // This prevents the auto-login loop if Cognito's session is still briefly active
-        if (justLoggedOut && auth.isAuthenticated) {
-            console.log('AuthContext: Logout flag active and authenticated. Delaying sync...');
+    const applyFirebaseUser = useCallback((firebaseUser) => {
+        if (!firebaseUser) {
+            setUser(null);
             setLoading(false);
+            hasSynced.current = false;
             return;
         }
 
-        // If we are definitely NOT authenticated anymore, it's safe to clear the flag
-        if (!auth.isAuthenticated && justLoggedOut) {
-            console.log('AuthContext: Session cleared, removing logout flag.');
-            localStorage.removeItem('edge2_just_logged_out');
-        }
+        firebaseUser.getIdToken().then(idToken => {
+            const userData = {
+                id: firebaseUser.uid,
+                email: firebaseUser.email,
+                username: firebaseUser.email,
+                full_name: firebaseUser.displayName || firebaseUser.email,
+                role: 'standard',
+                department: DEPARTMENTS.ACCOUNTS,
+                idToken
+            };
 
-        if (auth.isAuthenticated && auth.user) {
-            const session = cognitoAuth.getSession(auth);
-            if (session) {
-                // console.log('AuthContext: Session:', { session });
-                // Use a stable identifier (ID) to check if we actually need to update user
-                if (!user || user.id !== session.user.id) {
-                    // Only notify/sync if we haven't synced for THIS specific user ID yet
-                    if (!hasSynced.current || hasSynced.current !== session.user.id) {
-                        notifyLogin(session.user.username, session.user.full_name);
-                        syncUserToDb(session.user, session.idToken);
-                        hasSynced.current = session.user.id;
-                    }
+            setUser(userData);
+            setLoading(false);
 
-                    setUser({
-                        ...session.user,
-                        idToken: session.idToken,
-                        accessToken: auth.user.access_token
-                    });
-                }
+            if (!hasSynced.current || hasSynced.current !== firebaseUser.uid) {
+                notifyLogin(userData.username, userData.full_name);
+                syncUserToDb(userData);
+                hasSynced.current = firebaseUser.uid;
             }
-        } else if (!auth.isLoading && !auth.isAuthenticated) {
-            if (user) setUser(null);
-            hasSynced.current = false;
-        }
+        }).catch(err => {
+            console.error('getIdToken failed:', err);
+            setLoading(false);
+        });
+    }, [notifyLogin, syncUserToDb]);
 
-        // Only update loading if it has actually changed
-        if (loading !== auth.isLoading) {
-            setLoading(auth.isLoading);
-        }
-    }, [auth.isAuthenticated, auth.user, auth.isLoading, user, notifyLogin, loading]);
+    useEffect(() => {
+        let isMounted = true;
 
-    const login = useCallback(async () => {
-        await auth.signinRedirect();
-    }, [auth]);
+        // Safety net: force loading=false after 10 seconds if onAuthStateChanged doesn't fire
+        const safetyTimer = setTimeout(() => {
+            if (isMounted && loading) {
+                console.warn('Auth: safety timeout hit');
+                setLoading(false);
+            }
+        }, 10000);
+
+        // onAuthStateChanged will give the current state upon subscription
+        const unsubscribe = onAuthStateChanged(auth, (firebaseUser) => {
+            if (!isMounted) return;
+            console.log('onAuthStateChanged:', firebaseUser?.email || 'null');
+            if (firebaseUser) {
+                applyFirebaseUser(firebaseUser);
+            } else {
+                setUser(null);
+                setLoading(false);
+            }
+            clearTimeout(safetyTimer);
+        });
+
+        return () => {
+            isMounted = false;
+            clearTimeout(safetyTimer);
+            unsubscribe();
+        };
+    }, [applyFirebaseUser]);
+
+    const login = useCallback(async (email, password) => {
+        try {
+            console.log('Attempting signInWithEmailAndPassword...', email);
+            await signInWithEmailAndPassword(auth, email, password);
+        } catch (error) {
+            console.error('Login error:', error.message);
+            throw error;
+        }
+    }, []);
 
     const logout = useCallback(async () => {
-        try {
-            setUser(null);
-            localStorage.setItem('edge2_just_logged_out', 'true');
-            
-            // Clear OIDC storage
-            await auth.removeUser();
-            
-            // Ensure session storage is also cleared (oidc-client-ts often uses both)
-            sessionStorage.clear();
-            
-            // Construct and redirect to Cognito logout
-            const logoutUrl = cognitoConfig.getLogoutUrl();
-            console.log('AuthContext: Logging out via:', logoutUrl);
-            window.location.href = logoutUrl;
-        } catch (error) {
-            console.error('Logout failed:', error);
-            // Fallback: reload the page
-            window.location.href = '/';
-        }
-    }, [auth]);
+        await firebaseSignOut(auth);
+    }, []);
 
     const isSuperAdmin = useCallback(() => {
-        const role = user?.role?.toLowerCase();
-        return role === 'superadmin' || role === 'super_admin';
+        return user?.role?.toLowerCase() === 'superadmin' || user?.role?.toLowerCase() === 'super_admin';
     }, [user?.role]);
 
     const isAdmin = useCallback(() => {
         const role = user?.role?.toLowerCase();
-        const result = role === 'admin' || role === 'superadmin' || role === 'super_admin' || role === 'administrator';
-        // console.log(user)
-        // console.log('AuthContext: isAdmin check:', { role, result });
-        return result;
+        return role === 'admin' || role === 'superadmin' || role === 'super_admin' || role === 'administrator';
     }, [user?.role]);
 
     const isStandard = useCallback(() => {
-        const role = user?.role?.toLowerCase();
-        return role === 'standard' || !role;
+        return user?.role?.toLowerCase() === 'standard' || !user?.role;
     }, [user?.role]);
+
 
     const contextValue = useMemo(() => ({
         user,
@@ -159,11 +144,9 @@ const AuthProvider = ({ children }) => {
         isSuperAdmin,
         isAdmin,
         isStandard,
-        idToken: user?.idToken, // Expose idToken for DynamoDB APIs
-        accessToken: user?.accessToken, // Expose accessToken for Cognito APIs
+        idToken: user?.idToken,
         isAuthenticated: !!user,
-        auth // Expose raw auth object if needed
-    }), [user, loading, login, logout, isSuperAdmin, isAdmin, isStandard, auth]);
+    }), [user, loading, login, logout, isSuperAdmin, isAdmin, isStandard]);
 
     return (
         <AuthContext.Provider value={contextValue}>
@@ -172,12 +155,4 @@ const AuthProvider = ({ children }) => {
     );
 };
 
-const useAuth = () => {
-    const context = useContext(AuthContext);
-    if (!context) {
-        throw new Error("useAuth must be used within an AuthProvider");
-    }
-    return context;
-};
-
-export { AuthContext, AuthProvider, useAuth };
+export const useAuth = () => useContext(AuthContext);
