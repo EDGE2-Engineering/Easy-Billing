@@ -150,6 +150,7 @@ create table public.accounts (
   payment_mode text,
   bank_details text,
   content jsonb not null,
+  job_id uuid references public.jobs(id) on delete set null,
   created_by uuid references public.users(id),
   created_at timestamptz default now(),
   updated_at timestamptz default now()
@@ -176,6 +177,7 @@ create table public.material_inward_register (
   )),
   po_wo_number varchar(50),
   created_by uuid not null references public.users(id) on delete cascade,
+  job_id uuid references public.jobs(id) on delete set null,
   updated_by uuid references public.users(id) on delete cascade,
   created_at timestamptz default current_timestamp,
   updated_at timestamptz default current_timestamp
@@ -192,6 +194,7 @@ create table public.material_samples (
   received_date date not null,
   received_time time,
   received_by uuid not null references public.users(id) on delete cascade,
+  collection_center_id int references public.collection_centers(id) on delete set null,
   expected_test_days int,
   created_at timestamptz default current_timestamp,
   updated_at timestamptz default current_timestamp

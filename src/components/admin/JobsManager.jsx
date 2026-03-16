@@ -1,6 +1,6 @@
 
 import React, { useState, useEffect } from 'react';
-import { Search, Trash2, Edit, ExternalLink, FileText, Loader2, AlertCircle, ArrowUpDown, SortAsc, SortDesc, Calendar, Briefcase, Plus, X, Save, ArrowLeft, CheckCircle2 } from 'lucide-react';
+import { Search, Trash2, Edit, ExternalLink, FileText, Loader2, AlertCircle, ArrowUpDown, SortAsc, SortDesc, Calendar, Briefcase, Plus, X, Save, ArrowLeft, CheckCircle2, Package } from 'lucide-react';
 import { supabase } from '@/lib/customSupabaseClient';
 import { MermaidDiagram } from '@lightenna/react-mermaid-diagram';
 import { Button } from '@/components/ui/button';
@@ -29,31 +29,32 @@ import {
     SelectTrigger,
     SelectValue,
 } from "@/components/ui/select";
+import { Textarea } from '@/components/ui/textarea';
 import { Checkbox } from "@/components/ui/checkbox";
 import { Badge } from "@/components/ui/badge";
+import MaterialInwardManager from './MaterialInwardManager';
 
 const JobsManager = () => {
     const JobWorkflowVisualizer = ({ currentStatus }) => {
         const currentIndex = WORKFLOW_STEPS.findIndex(s => s.id === currentStatus);
         
         const generateMermaidCode = () => {
-            let code = 'graph LR\n';
+            let code = `%%{init: { "theme": "base", "themeVariables": { "fontSize": "13px", "fontFamily": "Inter" }, "flowchart": { "useMaxWidth": true, "htmlLabels": true, "curve": "basis" } } }%%\n`;
+            code += 'graph LR\n';
             WORKFLOW_STEPS.forEach((step, index) => {
                 const id = `s${index}`;
-                // Using short labels to save space if needed
-                code += `    ${id}("${step.label}")\n`;
+                // Wrapping text for better fit
+                const label = step.label.replace(' ', '<br/>');
+                code += `    ${id}("${label}")\n`;
                 if (index > 0) {
                     code += `    s${index-1} --> s${index}\n`;
                 }
                 
                 if (index < currentIndex) {
-                    // Completed - Green
                     code += `    style ${id} fill:#dcfce7,stroke:#16a34a,stroke-width:2px,color:#166534\n`;
                 } else if (index === currentIndex) {
-                    // Current - Bright Orange/Yellow
-                    code += `    style ${id} fill:#fef3c7,stroke:#d97706,stroke-width:4px,color:#92400e text-decoration:underline\n`;
+                    code += `    style ${id} fill:#fef3c7,stroke:#d97706,stroke-width:4px,color:#92400e\n`;
                 } else {
-                    // Pending - Light Orange/Grayish Orange
                     code += `    style ${id} fill:#fff7ed,stroke:#fdba74,stroke-width:1px,color:#9a3412\n`;
                 }
             });
@@ -61,11 +62,13 @@ const JobsManager = () => {
         };
 
         return (
-            <div className="w-full bg-gray-50/50 rounded-xl border border-gray-100 p-4 mb-8 overflow-x-auto custom-scrollbar">
-                <div className="min-w-[1500px] h-[120px] flex items-center justify-center">
-                    <MermaidDiagram>
-                        {generateMermaidCode()}
-                    </MermaidDiagram>
+            <div className="w-full bg-white rounded-xl border border-gray-100 p-6 mb-8 shadow-sm overflow-hidden min-h-[220px]">
+                <div className="w-full flex items-center justify-center overflow-x-auto custom-scrollbar pb-4">
+                    <div className="min-w-[1200px] w-full px-4">
+                        <MermaidDiagram>
+                            {generateMermaidCode()}
+                        </MermaidDiagram>
+                    </div>
                 </div>
                 <div className="mt-2 flex justify-center gap-4 text-[10px] font-medium uppercase tracking-wider text-gray-400">
                     <div className="flex items-center gap-1.5"><div className="w-2 h-2 rounded-full bg-green-500" /> Completed</div>
@@ -95,6 +98,11 @@ const JobsManager = () => {
     const [editingRecord, setEditingRecord] = useState(null);
     const [isAddingNew, setIsAddingNew] = useState(false);
     const [isSaving, setIsSaving] = useState(false);
+    const [linkedDocs, setLinkedDocs] = useState([]);
+    const [linkedInwards, setLinkedInwards] = useState([]);
+    const [loadingDocs, setLoadingDocs] = useState(false);
+    const [loadingInwards, setLoadingInwards] = useState(false);
+    const [activeInwardJobId, setActiveInwardJobId] = useState(null);
 
     const fetchClients = async () => {
         try {
@@ -156,9 +164,39 @@ const JobsManager = () => {
         setIsAddingNew(true);
     };
 
+    const fetchLinkedDocs = async (jobId) => {
+        setLoadingDocs(true);
+        setLoadingInwards(true);
+        try {
+            // Fetch Quotations/Invoices
+            const { data: docs, error: docsError } = await supabase
+                .from('accounts')
+                .select('*')
+                .eq('job_id', jobId)
+                .order('created_at', { ascending: false });
+            if (docsError) throw docsError;
+            setLinkedDocs(docs || []);
+
+            // Fetch Material Inwards
+            const { data: inwards, error: inwardsError } = await supabase
+                .from('material_inward_register')
+                .select('*, material_samples(*, collection_centers(name))')
+                .eq('job_id', jobId)
+                .order('created_at', { ascending: false });
+            if (inwardsError) throw inwardsError;
+            setLinkedInwards(inwards || []);
+        } catch (error) {
+            console.error('Error fetching linked records:', error);
+        } finally {
+            setLoadingDocs(false);
+            setLoadingInwards(false);
+        }
+    };
+
     const handleEdit = (record) => {
         setEditingRecord({ ...record });
         setIsAddingNew(false);
+        fetchLinkedDocs(record.id);
     };
 
     const handleSave = async () => {
@@ -312,6 +350,18 @@ const JobsManager = () => {
         );
     }
 
+    if (activeInwardJobId) {
+        return (
+            <MaterialInwardManager 
+                initialJobId={activeInwardJobId} 
+                onClose={() => {
+                    setActiveInwardJobId(null);
+                    fetchRecords(); // Refresh list to show updated status
+                }} 
+            />
+        );
+    }
+
     return (
         <div className="space-y-4">
             {editingRecord ? (
@@ -414,6 +464,134 @@ const JobsManager = () => {
                             </div>
                         </div>
                     </div>
+
+                    {!isAddingNew && (
+                        <div className="mt-8 border-t pt-8 space-y-8">
+                            <div>
+                                <h3 className="text-lg font-semibold mb-4 flex items-center gap-2">
+                                    <FileText className="w-5 h-5 text-gray-400" />
+                                    Quotation Raised
+                                </h3>
+                                {loadingDocs ? (
+                                    <div className="flex items-center gap-2 text-gray-400">
+                                        <Loader2 className="w-4 h-4 animate-spin" />
+                                        <span>Loading documents...</span>
+                                    </div>
+                                ) : linkedDocs.length > 0 ? (
+                                    <div className="bg-gray-50/50 rounded-xl border border-gray-100 overflow-hidden shadow-inner">
+                                        <table className="w-full text-sm">
+                                            <thead className="bg-gray-100/50 border-b">
+                                                <tr>
+                                                    <th className="text-left py-3 px-4 font-semibold text-gray-600">Doc Type</th>
+                                                    <th className="text-left py-3 px-4 font-semibold text-gray-600">Doc Number</th>
+                                                    <th className="text-left py-3 px-4 font-semibold text-gray-600">Date</th>
+                                                    <th className="text-right py-3 px-4 font-semibold text-gray-600">Action</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                {linkedDocs.map((doc) => (
+                                                    <tr key={doc.id} className="border-b border-gray-100 last:border-0 hover:bg-white/50 transition-colors">
+                                                        <td className="py-3 px-4 font-medium">{doc.document_type}</td>
+                                                        <td className="py-3 px-4 font-mono text-primary">{doc.quote_number}</td>
+                                                        <td className="py-3 px-4 text-gray-500">{format(new Date(doc.created_at), 'dd MMM yyyy')}</td>
+                                                        <td className="py-3 px-4 text-right">
+                                                            <Button 
+                                                                variant="ghost" 
+                                                                size="sm" 
+                                                                className="text-primary hover:bg-primary/5 h-8"
+                                                                onClick={() => navigate(`/doc/${doc.id}`)}
+                                                            >
+                                                                <ExternalLink className="w-4 h-4 mr-1.5" />
+                                                                View
+                                                            </Button>
+                                                        </td>
+                                                    </tr>
+                                                ))}
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                ) : (
+                                    <p className="text-gray-400 text-sm italic">No documents linked to this job yet.</p>
+                                )}
+                            </div>
+
+                            <div>
+                                <h3 className="text-lg font-semibold mb-4 flex items-center gap-2">
+                                    <Package className="w-5 h-5 text-gray-400" />
+                                    Materials Received
+                                </h3>
+                                {loadingInwards ? (
+                                    <div className="flex items-center gap-2 text-gray-400">
+                                        <Loader2 className="w-4 h-4 animate-spin" />
+                                        <span>Loading records...</span>
+                                    </div>
+                                ) : linkedInwards.length > 0 ? (
+                                    <div className="bg-gray-50/50 rounded-xl border border-gray-100 overflow-hidden shadow-inner">
+                                        <table className="w-full text-sm">
+                                            <thead className="bg-gray-100/50 border-b">
+                                                <tr>
+                                                    <th className="text-left py-3 px-4 font-semibold text-gray-600">Job Order No</th>
+                                                    <th className="text-left py-3 px-4 font-semibold text-gray-600">PO/WO Number</th>
+                                                    <th className="text-left py-3 px-4 font-semibold text-gray-600">Samples Summary</th>
+                                                    <th className="text-left py-3 px-4 font-semibold text-gray-600">Status</th>
+                                                    <th className="text-left py-3 px-4 font-semibold text-gray-600">Date</th>
+                                                    <th className="text-right py-3 px-4 font-semibold text-gray-600">Action</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                {linkedInwards.map((inward) => (
+                                                    <tr key={inward.id} className="border-b border-gray-100 last:border-0 hover:bg-white/50 transition-colors">
+                                                        <td className="py-3 px-4 font-bold font-mono text-primary">{inward.job_order_no}</td>
+                                                        <td className="py-3 px-4">{inward.po_wo_number}</td>
+                                                        <td className="py-3 px-4">
+                                                            <div className="flex flex-col gap-1">
+                                                                <span className="text-xs font-semibold text-gray-700">
+                                                                    {inward.material_samples?.length || 0} Samples
+                                                                </span>
+                                                                <div className="flex flex-wrap gap-1">
+                                                                    {inward.material_samples?.slice(0, 3).map(s => (
+                                                                        <Badge key={s.id} variant="secondary" className="text-[10px] px-1 py-0 h-4 bg-gray-100 text-gray-600">
+                                                                            {s.sample_code}
+                                                                        </Badge>
+                                                                    ))}
+                                                                    {inward.material_samples?.length > 3 && (
+                                                                        <span className="text-[10px] text-gray-400">+{inward.material_samples.length - 3} more</span>
+                                                                    )}
+                                                                </div>
+                                                            </div>
+                                                        </td>
+                                                        <td className="py-3 px-4">
+                                                            <Badge variant="outline" className="text-[10px] h-5 border-primary/20 text-primary">
+                                                                {inward.status}
+                                                            </Badge>
+                                                        </td>
+                                                        <td className="py-3 px-4 text-gray-500">{format(new Date(inward.created_at), 'dd MMM yyyy')}</td>
+                                                        <td className="py-3 px-4 text-right">
+                                                            {/* Placeholder for future detailed view or edit */}
+                                                            <Button 
+                                                                variant="ghost" 
+                                                                size="sm" 
+                                                                className="text-primary hover:bg-primary/5 h-8"
+                                                                onClick={() => {
+                                                                    // We could potentially set an active inward view here
+                                                                    toast({ title: "View Details", description: "This will open detailed inward view." });
+                                                                }}
+                                                            >
+                                                                <ExternalLink className="w-4 h-4 mr-1.5" />
+                                                                View
+                                                            </Button>
+                                                        </td>
+                                                    </tr>
+                                                ))}
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                ) : (
+                                    <p className="text-gray-400 text-sm italic">No material inward records linked to this job yet.</p>
+                                )}
+                            </div>
+                        </div>
+                    )}
                 </div>
             ) : (
                 <>
@@ -466,6 +644,7 @@ const JobsManager = () => {
                                         <th className="text-left py-4 px-6 font-semibold text-sm text-gray-600">Job ID</th>
                                         <th className="text-left py-4 px-6 font-semibold text-sm text-gray-600">Client</th>
                                         <th className="text-left py-4 px-6 font-semibold text-sm text-gray-600">Project</th>
+                                        <th className="text-left py-4 px-6 font-semibold text-sm text-gray-600">Categories</th>
                                         <th className="text-left py-4 px-6 font-semibold text-sm text-gray-600">Status</th>
                                         <th className="text-left py-4 px-6 font-semibold text-sm text-gray-600">Created At</th>
                                         <th className="text-right py-4 px-6 font-semibold text-sm text-gray-600">Actions</th>
@@ -492,6 +671,8 @@ const JobsManager = () => {
                                                 </td>
                                                 <td className="py-4 px-6">
                                                     <div className="text-sm text-gray-600">{record.project_name}</div>
+                                                </td>
+                                                <td className="py-4 px-6">
                                                     {record.job_categories?.length > 0 && (
                                                         <div className="flex flex-wrap gap-1 mt-1">
                                                             {record.job_categories.map(cat => (
@@ -503,34 +684,55 @@ const JobsManager = () => {
                                                 <td className="py-4 px-6">
                                                     <Badge className={`${
                                                         record.status === 'COMPLETED' ? 'bg-green-100 text-green-700' :
-                                                        'bg-blue-100 text-blue-700'
+                                                        'bg-blue-100 text-blue-700 hover:bg-blue-200 hover:text-blue-800'
                                                     } text-xs font-medium border-none`}>
                                                         {record.status === 'COMPLETED' && <CheckCircle2 className="w-3 h-3 mr-1" />}
                                                         {getStatusLabel(record.status)}
                                                     </Badge>
-                                                    {WORKFLOW_STEPS.find(s => s.id === record.status)?.action && (
-                                                        <div className="mt-2">
-                                                            <Button 
-                                                                variant="outline" 
-                                                                size="sm" 
-                                                                className="h-7 text-[10px] px-2 border-primary/20 text-primary hover:bg-primary/5"
-                                                                onClick={() => {
-                                                                    const step = WORKFLOW_STEPS.find(s => s.id === record.status);
-                                                                    if (step.id === 'JOB_CREATED') navigate('/doc/new');
-                                                                    else if (step.id === 'QUOTATION_CREATED') navigate('/settings/inward_register');
-                                                                    else toast({ title: "Next Step", description: `Action: ${step.action}` });
-                                                                }}
-                                                            >
-                                                                {WORKFLOW_STEPS.find(s => s.id === record.status).action}
-                                                            </Button>
-                                                        </div>
-                                                    )}
                                                 </td>
                                                 <td className="py-4 px-6 text-sm text-gray-500">
                                                     {format(new Date(record.created_at), 'dd MMM yyyy')}
                                                 </td>
                                                 <td className="py-4 px-6 text-right">
-                                                    <div className="flex justify-end gap-2">
+                                                    <div className="flex justify-end items-center gap-2">
+                                                        {WORKFLOW_STEPS.find(s => s.id === record.status)?.action && (
+                                                            <Button 
+                                                                variant="outline" 
+                                                                size="sm" 
+                                                                className="h-8 text-[10px] px-3 border-primary/20 text-primary hover:bg-primary/5 font-semibold"
+                                                                onClick={async () => {
+                                                                    const step = WORKFLOW_STEPS.find(s => s.id === record.status);
+                                                                    if (step.id === 'JOB_CREATED') {
+                                                                        navigate(`/doc/new?type=Quotation&jobId=${record.id}`);
+                                                                    } else if (step.id === 'QUOTATION_CREATED') {
+                                                                        setActiveInwardJobId(record.id);
+                                                                    } else if (step.id === 'MATERIAL_RECEIVED' || step.id === 'SENT_TO_TESTING_DEPARTMENT') {
+                                                                        // Auto-advance simple steps for now
+                                                                        const nextStatusMap = {
+                                                                            'MATERIAL_RECEIVED': 'SENT_TO_TESTING_DEPARTMENT',
+                                                                            'SENT_TO_TESTING_DEPARTMENT': 'UNDER_TESTING'
+                                                                        };
+                                                                        const nextStatus = nextStatusMap[step.id];
+                                                                        if (nextStatus) {
+                                                                            try {
+                                                                                await supabase
+                                                                                    .from('jobs')
+                                                                                    .update({ status: nextStatus })
+                                                                                    .eq('id', record.id);
+                                                                                toast({ title: "Status Updated", description: `Job moved to ${nextStatus.replace(/_/g, ' ')}` });
+                                                                                fetchRecords();
+                                                                            } catch (err) {
+                                                                                console.error('Error updating status:', err);
+                                                                            }
+                                                                        }
+                                                                    } else {
+                                                                        toast({ title: "Next Step", description: `Action: ${step.action}` });
+                                                                    }
+                                                                }}
+                                                            >
+                                                                {WORKFLOW_STEPS.find(s => s.id === record.status).action}
+                                                            </Button>
+                                                        )}
                                                         <Button variant="ghost" size="icon" onClick={() => handleEdit(record)} className="text-blue-600 hover:bg-blue-50 h-8 w-8">
                                                             <Edit className="w-4 h-4" />
                                                         </Button>

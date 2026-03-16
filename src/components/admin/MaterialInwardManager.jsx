@@ -29,7 +29,7 @@ import {
 } from "@/components/ui/select";
 import { Textarea } from '@/components/ui/textarea';
 
-const MaterialInwardManager = () => {
+const MaterialInwardManager = ({ initialJobId, onClose }) => {
     const [records, setRecords] = useState([]);
     const [clients, setClients] = useState([]);
     const [loading, setLoading] = useState(true);
@@ -44,6 +44,7 @@ const MaterialInwardManager = () => {
     const [currentPage, setCurrentPage] = useState(1);
     const [itemsPerPage, setItemsPerPage] = useState(10);
     const [appUsers, setAppUsers] = useState([]);
+    const [collectionCenters, setCollectionCenters] = useState([]);
     const { toast } = useToast();
     const navigate = useNavigate();
     const { user, isStandard } = useAuth();
@@ -86,6 +87,19 @@ const MaterialInwardManager = () => {
         }
     };
 
+    const fetchCollectionCenters = async () => {
+        try {
+            const { data, error } = await supabase
+                .from('collection_centers')
+                .select('id, name')
+                .order('name');
+            if (error) throw error;
+            setCollectionCenters(data || []);
+        } catch (error) {
+            console.error('Error fetching collection centers:', error);
+        }
+    };
+
     const fetchRecords = async () => {
         setLoading(true);
         try {
@@ -122,7 +136,50 @@ const MaterialInwardManager = () => {
         fetchRecords();
         fetchClients();
         fetchUsers();
+        fetchCollectionCenters();
     }, []);
+
+    useEffect(() => {
+        if (initialJobId) {
+            const handleAddNewFromJob = async (jobId) => {
+                setLoading(true);
+                try {
+                    const { data: job, error } = await supabase
+                        .from('jobs')
+                        .select('*, clients(*)')
+                        .eq('id', jobId)
+                        .single();
+                    if (error) throw error;
+                    
+                    setEditingRecord({
+                        job_order_no: '',
+                        po_wo_number: '',
+                        client_id: job.client_id,
+                        job_id: job.id,
+                        samples: [
+                            {
+                                sample_code: '',
+                                sample_description: '',
+                                quantity: '',
+                                received_date: format(new Date(), 'yyyy-MM-dd'),
+                                received_time: format(new Date(), 'HH:mm'),
+                                received_by: user.id,
+                                collection_center_id: '',
+                                expected_test_days: 7
+                            }
+                        ]
+                    });
+                    setIsAddingNew(true);
+                } catch (error) {
+                    console.error('Error fetching job details:', error);
+                    toast({ title: "Error", description: "Failed to load job details for inward entry.", variant: "destructive" });
+                } finally {
+                    setLoading(false);
+                }
+            };
+            handleAddNewFromJob(initialJobId);
+        }
+    }, [initialJobId]);
 
     const handleAddNew = () => {
         setEditingRecord({
@@ -137,6 +194,7 @@ const MaterialInwardManager = () => {
                     received_date: format(new Date(), 'yyyy-MM-dd'),
                     received_time: format(new Date(), 'HH:mm'),
                     received_by: user.id,
+                    collection_center_id: '',
                     expected_test_days: 7
                 }
             ]
@@ -183,6 +241,7 @@ const MaterialInwardManager = () => {
                     received_date: format(new Date(), 'yyyy-MM-dd'),
                     received_time: format(new Date(), 'HH:mm'),
                     received_by: user.id,
+                    collection_center_id: '',
                     expected_test_days: 7
                 }
             ]
@@ -205,6 +264,10 @@ const MaterialInwardManager = () => {
             toast({ title: "Error", description: "Please select a client", variant: "destructive" });
             return;
         }
+        if (!editingRecord.po_wo_number) {
+            toast({ title: "Error", description: "Please enter Purchase Order/Work Order Number", variant: "destructive" });
+            return;
+        }
         if (editingRecord.samples.length === 0) {
             toast({ title: "Error", description: "Please add at least one sample", variant: "destructive" });
             return;
@@ -222,6 +285,7 @@ const MaterialInwardManager = () => {
                         job_order_no: editingRecord.job_order_no || `JO-${Date.now()}`,
                         po_wo_number: editingRecord.po_wo_number,
                         client_id: editingRecord.client_id,
+                        job_id: editingRecord.job_id || null,
                         created_by: user.id,
                         status: 'RECEIVED'
                     })
@@ -264,6 +328,7 @@ const MaterialInwardManager = () => {
                 received_date: sample.received_date,
                 received_time: sample.received_time,
                 received_by: sample.received_by,
+                collection_center_id: sample.collection_center_id || null,
                 expected_test_days: parseInt(sample.expected_test_days) || 7
             }));
 
@@ -285,9 +350,24 @@ const MaterialInwardManager = () => {
             const message = `${emoji} *Material Inward ${action}*\n\nJob OrderNo: \`${editingRecord.job_order_no || inwardId}\`\nClient: \`${clientName}\`\nSamples: \`${editingRecord.samples.length}\`\nBy: \`${user?.fullName || 'Unknown'}\``;
             sendTelegramNotification(message);
 
-            setEditingRecord(null);
-            setIsAddingNew(false);
-            fetchRecords();
+            if (editingRecord.job_id && isAddingNew) {
+                try {
+                    await supabase
+                        .from('jobs')
+                        .update({ status: 'MATERIAL_RECEIVED' })
+                        .eq('id', editingRecord.job_id);
+                } catch (err) {
+                    console.error('Error updating job status:', err);
+                }
+            }
+
+            if (onClose) {
+                onClose();
+            } else {
+                setEditingRecord(null);
+                setIsAddingNew(false);
+                fetchRecords();
+            }
         } catch (error) {
             console.error('Error saving inward record:', error);
             toast({ title: "Error", description: "Failed to save record: " + error.message, variant: "destructive" });
@@ -424,13 +504,13 @@ const MaterialInwardManager = () => {
             <div className="bg-white p-6 rounded-lg shadow-sm animate-in slide-in-from-right-4 duration-300">
                 <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
                     <div className="flex items-center gap-3">
-                        <Button variant="ghost" size="icon" onClick={() => setEditingRecord(null)} className="rounded-full">
+                        <Button variant="ghost" size="icon" onClick={() => onClose ? onClose() : setEditingRecord(null)} className="rounded-full">
                             <ArrowLeft className="w-5 h-5 text-gray-400" />
                         </Button>
                         <h2 className="text-xl font-bold">{isAddingNew ? 'Add New Material Inward Entry' : 'Edit Material Inward Entry'}</h2>
                     </div>
                     <div className="flex items-center gap-2">
-                        <Button variant="outline" onClick={() => setEditingRecord(null)} disabled={isSaving}>
+                        <Button variant="outline" onClick={() => onClose ? onClose() : setEditingRecord(null)} disabled={isSaving}>
                             Cancel
                         </Button>
                         <Button
@@ -446,7 +526,7 @@ const MaterialInwardManager = () => {
 
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 py-4">
                     <div className="space-y-2">
-                        <Label htmlFor="po_wo_number">Purchase Order/Work Order Number</Label>
+                        <Label htmlFor="po_wo_number">Purchase Order/Work Order Number *</Label>
                         <Input
                             id="po_wo_number"
                             placeholder="e.g. PO/2026/001"
@@ -537,7 +617,7 @@ const MaterialInwardManager = () => {
                                         />
                                     </div>
                                 </div>
-                                <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
+                                <div className="grid grid-cols-1 md:grid-cols-6 gap-4">
                                     <div className="space-y-1">
                                         <Label className="text-xs">Quantity</Label>
                                         <Input
@@ -565,6 +645,22 @@ const MaterialInwardManager = () => {
                                             value={sample.received_time}
                                             onChange={(e) => handleSampleChange(index, 'received_time', e.target.value)}
                                         />
+                                    </div>
+                                    <div className="space-y-1">
+                                        <Label className="text-xs">Collection At</Label>
+                                        <Select
+                                            value={sample.collection_center_id?.toString()}
+                                            onValueChange={(value) => handleSampleChange(index, 'collection_center_id', value)}
+                                        >
+                                            <SelectTrigger className="h-9 text-sm">
+                                                <SelectValue placeholder="Select" />
+                                            </SelectTrigger>
+                                            <SelectContent>
+                                                {collectionCenters.map(cc => (
+                                                    <SelectItem key={cc.id} value={cc.id.toString()}>{cc.name}</SelectItem>
+                                                ))}
+                                            </SelectContent>
+                                        </Select>
                                     </div>
                                     <div className="space-y-1">
                                         <Label className="text-xs">Received By</Label>

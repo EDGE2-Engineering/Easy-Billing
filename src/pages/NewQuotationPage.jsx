@@ -162,7 +162,7 @@ const NewQuotationPage = () => {
     const [newItemType, setNewItemType] = useState('service'); // 'service' or 'test'
     const [selectedItemId, setSelectedItemId] = useState('');
     const [qty, setQty] = useState(1);
-    const [documentType, setDocumentType] = useState('Quotation'); // 'Tax Invoice', 'Quotation', 'Proforma Invoice', 'Purchase Order', or 'Delivery Challan'
+    const [documentType, setDocumentType] = useState(searchParams.get('type') || 'Quotation'); // 'Tax Invoice', 'Quotation', 'Proforma Invoice', 'Purchase Order', or 'Delivery Challan'
     const [discount, setDiscount] = useState(0);
     const [comboboxOpen, setComboboxOpen] = useState(false);
     const [searchValue, setSearchValue] = useState('');
@@ -379,6 +379,57 @@ const NewQuotationPage = () => {
             loadFromSupabase(id);
         }
     }, [searchParams, pathId, isSavingRecord]); // Removed clients from dependencies to break loop
+    
+    // Load job details if jobId is present in searchParams (to pre-fill for a new document)
+    useEffect(() => {
+        const jobId = searchParams.get('jobId');
+        if (jobId && !savedRecordId && clients.length > 0) {
+            const loadJobDetails = async () => {
+                try {
+                    const { data, error } = await supabase
+                        .from('jobs')
+                        .select(`
+                            *,
+                            clients(*)
+                        `)
+                        .eq('id', jobId)
+                        .single();
+                    
+                    if (error) throw error;
+                    
+                    if (data) {
+                        const client = data.clients;
+                        const contacts = client?.contacts || [];
+                        const primaryContact = contacts.find(con => con.is_primary) || contacts[0] || {};
+                        const primaryIdx = contacts.findIndex(con => con.is_primary);
+
+                        setQuoteDetails(prev => ({
+                            ...prev,
+                            clientName: client?.client_name || '',
+                            clientAddress: client?.client_address || '',
+                            projectName: data.project_name || '',
+                            projectAddress: data.project_address || '',
+                            email: primaryContact.contact_email || client?.email || '',
+                            phone: primaryContact.contact_phone || client?.phone || '',
+                            name: primaryContact.contact_person || ''
+                        }));
+
+                        if (client?.client_name) {
+                            setClientNameSelection(client.client_name);
+                            if (primaryIdx >= 0) {
+                                setContactSelectionIdx(primaryIdx.toString());
+                            } else if (contacts.length > 0) {
+                                setContactSelectionIdx('0');
+                            }
+                        }
+                    }
+                } catch (err) {
+                    console.error('Error loading job details for pre-fill:', err);
+                }
+            };
+            loadJobDetails();
+        }
+    }, [searchParams, savedRecordId, clients]);
 
     const handleSaveToDatabase = async () => {
         if (!user) {
@@ -418,6 +469,7 @@ const NewQuotationPage = () => {
                     items,
                     discount
                 },
+                job_id: searchParams.get('jobId') || null,
                 created_by: user.id,
                 updated_at: new Date().toISOString()
             };
@@ -463,6 +515,19 @@ const NewQuotationPage = () => {
                 title: "Success",
                 description: (savedRecordId && !isTypeChanged) ? `${documentType} updated successfully.` : `${documentType} saved as ${docNumber}.`
             });
+
+            // If we have a jobId and just created a Quotation, update the job status
+            const jobId = searchParams.get('jobId');
+            if (jobId && documentType === 'Quotation' && (!savedRecordId || isTypeChanged)) {
+                try {
+                    await supabase
+                        .from('jobs')
+                        .update({ status: 'QUOTATION_CREATED' })
+                        .eq('id', jobId);
+                } catch (err) {
+                    console.error('Error updating job status:', err);
+                }
+            }
 
             // Send Telegram Notification
             try {
@@ -890,10 +955,14 @@ const NewQuotationPage = () => {
                         <div className="bg-white p-2 rounded-xl shadow-sm border border-gray-100">
                             <div className="mb-2">
                                 <Label>Document Type</Label>
-                                <Select value={documentType} onValueChange={(newType) => {
-                                    setDocumentType(newType);
-                                }}>
-                                    <SelectTrigger>
+                                <Select 
+                                    value={documentType} 
+                                    onValueChange={(newType) => {
+                                        setDocumentType(newType);
+                                    }}
+                                    disabled={!!searchParams.get('type')}
+                                >
+                                    <SelectTrigger className={cn(!!searchParams.get('type') && "bg-gray-100 cursor-not-allowed")}>
                                         <SelectValue placeholder="Select Type" />
                                     </SelectTrigger>
                                     <SelectContent>
