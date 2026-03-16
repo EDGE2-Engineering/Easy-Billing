@@ -18,6 +18,8 @@ drop table if exists public.service_unit_types cascade;
 drop table if exists public.hsn_sac_codes cascade;
 drop table if exists public.terms_and_conditions cascade;
 drop table if exists public.departments cascade;
+drop table if exists public.collection_centers cascade;
+
 
 -- ================================
 -- TABLE CREATION
@@ -143,7 +145,7 @@ create table public.accounts (
   id uuid primary key default gen_random_uuid(),
   quote_number text unique not null,
   document_type text not null,
-  client_name text,
+  client_id text references public.clients(id) on delete cascade,
   payment_date date,
   payment_mode text,
   bank_details text,
@@ -199,12 +201,22 @@ create table public.material_samples (
 create table public.reports (
   id uuid primary key default gen_random_uuid(),
   report_number text unique not null,
-  client_name text,
+  client_id text references public.clients(id) on delete cascade,
   content jsonb not null,
   created_by uuid references public.users(id),
   created_at timestamptz default now(),
   updated_at timestamptz default now()
 );
+
+-- 16. collection_centers
+create table public.collection_centers (
+  id serial primary key,
+  name text not null,
+  address text not null,
+  created_at timestamptz default now(),
+  updated_at timestamptz default now()
+);
+
 
 
 -- ================================
@@ -271,6 +283,11 @@ alter table public.reports enable row level security;
 create policy "Reports are viewable by everyone" on public.reports for select using ( true );
 create policy "Allow public management of reports" on public.reports for all using ( true ) with check ( true );
 ---
+
+alter table public.collection_centers enable row level security;
+create policy "Collection centers are viewable by everyone" on public.collection_centers for select using ( true );
+create policy "Allow public management of collection centers" on public.collection_centers for all using ( true ) with check ( true );
+
 
 -- -----------------------------------------------------------------------------
 -- 2. Data Insertion (Sample Data & Configurations)
@@ -576,3 +593,9 @@ INSERT INTO public.terms_and_conditions (text, type, hsn_code) VALUES
 -- Final Updates
 update public.services set hsn_code = '995432' where hsn_code = '';
 update public.tests set hsn_code = '998346' where hsn_code = '';
+
+-- Sample Collection Centers
+insert into public.collection_centers (name, address) values
+('Main Laboratory', 'No. 12, Industrial Area, Phase II, Bengaluru - 560058'),
+('North Bengaluru Branch', 'No. 45, Hebbal Main Road, Bengaluru - 560024'),
+('South Bengaluru Branch', 'No. 78, Jayanagar 4th Block, Bengaluru - 560011');

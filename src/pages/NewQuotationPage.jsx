@@ -322,7 +322,7 @@ const NewQuotationPage = () => {
             try {
                 const { data, error } = await supabase
                     .from('accounts')
-                    .select('*')
+                    .select('*, clients(*)')
                     .eq('id', id)
                     .single();
 
@@ -330,7 +330,16 @@ const NewQuotationPage = () => {
 
                 if (data && data.content) {
                     const content = data.content;
-                    const loadedQuoteDetails = content.quoteDetails || {};
+                    const loadedQuoteDetails = { ...(content.quoteDetails || {}) };
+                    
+                    // Fallback to joined client data if specific fields are missing in JSON
+                    if (!loadedQuoteDetails.clientName && data.clients?.client_name) {
+                        loadedQuoteDetails.clientName = data.clients.client_name;
+                    }
+                    if (!loadedQuoteDetails.clientAddress && data.clients?.client_address) {
+                        loadedQuoteDetails.clientAddress = data.clients.client_address;
+                    }
+                    
                     const loadedItems = content.items || [];
                     const loadedDocType = data.document_type || 'Quotation';
                     const loadedDiscount = content.discount || 0;
@@ -394,10 +403,13 @@ const NewQuotationPage = () => {
 
             const updatedQuoteDetails = { ...quoteDetails, quoteNumber: docNumber };
 
+            const selectedClient = clients.find(c => c.clientName === quoteDetails.clientName);
+            const clientId = selectedClient?.id || null;
+
             const recordData = {
                 quote_number: docNumber,
                 document_type: documentType,
-                client_name: quoteDetails.clientName,
+                client_id: clientId,
                 payment_date: quoteDetails.paymentDate || null,
                 payment_mode: quoteDetails.paymentMode || null,
                 bank_details: quoteDetails.bankDetails || null,

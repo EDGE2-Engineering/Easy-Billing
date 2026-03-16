@@ -39,3 +39,4 @@ export const TG_NOTIFIER_CONFIG = {
 
 export const enableInfoDiagramZoom = false;
 
+export const JOB_CATEGORIES = ["Soil Testing", "Material Testing", "Geotechnical Testing"];

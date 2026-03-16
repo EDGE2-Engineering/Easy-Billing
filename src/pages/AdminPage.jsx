@@ -14,6 +14,9 @@ import AccountsManager from '@/components/admin/AccountsManager.jsx';
 import AdminSystemSettings from '@/components/admin/AdminSystemSettings.jsx';
 import AdminReportsManager from '@/components/admin/AdminReportsManager.jsx';
 import MaterialInwardManager from '@/components/admin/MaterialInwardManager';
+import AdminServicesManager from '@/components/admin/AdminServicesManager.jsx';
+import AdminTestsManager from '@/components/admin/AdminTestsManager.jsx';
+
 
 import AdminLogin from '@/components/admin/AdminLogin';
 import UpdatePassword from '@/components/admin/UpdatePassword';
@@ -48,12 +51,6 @@ const AdminPage = () => {
     }
   }, [tab]);
 
-  // Redirect legacy tabs to new system sub-tabs
-  useEffect(() => {
-    if (mainTab === 'services' || mainTab === 'tests') {
-      navigate('/settings/system');
-    }
-  }, [mainTab, navigate]);
 
   const handleTabChange = (value) => {
     setMainTab(value);
@@ -118,6 +115,8 @@ const AdminPage = () => {
                   className="w-full bg-white border border-gray-200 rounded-xl px-4 py-3 text-gray-900 font-medium focus:ring-2 focus:ring-primary focus:border-primary transition-all shadow-sm outline-none appearance-none"
                 >
                   <option value="accounts">Accounts</option>
+                  {!isStandard() && <option value="services">Services</option>}
+                  {!isStandard() && <option value="tests">Tests</option>}
                   {!isStandard() && <option value="clients">Clients</option>}
                   {!isStandard() && <option value="pricing">Client Pricing</option>}
                   {!isStandard() && <option value="system">System Settings</option>}
@@ -135,6 +134,20 @@ const AdminPage = () => {
                 <TabsList className="bg-white p-1 border border-gray-200 rounded-xl shadow-sm h-auto inline-flex">
                   {!isStandard() && (
                     <>
+                      <TabsTrigger
+                        value="services"
+                        title="Services"
+                        className="px-2 py-3 rounded-xl data-[state=active]:bg-primary data-[state=active]:text-white transition-all flex items-center gap-2 data-[state=active]:p-2"
+                      >
+                        <HandHeart className="w-4 h-4" /> Services
+                      </TabsTrigger>
+                      <TabsTrigger
+                        value="tests"
+                        title="Tests"
+                        className="px-2 py-3 rounded-xl data-[state=active]:bg-primary data-[state=active]:text-white transition-all flex items-center gap-2 data-[state=active]:p-2"
+                      >
+                        <TestTube className="w-4 h-4" /> Tests
+                      </TabsTrigger>
                       <TabsTrigger
                         value="clients"
                         title="Clients"
@@ -169,6 +182,14 @@ const AdminPage = () => {
               </div>
             </>
           )}
+
+          <TabsContent value="services" className="focus-visible:outline-none animate-in fade-in slide-in-from-bottom-2 duration-500">
+            <AdminServicesManager />
+          </TabsContent>
+
+          <TabsContent value="tests" className="focus-visible:outline-none animate-in fade-in slide-in-from-bottom-2 duration-500">
+            <AdminTestsManager />
+          </TabsContent>
 
           <TabsContent value="clients" className="focus-visible:outline-none animate-in fade-in slide-in-from-bottom-2 duration-500">
             <AdminClientsManager />

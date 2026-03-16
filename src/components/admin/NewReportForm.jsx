@@ -135,18 +135,32 @@ const NewReportForm = ({ editReport, onCancel, onSuccess }) => {
     // Load report data from props if editing
     useEffect(() => {
         if (editReport) {
-            const reportData = editReport.content || editReport;
-            setFormData({ ...reportData, id: editReport.id }); // Ensure DB ID is tracked
+            const content = editReport.content || {};
+            const baseData = { ...content };
+
+            // Ensure clientId and client name are populated from top-level DB results
+            // if they aren't already in the content JSON
+            if (!baseData.clientId && editReport.client_id) {
+                baseData.clientId = editReport.client_id;
+            }
+            if (!baseData.client && editReport.clients?.client_name) {
+                baseData.client = editReport.clients.client_name;
+            }
+            if (!baseData.clientAddress && editReport.clients?.client_address) {
+                baseData.clientAddress = editReport.clients.client_address;
+            }
+
+            setFormData({ ...baseData, id: editReport.id }); // Ensure DB ID is tracked
             toast({
                 title: "Report Loaded",
-                description: `Editing report: ${reportData.projectDetails || reportData.reportId}`,
+                description: `Editing report: ${baseData.projectDetails || baseData.reportId}`,
             });
         }
     }, [editReport, toast]);
 
     const handleClientSearch = (e) => {
         const value = e.target.value;
-        setFormData(prev => ({ ...prev, client: value }));
+        setFormData(prev => ({ ...prev, client: value, clientId: '' }));
 
         if (value.trim()) {
             const filtered = clients.filter(c =>
@@ -163,6 +177,7 @@ const NewReportForm = ({ editReport, onCancel, onSuccess }) => {
         setFormData(prev => ({
             ...prev,
             client: client.client_name,
+            clientId: client.id,
             clientAddress: client.client_address || prev.clientAddress
         }));
         setShowClientSuggestions(false);
@@ -188,6 +203,7 @@ const NewReportForm = ({ editReport, onCancel, onSuccess }) => {
             ...prev,
             jobOrderNumber: jo.job_order_no,
             client: jo.clients?.client_name || prev.client,
+            clientId: jo.client_id || prev.clientId,
             clientAddress: jo.clients?.client_address || prev.clientAddress
         }));
         setShowJobOrderSuggestions(false);
@@ -212,6 +228,7 @@ const NewReportForm = ({ editReport, onCancel, onSuccess }) => {
             reportId: '',
             projectDetails: 'GBT 40m',
             client: '',
+            clientId: '',
             clientImage: '',
             clientAddress: '',
             latitude: '',
@@ -1733,7 +1750,7 @@ const NewReportForm = ({ editReport, onCancel, onSuccess }) => {
 
             const payload = {
                 report_number: formData.reportId,
-                client_name: formData.client,
+                client_id: formData.clientId || null,
                 content: formData,
                 created_by: user.id,
                 updated_at: new Date().toISOString()

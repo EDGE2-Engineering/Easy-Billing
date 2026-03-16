@@ -73,7 +73,7 @@ const AccountsManager = () => {
     try {
       let query = supabase
         .from('accounts')
-        .select('*, users(full_name)');
+        .select('*, users(full_name), clients(client_name)');
 
       if (isStandard()) {
         query = query.eq('created_by', user.id);
@@ -141,13 +141,13 @@ const AccountsManager = () => {
     .sort();
 
   const uniqueClients = Array.from(new Set(accounts
-    .map(r => r.client_name)
+    .map(r => r.clients?.client_name)
     .filter(Boolean)))
     .sort();
 
   const filteredAccounts = accounts.filter(r => {
     const matchesSearch = (r.quote_number?.toLowerCase() || '').includes(searchTerm.toLowerCase()) ||
-      (r.client_name?.toLowerCase() || '').includes(searchTerm.toLowerCase()) ||
+      (r.clients?.client_name?.toLowerCase() || '').includes(searchTerm.toLowerCase()) ||
       (r.document_type?.toLowerCase() || '').includes(searchTerm.toLowerCase());
 
     if (!matchesSearch) return false;
@@ -159,7 +159,7 @@ const AccountsManager = () => {
     if (filterUser !== 'all' && r.users?.full_name !== filterUser) return false;
 
     // Client Filter
-    if (filterClient !== 'all' && r.client_name !== filterClient) return false;
+    if (filterClient !== 'all' && r.clients?.client_name !== filterClient) return false;
 
     if (fromDate || toDate) {
       const recordDate = new Date(r.created_at);
@@ -189,8 +189,8 @@ const AccountsManager = () => {
         valB = calculateRecordTotal(b);
         break;
       case 'client':
-        valA = (a.client_name || '').toLowerCase();
-        valB = (b.client_name || '').toLowerCase();
+        valA = (a.clients?.client_name || '').toLowerCase();
+        valB = (b.clients?.client_name || '').toLowerCase();
         break;
       case 'user':
         valA = (a.users?.full_name || '').toLowerCase();
@@ -504,7 +504,7 @@ const AccountsManager = () => {
                     </td>
 
                     <td className="justify-left items-center">
-                      <span className="text-black font-regular text-sm"> {record.client_name || '-'}</span>
+                      <span className="text-black font-regular text-sm"> {record.clients?.client_name || '-'}</span>
                     </td>
 
                     <td className="justify-left items-center">
