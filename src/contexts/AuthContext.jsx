@@ -1,31 +1,27 @@
 
 import React, { createContext, useState, useEffect, useContext, useCallback, useMemo } from 'react';
-import { useAuth as useOidcAuth } from "react-oidc-context";
-import { cognitoAuth } from '@/lib/cognitoAuth';
+import { supabase } from '@/lib/supabase';
+import { supabaseAuth } from '@/lib/supabaseAuth';
+import { supabaseGenericApi } from '@/lib/supabaseGenericApi';
 import { sendTelegramNotification } from '@/lib/notifier';
-import { cognitoConfig } from '@/config';
-import { dynamoGenericApi } from '@/lib/dynamoGenericApi';
-import { DB_TYPES } from '@/config';
-import { DEPARTMENTS } from '@/config';
+import { DB_TYPES, DEPARTMENTS } from '@/config';
 
 const AuthContext = createContext();
 
-
 const AuthProvider = ({ children }) => {
-    const auth = useOidcAuth();
     const [user, setUser] = useState(null);
     const [loading, setLoading] = useState(true);
-    const hasSynced = React.useRef(false); // Ref to prevent multiple syncs per login
+    const hasSynced = React.useRef(false);
 
     const notifyLogin = useCallback(async (username, fullName) => {
-        const message = `🔔 *Login Alert*\n\nUser: \`${fullName}\` (@${username})`;
+        const message = `🔔 *Supabase Login Alert*\n\nUser: \`${fullName}\` (@${username})`;
         await sendTelegramNotification(message);
     }, []);
 
-    const syncUserToDb = useCallback(async (userData, token) => {
+    const syncUserToDb = useCallback(async (userData) => {
         try {
             // Check if user already exists
-            const existingUser = await dynamoGenericApi.getById(userData.id, token);
+            const existingUser = await supabaseGenericApi.getById(userData.id, DB_TYPES.USER);
             if (existingUser) {
                 console.log('AuthContext: User already exists in database, skipping creation.');
                 return;
@@ -34,8 +30,8 @@ const AuthProvider = ({ children }) => {
             let department = DEPARTMENTS.ACCOUNTS;
             if (userData.role === 'admin' || userData.role === 'superadmin' || userData.role === 'super_admin' || userData.role === 'administrator') {
                 department = DEPARTMENTS.ALL;
-            }else{
-                department = userData.department;
+            } else {
+                department = userData.department || DEPARTMENTS.ACCOUNTS;
             }
 
             console.log('AuthContext: Creating new user record in database...');
@@ -44,94 +40,93 @@ const AuthProvider = ({ children }) => {
                 username: userData.username,
                 full_name: userData.full_name,
                 created_at: new Date().toISOString(),
-                created_by: userData.id,
-                role: userData.role,
+                role: userData.role || 'standard',
                 department: department,
-                is_active: true,
-                type: 'user'
+                is_active: true
             };
 
-            await dynamoGenericApi.save(DB_TYPES.USER, newUser, token);
+            await supabaseGenericApi.save(DB_TYPES.USER, newUser);
             console.log('AuthContext: User record created successfully.');
         } catch (error) {
             console.error('Failed to sync user to database:', error);
         }
     }, []);
 
-    // Sync OIDC auth state to our internal user state
     useEffect(() => {
-        const justLoggedOut = localStorage.getItem('edge2_just_logged_out') === 'true';
-
-        // Skip syncing if we just logged out AND the OIDC lib still thinks we are authenticated
-        // This prevents the auto-login loop if Cognito's session is still briefly active
-        if (justLoggedOut && auth.isAuthenticated) {
-            console.log('AuthContext: Logout flag active and authenticated. Delaying sync...');
-            setLoading(false);
-            return;
-        }
-
-        // If we are definitely NOT authenticated anymore, it's safe to clear the flag
-        if (!auth.isAuthenticated && justLoggedOut) {
-            console.log('AuthContext: Session cleared, removing logout flag.');
-            localStorage.removeItem('edge2_just_logged_out');
-        }
-
-        if (auth.isAuthenticated && auth.user) {
-            const session = cognitoAuth.getSession(auth);
+        // Initial session check
+        const checkSession = async () => {
+            const { data: { session } } = await supabase.auth.getSession();
             if (session) {
-                // console.log('AuthContext: Session:', { session });
-                // Use a stable identifier (ID) to check if we actually need to update user
-                if (!user || user.id !== session.user.id) {
-                    // Only notify/sync if we haven't synced for THIS specific user ID yet
-                    if (!hasSynced.current || hasSynced.current !== session.user.id) {
-                        notifyLogin(session.user.username, session.user.full_name);
-                        syncUserToDb(session.user, session.idToken);
-                        hasSynced.current = session.user.id;
-                    }
+                const mappedUser = {
+                    id: session.user.id,
+                    email: session.user.email,
+                    username: session.user.email,
+                    full_name: session.user.user_metadata?.full_name || session.user.email,
+                    role: session.user.user_metadata?.role || 'standard',
+                    accessToken: session.access_token
+                };
+                setUser(mappedUser);
 
-                    setUser({
-                        ...session.user,
-                        idToken: session.idToken,
-                        accessToken: auth.user.access_token
-                    });
+                if (!hasSynced.current || hasSynced.current !== mappedUser.id) {
+                    notifyLogin(mappedUser.username, mappedUser.full_name);
+                    syncUserToDb(mappedUser);
+                    hasSynced.current = mappedUser.id;
                 }
             }
-        } else if (!auth.isLoading && !auth.isAuthenticated) {
-            if (user) setUser(null);
-            hasSynced.current = false;
-        }
+            setLoading(false);
+        };
 
-        // Only update loading if it has actually changed
-        if (loading !== auth.isLoading) {
-            setLoading(auth.isLoading);
-        }
-    }, [auth.isAuthenticated, auth.user, auth.isLoading, user, notifyLogin, loading]);
+        checkSession();
 
-    const login = useCallback(async () => {
-        await auth.signinRedirect();
-    }, [auth]);
+        // Listen for auth changes
+        const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
+            console.log('AuthContext: Auth event:', event);
+            if (event === 'SIGNED_IN' && session) {
+                const mappedUser = {
+                    id: session.user.id,
+                    email: session.user.email,
+                    username: session.user.email,
+                    full_name: session.user.user_metadata?.full_name || session.user.email,
+                    role: session.user.user_metadata?.role || 'standard',
+                    accessToken: session.access_token
+                };
+                setUser(mappedUser);
+                if (!hasSynced.current || hasSynced.current !== mappedUser.id) {
+                    notifyLogin(mappedUser.username, mappedUser.full_name);
+                    syncUserToDb(mappedUser);
+                    hasSynced.current = mappedUser.id;
+                }
+            } else if (event === 'SIGNED_OUT') {
+                setUser(null);
+                hasSynced.current = false;
+            }
+            setLoading(false);
+        });
+
+        return () => {
+            subscription.unsubscribe();
+        };
+    }, [notifyLogin, syncUserToDb]);
+
+    const login = useCallback(async (email, password) => {
+        if (email && password) {
+            const { error } = await supabase.auth.signInWithPassword({ email, password });
+            if (error) throw error;
+        } else {
+            // Default to Google if no credentials
+            await supabase.auth.signInWithOAuth({ provider: 'google' });
+        }
+    }, []);
 
     const logout = useCallback(async () => {
         try {
-            setUser(null);
-            localStorage.setItem('edge2_just_logged_out', 'true');
-            
-            // Clear OIDC storage
-            await auth.removeUser();
-            
-            // Ensure session storage is also cleared (oidc-client-ts often uses both)
-            sessionStorage.clear();
-            
-            // Construct and redirect to Cognito logout
-            const logoutUrl = cognitoConfig.getLogoutUrl();
-            console.log('AuthContext: Logging out via:', logoutUrl);
-            window.location.href = logoutUrl;
+            await supabase.auth.signOut();
+            window.location.href = '/';
         } catch (error) {
             console.error('Logout failed:', error);
-            // Fallback: reload the page
             window.location.href = '/';
         }
-    }, [auth]);
+    }, []);
 
     const isSuperAdmin = useCallback(() => {
         const role = user?.role?.toLowerCase();
@@ -140,10 +135,7 @@ const AuthProvider = ({ children }) => {
 
     const isAdmin = useCallback(() => {
         const role = user?.role?.toLowerCase();
-        const result = role === 'admin' || role === 'superadmin' || role === 'super_admin' || role === 'administrator';
-        // console.log(user)
-        // console.log('AuthContext: isAdmin check:', { role, result });
-        return result;
+        return role === 'admin' || role === 'superadmin' || role === 'super_admin' || role === 'administrator';
     }, [user?.role]);
 
     const isStandard = useCallback(() => {
@@ -159,11 +151,9 @@ const AuthProvider = ({ children }) => {
         isSuperAdmin,
         isAdmin,
         isStandard,
-        idToken: user?.idToken, // Expose idToken for DynamoDB APIs
-        accessToken: user?.accessToken, // Expose accessToken for Cognito APIs
         isAuthenticated: !!user,
-        auth // Expose raw auth object if needed
-    }), [user, loading, login, logout, isSuperAdmin, isAdmin, isStandard, auth]);
+        supabase // Expose if needed
+    }), [user, loading, login, logout, isSuperAdmin, isAdmin, isStandard]);
 
     return (
         <AuthContext.Provider value={contextValue}>
@@ -181,3 +171,4 @@ const useAuth = () => {
 };
 
 export { AuthContext, AuthProvider, useAuth };
+

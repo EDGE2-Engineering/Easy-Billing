@@ -1,6 +1,6 @@
 
 import React, { createContext, useContext, useEffect, useState, useCallback, useMemo } from 'react';
-import { dynamoGenericApi } from '@/lib/dynamoGenericApi';
+import { supabaseGenericApi } from '@/lib/supabaseGenericApi';
 import { useAuth } from '@/contexts/AuthContext';
 import { DB_TYPES } from '@/config';
 
@@ -15,7 +15,7 @@ const useSettings = () => {
 };
 
 const SettingsProvider = ({ children }) => {
-    const { idToken, isAuthenticated, loading: authLoading } = useAuth();
+    const { isAuthenticated, loading: authLoading } = useAuth();
     const [settings, setSettings] = useState({
         tax_cgst: 9,
         tax_sgst: 9
@@ -23,10 +23,10 @@ const SettingsProvider = ({ children }) => {
     const [loading, setLoading] = useState(true);
 
     const fetchSettings = useCallback(async () => {
-        if (!idToken) return;
+        if (!isAuthenticated) return;
         setLoading(true);
         try {
-            const data = await dynamoGenericApi.listByType(DB_TYPES.APP_SETTING, idToken);
+            const data = await supabaseGenericApi.listByType(DB_TYPES.APP_SETTING);
             if (data && data.length > 0) {
                 const newSettings = {};
                 data.forEach(item => {
@@ -43,16 +43,15 @@ const SettingsProvider = ({ children }) => {
     }, [idToken]);
 
     const updateSetting = useCallback(async (key, value) => {
-        if (!idToken) throw new Error("User not authenticated");
+        if (!isAuthenticated) throw new Error("User not authenticated");
         setSettings(prev => ({ ...prev, [key]: value }));
 
         try {
             const payload = {
-                id: `setting_${key}`,
                 setting_key: key,
                 setting_value: String(value)
             };
-            await dynamoGenericApi.save(DB_TYPES.APP_SETTING, payload, idToken);
+            await supabaseGenericApi.save(DB_TYPES.APP_SETTING, payload, 'setting_key');
         } catch (err) {
             console.error("Update Setting Exception in DynamoDB:", err);
             await fetchSettings();

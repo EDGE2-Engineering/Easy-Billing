@@ -1,6 +1,6 @@
 
 import React, { createContext, useState, useContext, useEffect, useCallback, useMemo } from 'react';
-import { dynamoGenericApi } from '@/lib/dynamoGenericApi';
+import { supabaseGenericApi } from '@/lib/supabaseGenericApi';
 import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/components/ui/use-toast';
 import { DB_TYPES } from '@/config';
@@ -8,60 +8,60 @@ import { DB_TYPES } from '@/config';
 const TechnicalsContext = createContext();
 
 const TechnicalsProvider = ({ children }) => {
-    const { idToken, isAuthenticated, loading: authLoading } = useAuth();
+    const { isAuthenticated, loading: authLoading } = useAuth();
     const [technicals, setTechnicals] = useState([]);
     const [loading, setLoading] = useState(true);
     const { toast } = useToast();
 
     const fetchTechnicals = useCallback(async () => {
-        if (!idToken) return;
+        if (!isAuthenticated) return;
         setLoading(true);
         try {
-            const data = await dynamoGenericApi.listByType(DB_TYPES.TECHNICAL, idToken);
+            const data = await supabaseGenericApi.listByType(DB_TYPES.TECHNICAL);
             setTechnicals(data || []);
         } catch (error) {
-            console.error('Error fetching technicals from DynamoDB:', error);
+            console.error('Error fetching technicals from Supabase:', error);
         } finally {
             setLoading(false);
         }
-    }, [idToken]);
+    }, [isAuthenticated]);
 
-    const addTechnical = useCallback(async (text, tech_type) => {
-        if (!idToken) throw new Error("User not authenticated");
+    const addTechnical = useCallback(async (text, type) => {
+        if (!isAuthenticated) throw new Error("User not authenticated");
         try {
-            const payload = { text, tech_type };
-            const savedItem = await dynamoGenericApi.save(DB_TYPES.TECHNICAL, payload, idToken);
+            const payload = { text, type };
+            const savedItem = await supabaseGenericApi.save(DB_TYPES.TECHNICAL, payload);
             setTechnicals(prev => [...prev.filter(t => t.id !== savedItem.id), savedItem]);
             return [savedItem];
         } catch (error) {
-            console.error('Error adding technical to DynamoDB:', error);
+            console.error('Error adding technical to Supabase:', error);
             throw error;
         }
-    }, [idToken]);
+    }, [isAuthenticated]);
 
-    const updateTechnical = useCallback(async (id, text, tech_type) => {
-        if (!idToken) throw new Error("User not authenticated");
+    const updateTechnical = useCallback(async (id, text, type) => {
+        if (!isAuthenticated) throw new Error("User not authenticated");
         try {
-            const payload = { id, text, tech_type };
-            const savedItem = await dynamoGenericApi.save(DB_TYPES.TECHNICAL, payload, idToken);
+            const payload = { id, text, type };
+            const savedItem = await supabaseGenericApi.save(DB_TYPES.TECHNICAL, payload);
             setTechnicals(prev => prev.map(tech => tech.id === id ? savedItem : tech));
             return [savedItem];
         } catch (error) {
-            console.error('Error updating technical in DynamoDB:', error);
+            console.error('Error updating technical in Supabase:', error);
             throw error;
         }
-    }, [idToken]);
+    }, [isAuthenticated]);
 
     const deleteTechnical = useCallback(async (id) => {
-        if (!idToken) throw new Error("User not authenticated");
+        if (!isAuthenticated) throw new Error("User not authenticated");
         try {
-            await dynamoGenericApi.delete(id, idToken);
+            await supabaseGenericApi.delete(id, DB_TYPES.TECHNICAL);
             setTechnicals(prev => prev.filter(tech => tech.id !== id));
         } catch (error) {
-            console.error('Error deleting technical from DynamoDB:', error);
+            console.error('Error deleting technical from Supabase:', error);
             throw error;
         }
-    }, [idToken]);
+    }, [isAuthenticated]);
 
     useEffect(() => {
         if (!authLoading && isAuthenticated) {

@@ -30,7 +30,7 @@ import { useToast } from '@/components/ui/use-toast';
 import ReportPreview from '@/components/ReportPreview';
 import reportTemplateHtml from '@/templates/report-template.html?raw'
 import { useAuth } from '@/contexts/AuthContext';
-import { dynamoGenericApi } from '@/lib/dynamoGenericApi';
+import { supabaseGenericApi } from '@/lib/supabaseGenericApi';
 import { sendTelegramNotification } from '@/lib/notifier';
 import { getSiteContent, DB_TYPES } from '@/config';
 
@@ -85,7 +85,7 @@ function fillTemplate(template, data) {
 
 const NewReportForm = ({ editReport, onCancel, onSuccess }) => {
     const siteName = getSiteContent().global?.siteName || "Easy Billing";
-    const { user, idToken } = useAuth();
+    const { user, isAuthenticated } = useAuth();
     const { toast } = useToast();
     const [isPreviewOpen, setIsPreviewOpen] = useState(false);
     const [isSaving, setIsSaving] = useState(false);
@@ -102,24 +102,24 @@ const NewReportForm = ({ editReport, onCancel, onSuccess }) => {
 
     useEffect(() => {
         const fetchClients = async () => {
-            if (!idToken) return;
+            if (!isAuthenticated) return;
             try {
-                const data = await dynamoGenericApi.listByType(DB_TYPES.CLIENT, idToken);
+                const data = await supabaseGenericApi.listByType(DB_TYPES.CLIENT);
                 if (data) setClients(data);
             } catch (error) {
                 console.error('Error fetching clients:', error);
             }
         };
-        if (idToken) {
+        if (isAuthenticated) {
             fetchClients();
         }
-    }, [idToken]);
+    }, [isAuthenticated]);
 
     useEffect(() => {
         const fetchJobOrders = async () => {
-            if (!idToken) return;
+            if (!isAuthenticated) return;
             try {
-                const data = await dynamoGenericApi.listByType(DB_TYPES.JOB, idToken);
+                const data = await supabaseGenericApi.listByType(DB_TYPES.JOB);
                 // Map to match expected structure jo.clients?.client_name
                 const mappedData = data.map(jo => ({
                     ...jo,
@@ -133,10 +133,10 @@ const NewReportForm = ({ editReport, onCancel, onSuccess }) => {
                 console.error('Error fetching job orders:', error);
             }
         };
-        if (idToken) {
+        if (isAuthenticated) {
             fetchJobOrders();
         }
-    }, [idToken]);
+    }, [isAuthenticated]);
 
     // Load report data from props if editing
     useEffect(() => {
@@ -1689,9 +1689,9 @@ const NewReportForm = ({ editReport, onCancel, onSuccess }) => {
         }
 
         try {
-            if (!idToken) throw new Error('Authentication required');
+            if (!isAuthenticated) throw new Error('Authentication required');
 
-            const results = await dynamoGenericApi.findByAttribute('report', 'report_number', formData.reportId, idToken);
+            const results = await supabaseGenericApi.findByAttribute(DB_TYPES.REPORT, 'report_number', formData.reportId);
             const existing = results[0];
 
             if (existing && existing.id !== formData.id) {
@@ -1718,9 +1718,9 @@ const NewReportForm = ({ editReport, onCancel, onSuccess }) => {
         }
 
         try {
-            if (!idToken) throw new Error('Authentication required');
+            if (!isAuthenticated) throw new Error('Authentication required');
 
-            const results = await dynamoGenericApi.findByAttribute('report', 'report_number', formData.reportId, idToken);
+            const results = await supabaseGenericApi.findByAttribute(DB_TYPES.REPORT, 'report_number', formData.reportId);
             const existing = results[0];
 
             if (existing && existing.id !== formData.id) {
@@ -1751,7 +1751,7 @@ const NewReportForm = ({ editReport, onCancel, onSuccess }) => {
                 updated_at: new Date().toISOString()
             };
 
-            await dynamoGenericApi.save('report', payload, idToken);
+            await supabaseGenericApi.save(DB_TYPES.REPORT, payload);
 
             toast({
                 title: isGenerating ? "Report Generated" : "Report Saved",

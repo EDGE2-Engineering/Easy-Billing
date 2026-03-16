@@ -1,13 +1,13 @@
 
 import React, { createContext, useState, useEffect, useCallback, useMemo } from 'react';
-import { dynamoGenericApi } from '@/lib/dynamoGenericApi';
+import { supabaseGenericApi } from '@/lib/supabaseGenericApi';
 import { useAuth } from '@/contexts/AuthContext';
 import { DB_TYPES } from '@/config';
 
 const TestsContext = createContext();
 
 const TestsProvider = ({ children }) => {
-    const { idToken, isAuthenticated, loading: authLoading } = useAuth();
+    const { isAuthenticated, loading: authLoading } = useAuth();
     const [tests, setTests] = useState([]);
     const [clientTestPrices, setClientTestPrices] = useState([]);
     const [loading, setLoading] = useState(true);
@@ -44,9 +44,9 @@ const TestsProvider = ({ children }) => {
     }), []);
 
     const fetchTests = useCallback(async () => {
-        if (!idToken) return;
+        if (!isAuthenticated) return;
         try {
-            const data = await dynamoGenericApi.listByType(DB_TYPES.TEST, idToken);
+            const data = await supabaseGenericApi.listByType(DB_TYPES.TEST);
 
             if (data && data.length > 0) {
                 const mappedData = data.map(mapFromDb);
@@ -63,9 +63,9 @@ const TestsProvider = ({ children }) => {
     }, [mapFromDb, idToken]);
 
     const fetchClientTestPrices = useCallback(async () => {
-        if (!idToken) return;
+        if (!isAuthenticated) return;
         try {
-            const data = await dynamoGenericApi.listByType(DB_TYPES.CLIENT_TEST_PRICE, idToken);
+            const data = await supabaseGenericApi.listByType(DB_TYPES.CLIENT_TEST_PRICE);
             if (data) {
                 setClientTestPrices(data);
             }
@@ -87,11 +87,11 @@ const TestsProvider = ({ children }) => {
 
 
     const updateTest = useCallback(async (updatedTest) => {
-        if (!idToken) throw new Error("User not authenticated");
+        if (!isAuthenticated) throw new Error("User not authenticated");
         setTests(prev => prev.map(t => t.id === updatedTest.id ? updatedTest : t));
         try {
             const dbPayload = mapToDb(updatedTest);
-            await dynamoGenericApi.save(DB_TYPES.TEST, dbPayload, idToken);
+            await supabaseGenericApi.save(DB_TYPES.TEST, dbPayload);
         } catch (err) {
             console.warn("Update Test Exception:", err);
             throw err;
@@ -99,13 +99,13 @@ const TestsProvider = ({ children }) => {
     }, [mapToDb, idToken]);
 
     const addTest = useCallback(async (newTest) => {
-        if (!idToken) throw new Error("User not authenticated");
+        if (!isAuthenticated) throw new Error("User not authenticated");
         const tempId = newTest.id || `tst_${Date.now()}`;
         const testWithId = { ...newTest, id: tempId, created_at: new Date().toISOString() };
         setTests(prev => [...prev, testWithId]);
         try {
             const dbPayload = mapToDb(testWithId);
-            await dynamoGenericApi.save(DB_TYPES.TEST, dbPayload, idToken);
+            await supabaseGenericApi.save(DB_TYPES.TEST, dbPayload);
         } catch (err) {
             console.warn("Add Test Exception:", err);
             throw err;
@@ -113,17 +113,17 @@ const TestsProvider = ({ children }) => {
     }, [mapToDb, idToken]);
 
     const deleteTest = useCallback(async (id) => {
-        if (!idToken) throw new Error("User not authenticated");
+        if (!isAuthenticated) throw new Error("User not authenticated");
         setTests(prev => prev.filter(t => t.id !== id));
         try {
-            await dynamoGenericApi.delete(id, idToken);
+            await supabaseGenericApi.delete(id, DB_TYPES.TEST);
         } catch (err) {
             console.warn("Delete Test Exception:", err);
         }
     }, [idToken]);
 
     const updateClientTestPrice = useCallback(async (clientId, testId, price) => {
-        if (!idToken) throw new Error("User not authenticated");
+        if (!isAuthenticated) throw new Error("User not authenticated");
         try {
             const priceId = `ctp_${clientId}_${testId}`;
             const payload = {
@@ -132,7 +132,7 @@ const TestsProvider = ({ children }) => {
                 test_id: testId,
                 price: price
             };
-            const savedItem = await dynamoGenericApi.save(DB_TYPES.CLIENT_TEST_PRICE, payload, idToken);
+            const savedItem = await supabaseGenericApi.save(DB_TYPES.CLIENT_TEST_PRICE, payload);
             setClientTestPrices(prev => {
                 const filtered = prev.filter(p => p.id !== priceId);
                 return [...filtered, savedItem];
@@ -144,10 +144,10 @@ const TestsProvider = ({ children }) => {
     }, [idToken]);
 
     const deleteClientTestPrice = useCallback(async (clientId, testId) => {
-        if (!idToken) throw new Error("User not authenticated");
+        if (!isAuthenticated) throw new Error("User not authenticated");
         try {
             const priceId = `ctp_${clientId}_${testId}`;
-            await dynamoGenericApi.delete(priceId, idToken);
+            await supabaseGenericApi.delete(priceId, DB_TYPES.CLIENT_TEST_PRICE);
             setClientTestPrices(prev => prev.filter(p => p.id !== priceId));
         } catch (err) {
             console.error("Error deleting client test price:", err);

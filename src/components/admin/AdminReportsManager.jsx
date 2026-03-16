@@ -23,7 +23,7 @@ import {
     AlertDialogHeader,
     AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import { dynamoGenericApi } from '@/lib/dynamoGenericApi';
+import { supabaseGenericApi } from '@/lib/supabaseGenericApi';
 import NewReportForm from './NewReportForm';
 import { DB_TYPES } from '@/config';
 
@@ -36,12 +36,12 @@ const AdminReportsManager = () => {
     const [deleteConfirmation, setDeleteConfirmation] = useState({ isOpen: false, reportId: null, reportNumber: '' });
     const [appUsers, setAppUsers] = useState([]);
     const { toast } = useToast();
-    const { user, idToken } = useAuth();
+    const { user, isAuthenticated } = useAuth();
 
     const fetchUsers = async () => {
-        if (!idToken) return;
+        if (!isAuthenticated) return;
         try {
-            const data = await dynamoGenericApi.listByType(DB_TYPES.USER, idToken);
+            const data = await supabaseGenericApi.listByType(DB_TYPES.USER);
             setAppUsers(data || []);
         } catch (error) {
             console.error('Error fetching users:', error);
@@ -49,10 +49,10 @@ const AdminReportsManager = () => {
     };
 
     const fetchReports = async () => {
-        if (!idToken) return;
+        if (!isAuthenticated) return;
         setLoading(true);
         try {
-            const data = await dynamoGenericApi.listByType(DB_TYPES.JOB, idToken);
+            const data = await supabaseGenericApi.listByType(DB_TYPES.JOB);
             // Filter only jobs that have report data or are ready for reports
             setReports(data || []);
         } catch (error) {
@@ -64,11 +64,11 @@ const AdminReportsManager = () => {
     };
 
     useEffect(() => {
-        if (idToken) {
+        if (isAuthenticated) {
             fetchReports();
             fetchUsers();
         }
-    }, [idToken]);
+    }, [isAuthenticated]);
 
     // ... handle functions ...
 
@@ -91,9 +91,9 @@ const AdminReportsManager = () => {
     };
 
     const confirmDelete = async () => {
-        if (!idToken) return;
+        if (!isAuthenticated) return;
         try {
-            await dynamoGenericApi.delete(deleteConfirmation.reportId, idToken);
+            await supabaseGenericApi.delete(deleteConfirmation.reportId, DB_TYPES.JOB);
             toast({ title: "Record Deleted", variant: "destructive" });
 
             // Telegram Notification

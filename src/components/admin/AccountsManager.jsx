@@ -18,7 +18,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import { dynamoGenericApi } from '@/lib/dynamoGenericApi';
+import { supabaseGenericApi } from '@/lib/supabaseGenericApi';
 import {
   Select,
   SelectContent,
@@ -46,7 +46,7 @@ const AccountsManager = () => {
   const { toast } = useToast();
   const navigate = useNavigate();
   const { settings } = useSettings();
-  const { user, isStandard, idToken } = useAuth();
+  const { user, isStandard, isAuthenticated } = useAuth();
 
   const taxCGST = settings?.tax_cgst ? Number(settings.tax_cgst) : 9;
   const taxSGST = settings?.tax_sgst ? Number(settings.tax_sgst) : 9;
@@ -70,10 +70,10 @@ const AccountsManager = () => {
   };
 
   const fetchAccounts = async () => {
-    if (!idToken) return;
+    if (!isAuthenticated) return;
     setLoading(true);
     try {
-      const data = await dynamoGenericApi.listByType(DB_TYPES.ACCOUNT, idToken);
+      const data = await supabaseGenericApi.listByType(DB_TYPES.ACCOUNT);
 
       // Filter by standard user if applicable
       let filteredData = data || [];
@@ -98,9 +98,9 @@ const AccountsManager = () => {
   };
 
   const fetchUsers = async () => {
-    if (!idToken) return;
+    if (!isAuthenticated) return;
     try {
-      const data = await dynamoGenericApi.listByType(DB_TYPES.USER, idToken);
+      const data = await supabaseGenericApi.listByType(DB_TYPES.USER);
       setAppUsers(data || []);
     } catch (error) {
       console.error('Error fetching users:', error);
@@ -108,11 +108,11 @@ const AccountsManager = () => {
   };
 
   useEffect(() => {
-    if (idToken) {
+    if (isAuthenticated) {
       fetchAccounts();
       fetchUsers();
     }
-  }, [idToken]);
+  }, [isAuthenticated]);
 
   const handleDeleteClick = (record) => {
     setDeleteConfirmation({
@@ -123,10 +123,10 @@ const AccountsManager = () => {
   };
 
   const confirmDelete = async () => {
-    if (!deleteConfirmation.recordId || !idToken) return;
+    if (!deleteConfirmation.recordId || !isAuthenticated) return;
 
     try {
-      await dynamoGenericApi.delete(deleteConfirmation.recordId, idToken);
+      await supabaseGenericApi.delete(deleteConfirmation.recordId, DB_TYPES.ACCOUNT);
       toast({ title: "Account Deleted", description: "The account record has been removed.", variant: "destructive" });
       fetchAccounts();
     } catch (error) {

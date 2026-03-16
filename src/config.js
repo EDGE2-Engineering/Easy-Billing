@@ -101,24 +101,25 @@ export const TG_NOTIFIER_CONFIG = {
 export const enableInfoDiagramZoom = false;
 
 export const DB_TYPES = {
-    ACCOUNT: 'account',
-    APP_SETTING: 'app_setting',
-    CLIENT: 'client',
-    CLIENT_SERVICE_PRICE: 'client_service_price',
-    CLIENT_TEST_PRICE: 'client_test_price',
-    HSN_SAC_CODE: 'hsn_sac_code',
-    MATERIAL_INWARD: 'job',
-    QUOTATION: 'job',
-    REPORT: 'job',
-    REPORT_NUMBER: 'job',
-    JOB: 'job',
-    SERVICE: 'service',
-    SERVICE_UNIT_TYPE: 'service_unit_type',
-    TECHNICAL: 'technical',
-    TERM_AND_CONDITION: 'term_and_condition',
-    TEST: 'test',
-    USER: 'user'
+    ACCOUNT: 'accounts',
+    APP_SETTING: 'app_settings',
+    CLIENT: 'clients',
+    CLIENT_SERVICE_PRICE: 'client_service_prices',
+    CLIENT_TEST_PRICE: 'client_test_prices',
+    HSN_SAC_CODE: 'hsn_sac_codes',
+    MATERIAL_INWARD: 'material_inward_register',
+    QUOTATION: 'material_inward_register',
+    REPORT: 'reports',
+    REPORT_NUMBER: 'reports',
+    JOB: 'material_inward_register',
+    SERVICE: 'services',
+    SERVICE_UNIT_TYPE: 'service_unit_types',
+    TECHNICAL: 'technicals',
+    TERM_AND_CONDITION: 'terms_and_conditions',
+    TEST: 'tests',
+    USER: 'users'
 };
+
 
 export const WORKFLOW_STEPS = [
     { id: 'QUOTATION_CREATED', label: 'Quotation Created', action: 'Add Material Inward', roles: ['superadmin', 'admin', 'mro'] },

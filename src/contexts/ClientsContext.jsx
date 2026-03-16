@@ -1,6 +1,6 @@
 
 import React, { createContext, useState, useEffect, useCallback, useMemo } from 'react';
-import { dynamoGenericApi } from '@/lib/dynamoGenericApi';
+import { supabaseGenericApi } from '@/lib/supabaseGenericApi';
 import { useAuth } from '@/contexts/AuthContext';
 import { DB_TYPES } from '@/config';
 
@@ -8,7 +8,7 @@ const ClientsContext = createContext();
 
 
 const ClientsProvider = ({ children }) => {
-    const { idToken, isAuthenticated, loading: authLoading } = useAuth();
+    const { isAuthenticated, loading: authLoading } = useAuth();
     const [clients, setClients] = useState([]);
     const [loading, setLoading] = useState(true);
 
@@ -49,13 +49,13 @@ const ClientsProvider = ({ children }) => {
     }), []);
 
     const fetchClients = useCallback(async () => {
-        if (!idToken) {
+        if (!isAuthenticated) {
             setLoading(false);
             return;
         }
 
         try {
-            const data = await dynamoGenericApi.listByType(DB_TYPES.CLIENT, idToken);
+            const data = await supabaseGenericApi.listByType(DB_TYPES.CLIENT);
 
             if (data && data.length > 0) {
                 const mappedData = data.map(mapFromDb);
@@ -99,7 +99,7 @@ const ClientsProvider = ({ children }) => {
 
         try {
             const dbPayload = mapToDb(updatedClient);
-            const savedItem = await dynamoGenericApi.save(DB_TYPES.CLIENT, dbPayload, idToken);
+            const savedItem = await supabaseGenericApi.save(DB_TYPES.CLIENT, dbPayload);
             const updated = mapFromDb(savedItem);
             setClients(prev => prev.map(c => c.id === updated.id ? updated : c));
         } catch (err) {
@@ -110,7 +110,7 @@ const ClientsProvider = ({ children }) => {
     }, [clients, idToken, mapToDb, mapFromDb]);
 
     const addClient = useCallback(async (newClient) => {
-        if (!idToken) throw new Error("User not authenticated");
+        if (!isAuthenticated) throw new Error("User not authenticated");
 
         // Check for duplicate client names
         if (newClient.clientName) {
@@ -130,7 +130,7 @@ const ClientsProvider = ({ children }) => {
 
         try {
             const dbPayload = mapToDb(clientWithId);
-            const savedItem = await dynamoGenericApi.save(DB_TYPES.CLIENT, dbPayload, idToken);
+            const savedItem = await supabaseGenericApi.save(DB_TYPES.CLIENT, dbPayload);
             const added = mapFromDb(savedItem);
             setClients(prev => prev.map(c => c.id === tempId ? added : c));
         } catch (err) {
@@ -141,13 +141,13 @@ const ClientsProvider = ({ children }) => {
     }, [clients, idToken, mapToDb, mapFromDb]);
 
     const deleteClient = useCallback(async (id) => {
-        if (!idToken) throw new Error("User not authenticated");
+        if (!isAuthenticated) throw new Error("User not authenticated");
 
         const previousClients = [...clients];
         setClients(prev => prev.filter(c => c.id !== id));
 
         try {
-            await dynamoGenericApi.delete(id, idToken);
+            await supabaseGenericApi.delete(id, DB_TYPES.CLIENT);
         } catch (err) {
             console.error("Delete Client Exception:", err);
             setClients(previousClients);

@@ -1,6 +1,6 @@
 
 import React, { createContext, useState, useContext, useEffect, useCallback, useMemo } from 'react';
-import { dynamoGenericApi } from '@/lib/dynamoGenericApi';
+import { supabaseGenericApi } from '@/lib/supabaseGenericApi';
 import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/components/ui/use-toast';
 import { DB_TYPES } from '@/config';
@@ -8,60 +8,60 @@ import { DB_TYPES } from '@/config';
 const TermsAndConditionsContext = createContext();
 
 const TermsAndConditionsProvider = ({ children }) => {
-    const { idToken, isAuthenticated, loading: authLoading } = useAuth();
+    const { isAuthenticated, loading: authLoading } = useAuth();
     const [terms, setTerms] = useState([]);
     const [loading, setLoading] = useState(true);
     const { toast } = useToast();
 
     const fetchTerms = useCallback(async () => {
-        if (!idToken) return;
+        if (!isAuthenticated) return;
         setLoading(true);
         try {
-            const data = await dynamoGenericApi.listByType(DB_TYPES.TERM_AND_CONDITION, idToken);
+            const data = await supabaseGenericApi.listByType(DB_TYPES.TERM_AND_CONDITION);
             setTerms(data || []);
         } catch (error) {
-            console.error('Error fetching terms from DynamoDB:', error);
+            console.error('Error fetching terms from Supabase:', error);
         } finally {
             setLoading(false);
         }
-    }, [idToken]);
+    }, [isAuthenticated]);
 
-    const addTerm = useCallback(async (text, term_type = 'general') => {
-        if (!idToken) throw new Error("User not authenticated");
+    const addTerm = useCallback(async (text, type = 'general') => {
+        if (!isAuthenticated) throw new Error("User not authenticated");
         try {
-            const payload = { text, term_type };
-            const savedItem = await dynamoGenericApi.save(DB_TYPES.TERM_AND_CONDITION, payload, idToken);
+            const payload = { text, type };
+            const savedItem = await supabaseGenericApi.save(DB_TYPES.TERM_AND_CONDITION, payload);
             setTerms(prev => [...prev.filter(t => t.id !== savedItem.id), savedItem]);
             return [savedItem];
         } catch (error) {
-            console.error('Error adding term to DynamoDB:', error);
+            console.error('Error adding term to Supabase:', error);
             throw error;
         }
-    }, [idToken]);
+    }, [isAuthenticated]);
 
-    const updateTerm = useCallback(async (id, text, term_type) => {
-        if (!idToken) throw new Error("User not authenticated");
+    const updateTerm = useCallback(async (id, text, type) => {
+        if (!isAuthenticated) throw new Error("User not authenticated");
         try {
-            const payload = { id, text, term_type };
-            const savedItem = await dynamoGenericApi.save(DB_TYPES.TERM_AND_CONDITION, payload, idToken);
+            const payload = { id, text, type };
+            const savedItem = await supabaseGenericApi.save(DB_TYPES.TERM_AND_CONDITION, payload);
             setTerms(prev => prev.map(term => term.id === id ? savedItem : term));
             return [savedItem];
         } catch (error) {
-            console.error('Error updating term in DynamoDB:', error);
+            console.error('Error updating term in Supabase:', error);
             throw error;
         }
-    }, [idToken]);
+    }, [isAuthenticated]);
 
     const deleteTerm = useCallback(async (id) => {
-        if (!idToken) throw new Error("User not authenticated");
+        if (!isAuthenticated) throw new Error("User not authenticated");
         try {
-            await dynamoGenericApi.delete(id, idToken);
+            await supabaseGenericApi.delete(id, DB_TYPES.TERM_AND_CONDITION);
             setTerms(prev => prev.filter(term => term.id !== id));
         } catch (error) {
-            console.error('Error deleting term from DynamoDB:', error);
+            console.error('Error deleting term from Supabase:', error);
             throw error;
         }
-    }, [idToken]);
+    }, [isAuthenticated]);
 
     useEffect(() => {
         if (!authLoading && isAuthenticated) {

@@ -15,7 +15,7 @@ import {
 } from "@/components/ui/card";
 import { Badge } from '@/components/ui/badge';
 import { useAuth } from '@/contexts/AuthContext';
-import { dynamoGenericApi } from '@/lib/dynamoGenericApi';
+import { supabaseGenericApi } from '@/lib/supabaseGenericApi';
 import { format } from 'date-fns';
 import { MermaidDiagram } from '@lightenna/react-mermaid-diagram';
 import { ScrollArea } from "@/components/ui/scroll-area";
@@ -33,7 +33,7 @@ import { Dialog, DialogContent } from '@/components/ui/dialog';
 import ReportPreview from '@/components/ReportPreview';
 
 const AdminJobsManager = () => {
-    const { idToken, user, isAdmin } = useAuth();
+    const { isAuthenticated, user, isAdmin } = useAuth();
     const navigate = useNavigate();
     const [jobs, setJobs] = useState([]);
     const [appUsers, setAppUsers] = useState([]);
@@ -51,13 +51,13 @@ const AdminJobsManager = () => {
     const workflowStates = WORKFLOW_STEPS.map(s => s.id);
 
     const fetchInitialData = async () => {
-        if (!idToken) return;
+        if (!isAuthenticated) return;
         setLoading(true);
         try {
             const [jobsData, usersData, clientsData] = await Promise.all([
-                dynamoGenericApi.listByType(DB_TYPES.JOB, idToken),
-                dynamoGenericApi.listByType(DB_TYPES.USER, idToken),
-                dynamoGenericApi.listByType(DB_TYPES.CLIENT, idToken)
+                supabaseGenericApi.listByType(DB_TYPES.JOB),
+                supabaseGenericApi.listByType(DB_TYPES.USER),
+                supabaseGenericApi.listByType(DB_TYPES.CLIENT)
             ]);
             setJobs(jobsData || []);
             setAppUsers(usersData || []);
@@ -71,7 +71,7 @@ const AdminJobsManager = () => {
 
     useEffect(() => {
         fetchInitialData();
-    }, [idToken]);
+    }, [isAuthenticated]);
 
     const filteredJobs = useMemo(() => {
         return jobs.filter(job =>
@@ -98,7 +98,7 @@ const AdminJobsManager = () => {
         );
     };
     const handleStatusTransition = async () => {
-        if (!selectedJob || !idToken) return;
+        if (!selectedJob || !isAuthenticated) return;
 
         const currentIndex = workflowStates.indexOf(selectedJob.status);
         if (selectedJob.status === 'QUOTATION_CREATED') {
@@ -117,7 +117,7 @@ const AdminJobsManager = () => {
                 updated_by: user.id || user.username
             };
 
-            await dynamoGenericApi.save(DB_TYPES.JOB, updatedJob, idToken);
+            await supabaseGenericApi.save(DB_TYPES.JOB, updatedJob);
 
             setJobs(prev => prev.map(j => j.id === updatedJob.id ? updatedJob : j));
             setSelectedJob(updatedJob);
@@ -153,7 +153,7 @@ const AdminJobsManager = () => {
                 updated_by: user.id || user.username
             };
 
-            await dynamoGenericApi.save(DB_TYPES.JOB, updatedJob, idToken);
+            await supabaseGenericApi.save(DB_TYPES.JOB, updatedJob);
 
             setJobs(prev => prev.map(j => j.id === updatedJob.id ? updatedJob : j));
             setSelectedJob(updatedJob);
@@ -185,7 +185,7 @@ const AdminJobsManager = () => {
                 updated_by: user.id || user.username
             };
 
-            await dynamoGenericApi.save(DB_TYPES.JOB, updatedJob, idToken);
+            await supabaseGenericApi.save(DB_TYPES.JOB, updatedJob);
 
             setJobs(prev => prev.map(j => j.id === updatedJob.id ? updatedJob : j));
             setSelectedJob(updatedJob);
@@ -507,7 +507,7 @@ const AdminJobsManager = () => {
                                         <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider">PO/WO #</p>
                                         <p className="text-sm font-medium">{selectedJob.material_inward?.po_wo_number || selectedJob.po_wo_number || '-'}</p>
                                     </div>
-                                     <div className="space-y-1">
+                                    <div className="space-y-1">
                                         <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider">Created On</p>
                                         <p className="text-sm font-medium">{format(new Date(selectedJob.created_at), 'dd MMM yyyy')}</p>
                                     </div>
